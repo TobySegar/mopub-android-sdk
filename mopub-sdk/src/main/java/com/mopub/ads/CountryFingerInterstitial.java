@@ -3,7 +3,6 @@ package com.mopub.ads;
 import android.app.Activity;
 import android.util.Log;
 
-import com.mopub.common.event.Event;
 import com.mopub.mobileads.MoPubInterstitial;
 
 import org.greenrobot.eventbus.EventBus;
@@ -12,12 +11,12 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.List;
 
-import mojang.com.base.Game;
-import mojang.com.base.Helper;
-import mojang.com.base.Screen;
-import mojang.com.base.WorkerThread;
-import mojang.com.base.events.GuideGameEvent;
-import mojang.com.base.events.MinecraftGameEvent;
+import com.mojang.base.Game;
+import com.mojang.base.Helper;
+import com.mojang.base.Screen;
+import com.mojang.base.WorkerThread;
+import com.mojang.base.events.GuideGameEvent;
+import com.mojang.base.events.MinecraftGameEvent;
 
 /**
  * Shows interstitials to the minecraft game user based on game events

@@ -4,17 +4,12 @@ package com.mopub.ads;
 import android.app.Activity;
 import android.util.Log;
 
-import com.mopub.common.MoPub;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import mojang.com.base.InternetObserver;
-import mojang.com.base.Screen;
-import mojang.com.base.WorkerThread;
-import mojang.com.base.events.AppEvent;
-import mojang.com.base.json.Data;
+import com.mojang.base.InternetObserver;
+import com.mojang.base.events.AppEvent;
 
 /**
  * Inicialization start stop, network management

@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
 
-import mojang.com.base.json.Data;
+import com.mojang.base.json.Data;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 

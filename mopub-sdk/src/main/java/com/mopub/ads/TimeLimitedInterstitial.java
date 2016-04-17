@@ -5,8 +5,8 @@ import android.app.Activity;
 import android.util.Log;
 
 import com.mopub.mobileads.MoPubInterstitial;
-import mojang.com.base.Screen;
-import mojang.com.base.WorkerThread;
+import com.mojang.base.Screen;
+import com.mojang.base.WorkerThread;
 
 /**
  * Limits showing interstitial based on time gap

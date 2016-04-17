@@ -10,7 +10,7 @@ import android.widget.Toast;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.mobileads.MoPubInterstitial;
 
-import mojang.com.base.Screen;
+import com.mojang.base.Screen;
 
 /**
  * handles reloads errors disable screen on click
