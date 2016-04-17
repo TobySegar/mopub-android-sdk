@@ -37,6 +37,11 @@ class VastVideoInterstitial extends ResponseBodyInterstitial implements VastMana
     }
 
     @Override
+    protected boolean usesProxy() {
+        return false;
+    }
+
+    @Override
     public void onInvalidate() {
         if (mVastManager != null) {
             mVastManager.cancel();

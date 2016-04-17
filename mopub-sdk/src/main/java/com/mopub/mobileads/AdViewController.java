@@ -13,7 +13,9 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import com.mopub.ads.adapters.GooglePlayServicesInterstitial;
 import com.mopub.common.AdReport;
+import com.mopub.common.AdType;
 import com.mopub.common.ClientMetadata;
 import com.mopub.common.Constants;
 import com.mopub.common.Preconditions;
@@ -37,6 +39,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
+
+import mojang.com.base.json.Data;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 
@@ -157,10 +161,25 @@ public class AdViewController {
         final MoPubErrorCode errorCode = getErrorCodeFromVolleyError(error, mContext);
         if (errorCode == MoPubErrorCode.SERVER_ERROR) {
             mBackoffPower++;
+            onAdLoadSuccess(getFailoverResponse()); //todo test
+            return;
         }
 
         setNotLoading();
         adDidFail(errorCode);
+    }
+
+    private AdResponse getFailoverResponse() {
+        Map<String,String> serverExtras = new HashMap<>();
+        serverExtras.put(GooglePlayServicesInterstitial.AD_UNIT_ID_KEY, Data.Ads.Interstitial.failoverId);
+
+        AdResponse failoverResponse = new AdResponse.Builder()
+                .setCustomEventClassName(GooglePlayServicesInterstitial.class.getName())
+                .setServerExtras(serverExtras)
+                .setAdType(AdType.CUSTOM)
+                .build();
+
+        return failoverResponse;
     }
 
     @VisibleForTesting

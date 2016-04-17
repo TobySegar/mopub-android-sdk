@@ -2,6 +2,7 @@ package com.mopub.mobileads;
 
 import android.app.Activity;
 
+import com.mopub.common.DataKeys;
 import com.mopub.common.test.support.SdkTestRunner;
 import com.mopub.mobileads.test.support.TestAdViewControllerFactory;
 import com.mopub.mobileads.test.support.TestCustomEventInterstitialAdapterFactory;
@@ -142,6 +143,56 @@ public class MoPubInterstitialTest {
         verify(interstitialAdListener).onInterstitialLoaded(eq(subject));
 
         verify(interstitialView, never()).trackImpression();
+    }
+
+    @Test
+    public void extractCountryFromExtras() throws Exception {
+        String responseClickThroughUrl = "http://ads.mopub.com/m/imp?appid=" +
+                "&cid=7c8" +
+                "&city=Bratislava" +
+                "&ckv=2" +
+                "&country_code=SK" +
+                "&cppck=61FA7" +
+                "&dev=XT1028" +
+                "&exclude_adgroups=7c8f" +
+                "&is_mraid=0" +
+                "&os=Android" +
+                "&osv=5.1.0" +
+                "&req=ca42.0" +
+                "&rev=0.0" +
+                "&udid=sha%3Ab6b3" +
+                "&video_type=";
+        Map<String, String> serverExtras = new HashMap<>();
+        serverExtras.put(DataKeys.CLICKTHROUGH_URL_KEY, responseClickThroughUrl);
+
+        subject.extractCountryFromExtras(serverExtras);
+
+        assertThat(subject.getCountry()).isEqualTo("SK");
+    }
+
+    @Test
+    public void extractCityFromExtras() throws Exception {
+        String responseClickThroughUrl = "http://ads.mopub.com/m/imp?appid=" +
+                "&cid=7c8" +
+                "&city=Bratislava" +
+                "&ckv=2" +
+                "&country_code=SK" +
+                "&cppck=61FA7" +
+                "&dev=XT1028" +
+                "&exclude_adgroups=7c8f" +
+                "&is_mraid=0" +
+                "&os=Android" +
+                "&osv=5.1.0" +
+                "&req=ca42.0" +
+                "&rev=0.0" +
+                "&udid=sha%3Ab6b3" +
+                "&video_type=";
+        Map<String, String> serverExtras = new HashMap<>();
+        serverExtras.put(DataKeys.CLICKTHROUGH_URL_KEY,responseClickThroughUrl);
+
+        subject.extractCityFromExtras(serverExtras);
+
+        assertThat(subject.getCity()).isEqualTo("Bratislava");
     }
 
     @Test

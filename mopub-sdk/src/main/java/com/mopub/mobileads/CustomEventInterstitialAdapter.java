@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.mopub.ads.Proxy;
 import com.mopub.common.AdReport;
 import com.mopub.common.Constants;
 import com.mopub.common.Preconditions;
@@ -33,6 +34,7 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
     private Map<String, String> mServerExtras;
     private final Handler mHandler;
     private final Runnable mTimeout;
+    private Proxy mProxy;
 
     public CustomEventInterstitialAdapter(@NonNull final MoPubInterstitial moPubInterstitial,
             @NonNull final String className,
@@ -89,6 +91,14 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
 
     void showInterstitial() {
         if (isInvalidated() || mCustomEventInterstitial == null) {
+            return;
+        }
+
+        //todo test
+        //We use proxy activity for some ad networks
+        if(mCustomEventInterstitial.usesProxy()){
+            mProxy = new Proxy();
+            mProxy.startProxyActivity(mContext,mCustomEventInterstitial);
             return;
         }
 
@@ -217,6 +227,11 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
 
         if (mCustomEventInterstitialAdapterListener != null) {
             mCustomEventInterstitialAdapterListener.onCustomEventInterstitialDismissed();
+        }
+
+        //todo test
+        if(mProxy != null) {
+            mProxy.Finish();
         }
     }
 
