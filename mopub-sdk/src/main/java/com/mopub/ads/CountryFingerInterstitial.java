@@ -73,9 +73,9 @@ public class CountryFingerInterstitial extends TimeLimitedInterstitial {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(GuideGameEvent gameEvent) {
+    public void guideEvent(GuideGameEvent gameEvent) {
         switch (gameEvent.event) {
-            case OpenInventory:
+            case BlockChanged:
                 super.show();
                 break;
         }
