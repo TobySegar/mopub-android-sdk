@@ -21,3 +21,19 @@
 # Filter out warnings that refer to legacy Code.
 -dontwarn org.apache.http.**
 -dontwarn com.mopub.volley.toolbox.**
+
+#admob
+-keep public class com.google.android.gms.ads.** {public *;}
+-keep public class com.google.ads.** {public *;}
+#adcolony
+-dontwarn android.webkit.**
+-dontwarn com.jirbo.adcolony.**
+-keep class com.jirbo.adcolony.**{*;}
+-keep class com.immersion.**{*;}
+#amazon
+-keep class com.amazon.** { *; }
+#unityads
+-keepattributes JavascriptInterface
+-keep class com.unity3d.ads.android.** {*;}
+#chartboost
+-keep class com.chartboost.** { *; }

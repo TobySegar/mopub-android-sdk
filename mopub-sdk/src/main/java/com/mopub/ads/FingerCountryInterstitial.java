@@ -22,7 +22,7 @@ import com.mojang.base.events.MinecraftGameEvent;
  * Shows interstitials to the minecraft game user based on game events
  * Shows finger ad
  */
-public class CountryFingerInterstitial extends TimeLimitedInterstitial {
+public class FingerCountryInterstitial extends TimeLimitedInterstitial {
     private final String TAG = this.getClass().getName();
     private final List<String> fingerCountries;
     private boolean canShowFingerAd;
@@ -34,11 +34,13 @@ public class CountryFingerInterstitial extends TimeLimitedInterstitial {
     private final WorkerThread workerThread;
     private long fingerAdMills;
     private String country;
+    private static final int BLOCK_CHANGES_TO_AD = 3;
+    private int timesBlockChanged;
 
 
-    public CountryFingerInterstitial(Activity activity, String interstitialId,Screen screen, WorkerThread workerThread,
+    public FingerCountryInterstitial(Activity activity, String interstitialId, Screen screen, WorkerThread workerThread,
                                      long adTimeGapMills, Game currentGame, List<String> fingerCountries) {
-        super(activity, interstitialId,screen, workerThread, adTimeGapMills);
+        super(activity, interstitialId, screen, workerThread, adTimeGapMills);
         this.game = currentGame;
         this.workerThread = workerThread;
         this.fingerCountries = fingerCountries;
@@ -66,7 +68,7 @@ public class CountryFingerInterstitial extends TimeLimitedInterstitial {
             case LeaveLevel:
                 super.show();
                 break;
-            case InBedClosed:
+            case StopSleepInBed:
                 super.show();
                 break;
         }
@@ -76,7 +78,13 @@ public class CountryFingerInterstitial extends TimeLimitedInterstitial {
     public void guideEvent(GuideGameEvent gameEvent) {
         switch (gameEvent.event) {
             case BlockChanged:
-                super.show();
+                timesBlockChanged ++;
+
+                if(timesBlockChanged == BLOCK_CHANGES_TO_AD) {
+                    super.show();
+                    timesBlockChanged = 0;
+                    return;
+                }
                 break;
         }
     }

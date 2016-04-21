@@ -4,12 +4,12 @@ package com.mopub.ads;
 import android.app.Activity;
 import android.util.Log;
 
+import com.mojang.base.InternetObserver;
+import com.mojang.base.events.AppEvent;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-
-import com.mojang.base.InternetObserver;
-import com.mojang.base.events.AppEvent;
 
 /**
  * Inicialization start stop, network management
@@ -19,13 +19,15 @@ public class Ads {
     private final String TAG = this.getClass().getName();
     private final InternetObserver internetObserver;
     private Interstitial interstitial;
+    private final FreeAdPeriod freeAdPeriod;
     private final Activity activity;
 
 
-    public Ads(Activity activity,Interstitial interstitial,InternetObserver internetObserver) {
+    public Ads(Activity activity, Interstitial interstitial, InternetObserver internetObserver, FreeAdPeriod freeAdPeriod) {
         this.internetObserver = internetObserver;
         this.activity = activity;
         this.interstitial = interstitial;
+        this.freeAdPeriod = freeAdPeriod;
 
         EventBus.getDefault().register(this);
     }
@@ -76,12 +78,17 @@ public class Ads {
     }
 
     public void start() {
-            if (internetObserver.isInternetAvaible()) {
-                Log.e(TAG, "start");
-                interstitial.start();
-            }else{
-                Log.i(TAG, "start: No Internet Avaible for ads");
-            }
+        if (freeAdPeriod.isFree()) {
+            Log.e(TAG, "start: FreePeriond");
+            return;
+        }
+
+        if (internetObserver.isInternetAvaible()) {
+            Log.e(TAG, "start");
+            interstitial.start();
+        } else {
+            Log.i(TAG, "start: No Internet Avaible for ads");
+        }
     }
 
     public void stop() {

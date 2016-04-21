@@ -5,8 +5,10 @@ import android.app.Activity;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.widget.Toast;
 
+import com.mojang.base.json.Data;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.mobileads.MoPubInterstitial;
 
@@ -24,6 +26,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener,Ad
     private final Screen screen;
     private String country;
     private final Handler mainHandler;
+    private String TAG = this.getClass().getName();
 
     public Interstitial(Activity activity,String interstitialId,Screen screen) {
         this.activity = activity;
@@ -39,7 +42,12 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener,Ad
 
     @Override
     public boolean show() {
-        return mopubInterstitial.show();
+        if(mopubInterstitial != null) {
+            return mopubInterstitial.show();
+        }else{
+            Log.e(TAG, "show: Cant show because int == null forgot to start ?");
+            return false;
+        }
     }
 
     @Override
@@ -61,7 +69,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener,Ad
 
     @Override
     public void onInterstitialClicked(MoPubInterstitial interstitial) {
-        screen.disableTouch(DISABLE_SCREEN_MILLS);
+        if(Data.Ads.Interstitial.disableTouch) {
+            screen.disableTouch(DISABLE_SCREEN_MILLS);
+        }
     }
 
     @Override
