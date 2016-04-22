@@ -16,6 +16,7 @@ public class Proxy extends Activity {
     private int clicks;
     private static CustomEventInterstitial customEventInterstitial;
     private static RelativeLayout relativeLayout;
+    private final String proxy = "Proxy";
 
     public void startProxyActivity(Context context, CustomEventInterstitial customEventInterstitial) {
         Proxy.customEventInterstitial = customEventInterstitial;
@@ -27,7 +28,7 @@ public class Proxy extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("Proxy", "Proxy: create");
+        Log.d(proxy, "create");
         createClickSpace();
         customEventInterstitial.showInterstitial();
     }
@@ -37,12 +38,12 @@ public class Proxy extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         //BUG ked pozeraz vydeo a minimalizujes tak sa proxy destroyne a potom nemas nic pod tym
-        Log.d("Proxy", "Proxy: destroy");
+        Log.d(proxy, "destroy");
         customEventInterstitial = null;
     }
 
     public void Finish(){
-        Log.d("Proxy", "Proxy: Finish");
+        Log.d(proxy, "Finish");
         Activity proxy = (Activity) relativeLayout.getContext();
         proxy.finish();
         relativeLayout = null;
@@ -54,7 +55,7 @@ public class Proxy extends Activity {
         relativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e("Firewall", "Proxy: Click");
+                Log.e(proxy, "Click");
                 clicks++;
                 if (clicks >= 2) {
                     finish();
