@@ -6,6 +6,8 @@ import android.util.Log;
 
 import com.mojang.base.InternetObserver;
 import com.mojang.base.events.AppEvent;
+import com.mojang.base.events.MinecraftGameEvent;
+import com.mojang.base.events.OfflineEvent;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -21,6 +23,7 @@ public class Ads {
     private Interstitial interstitial;
     private final FreeAdPeriod freeAdPeriod;
     private final Activity activity;
+    private int numOfPlayers;
 
 
     public Ads(Activity activity, Interstitial interstitial, InternetObserver internetObserver, FreeAdPeriod freeAdPeriod) {
@@ -28,6 +31,7 @@ public class Ads {
         this.activity = activity;
         this.interstitial = interstitial;
         this.freeAdPeriod = freeAdPeriod;
+        this.numOfPlayers = 1;
 
         EventBus.getDefault().register(this);
     }
@@ -68,16 +72,41 @@ public class Ads {
             case Destroy:
                 interstitial.destroy();
                 break;
-            case Stop:
-                stop();
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onGameEvent(MinecraftGameEvent gameEvent) {
+        switch (gameEvent.event) {
+            case PlayerConnected:
+                numOfPlayers++;
+                interstitial.lock();
                 break;
-            case Start:
-                start();
+            case PlayerDisconnected:
+                if(numOfPlayers > 1){
+                    numOfPlayers--;
+                }
+                if(numOfPlayers == 1){
+                    Log.e(TAG, "onGameEvent: Starting ads 1 player in game");
+                    interstitial.unlock();
+                }
                 break;
         }
     }
 
-    public void start() {
+
+    @Subscribe
+    public void onViewEvent(OfflineEvent viewEvent) {
+        if (viewEvent.playOffline_Accepted) {
+            interstitial.lock();
+        }else if (viewEvent.playOnline_Accepted) {
+            if(numOfPlayers != 1){throw new RuntimeException("numOfPlayer > 1 this should never happen");}
+            interstitial.unlock();
+            interstitial.init();
+        }
+    }
+
+    public void init() {
         if (freeAdPeriod.isFree()) {
             Log.e(TAG, "start: FreePeriond");
             return;
@@ -85,14 +114,9 @@ public class Ads {
 
         if (internetObserver.isInternetAvaible()) {
             Log.e(TAG, "start");
-            interstitial.start();
+            interstitial.init();
         } else {
             Log.i(TAG, "start: No Internet Avaible for ads");
         }
-    }
-
-    public void stop() {
-        Log.e(TAG, "stop");
-        interstitial.stop();
     }
 }
