@@ -22,6 +22,8 @@
 -dontwarn org.apache.http.**
 -dontwarn com.mopub.volley.toolbox.**
 
+#Exoplayer api 22
+-dontwarn com.google.android.exoplayer.**
 
 #Log
 -assumenosideeffects class android.util.Log {
