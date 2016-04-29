@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.mojang.base.Helper;
-import com.mojang.base.json.Data;
 
 import java.util.Calendar;
 
@@ -16,16 +15,16 @@ public class FreeAdPeriod {
     private static final String FIRST_RUN_DAY_KEY = "FirstRunDay";
     private static final String FIRST_RUN_KEY = "FirstRun";
     private static final int NUM_FREE_DAYS = 2;
-    private boolean didMarkFirstDay;
     private String TAG = this.getClass().getName();
     private final int measureUnit = Calendar.DAY_OF_YEAR;
+    private boolean freePeriodAllowed;
 
-    public FreeAdPeriod(SharedPreferences sharedPreferences,Calendar calendar){
+    public FreeAdPeriod(SharedPreferences sharedPreferences, Calendar calendar, boolean freePeriodAllowed){
         this.sharedPreferences = sharedPreferences;
         this.calendar = calendar;
-        this.didMarkFirstDay = sharedPreferences.getBoolean(FIRST_RUN_KEY,false);
+        this.freePeriodAllowed = freePeriodAllowed;
 
-        if (!didMarkFirstDay) {
+        if (!sharedPreferences.getBoolean(FIRST_RUN_KEY, false)) {
             int today = calendar.get(measureUnit);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putInt(FIRST_RUN_DAY_KEY, today).apply();
@@ -38,7 +37,7 @@ public class FreeAdPeriod {
             Log.e(TAG, "isFree: false cause debug");
             return false;
         }
-        if(Data.Ads.Interstitial.freePeriod){
+        if(freePeriodAllowed){
             int firstRunDay = sharedPreferences.getInt(FIRST_RUN_DAY_KEY,-1);
             if(firstRunDay != -1){
                 int today = calendar.get(measureUnit);

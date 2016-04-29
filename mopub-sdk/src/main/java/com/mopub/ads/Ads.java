@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.mojang.base.InternetObserver;
 import com.mojang.base.events.AppEvent;
+import com.mojang.base.events.GuideGameEvent;
 import com.mojang.base.events.MinecraftGameEvent;
 import com.mojang.base.events.OfflineEvent;
 
@@ -24,6 +25,8 @@ public class Ads {
     private final FreeAdPeriod freeAdPeriod;
     private final Activity activity;
     private int numOfPlayers;
+    private boolean firstGamePlayStart;
+    private int timesBlockChanged;
 
 
     public Ads(Activity activity, Interstitial interstitial, InternetObserver internetObserver, FreeAdPeriod freeAdPeriod) {
@@ -32,6 +35,7 @@ public class Ads {
         this.interstitial = interstitial;
         this.freeAdPeriod = freeAdPeriod;
         this.numOfPlayers = 1;
+        this.firstGamePlayStart = true;
 
         EventBus.getDefault().register(this);
     }
@@ -67,7 +71,7 @@ public class Ads {
 //    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(AppEvent appEvent) {
+    public void onAppEvent(AppEvent appEvent) {
         switch (appEvent.lifeCycle) {
             case Destroy:
                 interstitial.destroy();
@@ -83,12 +87,37 @@ public class Ads {
                 interstitial.lock();
                 break;
             case PlayerDisconnected:
-                if(numOfPlayers > 1){
+                if (numOfPlayers > 1) {
                     numOfPlayers--;
                 }
-                if(numOfPlayers == 1){
-                    Log.e(TAG, "onGameEvent: Starting ads 1 player in game");
+                if (numOfPlayers == 1) {
                     interstitial.unlock();
+                }
+                break;
+            case GamePlayStart:
+                if (!interstitial.show() && firstGamePlayStart) {
+                    interstitial.showOnLoad(System.currentTimeMillis());
+                    firstGamePlayStart = false;
+                }
+                break;
+            case LeaveLevel:
+                interstitial.show();
+                break;
+            case StopSleepInBed:
+                interstitial.show();
+                break;
+        }
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void guideEvent(GuideGameEvent gameEvent) {
+        switch (gameEvent.event) {
+            case BlockChanged:
+                timesBlockChanged++;
+                if (timesBlockChanged == 3) {
+                    interstitial.show();
+                    timesBlockChanged = 0;
                 }
                 break;
         }
@@ -99,8 +128,10 @@ public class Ads {
     public void onViewEvent(OfflineEvent viewEvent) {
         if (viewEvent.playOffline_Accepted) {
             interstitial.lock();
-        }else if (viewEvent.playOnline_Accepted) {
-            if(numOfPlayers != 1){throw new RuntimeException("numOfPlayer > 1 this should never happen");}
+        } else if (viewEvent.playOnline_Accepted) {
+            if (numOfPlayers != 1) {
+                throw new RuntimeException("numOfPlayer > 1 this should never happen");
+            }
             interstitial.unlock();
             interstitial.init();
         }
