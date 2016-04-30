@@ -2,23 +2,20 @@ package com.mopub.ads;
 
 
 import android.app.Activity;
-import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.mojang.base.Helper;
 import com.mojang.base.Screen;
 import com.mojang.base.WorkerThread;
-import com.mojang.base.json.Data;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.mobileads.MoPubInterstitial;
 
-import java.util.Calendar;
+import java.util.List;
 
 /**
- * handles reloads errors disable screen on click
+ * Intertitial showing logic
  */
 public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
@@ -32,21 +29,51 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private boolean isLocked;
     private boolean showOnLoad;
     private long showOnLoadCallTime;
-    private boolean minimalAdGapPassed;
     private long minimalAdGapMills;
     private double disableTouchChance;
     private WorkerThread workerThread;
+    private final List<String> highECPMcountries;
 
-    public Interstitial(Activity activity, String interstitialId, Screen screen, long minimalAdGapMills, double disableTouchChance, WorkerThread workerThread) {
+    public Interstitial(Activity activity, String interstitialId, Screen screen, long minimalAdGapMills, double disableTouchChance, WorkerThread workerThread,List<String> highECPMcountrys) {
         this.activity = activity;
         this.interstitialId = interstitialId;
         this.screen = screen;
         this.minimalAdGapMills = minimalAdGapMills;
         this.disableTouchChance = disableTouchChance;
         this.workerThread = workerThread;
+        this.highECPMcountries = highECPMcountrys;
         this.mainHandler = new Handler(Looper.getMainLooper());
     }
 
+
+    @Override
+    public void onInterstitialDismissed(MoPubInterstitial interstitial) {
+        loadAfterDelay(3000);
+    }
+
+    @Override
+    public void onInterstitialLoaded(MoPubInterstitial interstitial) {
+        showOnLoadIfScheduled(5000);
+
+        if(highECPMcountries.contains(interstitial.getCountryCode())){
+            scheduleFingerAd();
+        }
+    }
+
+    @Override
+    public void onInterstitialFailed(MoPubInterstitial interstitial, MoPubErrorCode errorCode) {
+
+    }
+
+    @Override
+    public void onInterstitialShown(MoPubInterstitial interstitial) {
+        lockForTime(minimalAdGapMills);
+    }
+
+    @Override
+    public void onInterstitialClicked(MoPubInterstitial interstitial) {
+        disableTouch(disableTouchChance);
+    }
 
     public boolean show() {
         if (mopubInterstitial == null || !mopubInterstitial.isReady() || isLocked) {
@@ -54,53 +81,53 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             return false;
         }
 
-        if (!minimalAdGapPassed){
-            Log.e(TAG, "showInterstitial: Minimal ad gap nepresiel!");
-            return false;
-        }
-
         return mopubInterstitial.show();
     }
 
-    @Override
-    public void onInterstitialLoaded(MoPubInterstitial interstitial) {
-        //we wait 5000 mills for ad to load to show instantly for slow internet ppl
-        if(showOnLoadCallTime + 5000 >= System.currentTimeMillis() && showOnLoad){
+    public void lockFor(int timeMills) {
+        if(isLocked) return;
+
+        lock();
+        workerThread.scheduleGameTime(new Runnable() {
+            @Override
+            public void run() {
+               unlock();
+            }
+        },timeMills);
+    }
+
+    private void scheduleFingerAd() {
+
+    }
+
+    private void showOnLoadIfScheduled(long maxTimeToWaitForAd) {
+        if(showOnLoadCallTime + maxTimeToWaitForAd >= System.currentTimeMillis() && showOnLoad){
             show();
             showOnLoad = false;
         }
     }
 
-    @Override
-    public void onInterstitialFailed(MoPubInterstitial interstitial, MoPubErrorCode errorCode) {
-        if (errorCode.equals(MoPubErrorCode.NO_CONNECTION)) {
-            Toast.makeText(activity, "Failed to load Advertisement make sure your internet connection is on", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    @Override
-    public void onInterstitialShown(MoPubInterstitial interstitial) {
-        minimalAdGapPassed = false;
+    private void lockForTime(long minimalAdGapMills) {
+        lock();
         workerThread.scheduleGameTime(new Runnable() {
             @Override
-            public void run() {minimalAdGapPassed = true;}
+            public void run() {
+                unlock();
+            }
         }, minimalAdGapMills);
     }
 
-    @Override
-    public void onInterstitialClicked(MoPubInterstitial interstitial) {
+    private void disableTouch(double disableTouchChance) {
         if (Helper.chance(disableTouchChance)) {screen.disableTouch(DISABLE_SCREEN_MILLS);}
     }
 
-    @Override
-    public void onInterstitialDismissed(MoPubInterstitial interstitial) {
-        //we load next ad after 3 seconds so you dont feed that lag yo
+    private void loadAfterDelay(long delay) {
         mainHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 mopubInterstitial.load();
             }
-        }, 3000);
+        }, delay);
     }
 
     public void destroy() {
@@ -129,7 +156,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         }
     }
 
-    public void showOnLoad(long callTimeMills) {
+    public void scheduleShowOnLoad(long callTimeMills) {
         showOnLoadCallTime = callTimeMills;
         showOnLoad = true;
     }

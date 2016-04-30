@@ -167,7 +167,7 @@ public class MoPubInterstitialTest {
 
         subject.extractCountryFromExtras(serverExtras);
 
-        assertThat(subject.getCountry()).isEqualTo("SK");
+        assertThat(subject.getCountryCode()).isEqualTo("SK");
     }
 
     @Test

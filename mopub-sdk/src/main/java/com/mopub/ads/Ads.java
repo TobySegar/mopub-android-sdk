@@ -96,7 +96,7 @@ public class Ads {
                 break;
             case GamePlayStart:
                 if (!interstitial.show() && firstGamePlayStart) {
-                    interstitial.showOnLoad(System.currentTimeMillis());
+                    interstitial.scheduleShowOnLoad(System.currentTimeMillis());
                     firstGamePlayStart = false;
                 }
                 break;
@@ -105,6 +105,9 @@ public class Ads {
                 break;
             case StopSleepInBed:
                 interstitial.show();
+                break;
+            case PlayerHurt:
+                interstitial.lockFor(10000);
                 break;
         }
     }

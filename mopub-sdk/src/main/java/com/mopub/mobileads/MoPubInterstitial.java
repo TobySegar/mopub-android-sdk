@@ -7,7 +7,6 @@ import android.text.TextUtils;
 
 import com.mopub.common.AdFormat;
 import com.mopub.common.DataKeys;
-import com.mopub.common.MoPub;
 import com.mopub.common.Preconditions;
 import com.mopub.common.VisibleForTesting;
 import com.mopub.common.logging.MoPubLog;
@@ -17,13 +16,12 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.mopub.common.LocationService.LocationAwareness;
 import static com.mopub.mobileads.MoPubErrorCode.ADAPTER_NOT_FOUND;
 
 public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomEventInterstitialAdapterListener {
 
-    public String getCountry() {
-        return mCountry;
+    public String getCountryCode() {
+        return mCountryCode;
     }
 
     public String getCity() {
@@ -46,7 +44,7 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
     private String mAdUnitId;
     private InterstitialState mCurrentInterstitialState;
     private boolean mIsDestroyed;
-    private String mCountry;
+    private String mCountryCode;
     private String mCity;
 
     public interface InterstitialAdListener {
@@ -293,7 +291,7 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
             Pattern p = Pattern.compile("(?<=&country_code=).*?(?=&)");
             Matcher m = p.matcher(url);
             if(m.find()){
-                mCountry = m.group();
+                mCountryCode = m.group();
             }
         }
     }
