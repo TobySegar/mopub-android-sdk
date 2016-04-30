@@ -23,15 +23,13 @@ public class Ads {
     private final InternetObserver internetObserver;
     private Interstitial interstitial;
     private final FreeAdPeriod freeAdPeriod;
-    private final Activity activity;
     private int numOfPlayers;
     private boolean firstGamePlayStart;
     private int timesBlockChanged;
 
 
-    public Ads(Activity activity, Interstitial interstitial, InternetObserver internetObserver, FreeAdPeriod freeAdPeriod) {
+    public Ads(Interstitial interstitial, InternetObserver internetObserver, FreeAdPeriod freeAdPeriod) {
         this.internetObserver = internetObserver;
-        this.activity = activity;
         this.interstitial = interstitial;
         this.freeAdPeriod = freeAdPeriod;
         this.numOfPlayers = 1;
