@@ -21,3 +21,16 @@
 # Filter out warnings that refer to legacy Code.
 -dontwarn org.apache.http.**
 -dontwarn com.mopub.volley.toolbox.**
+
+#Exoplayer api 22
+-dontwarn com.google.android.exoplayer.**
+
+#Log
+-assumenosideeffects class android.util.Log {
+    public static boolean isLoggable(java.lang.String, int);
+    public static int v(...);
+    public static int i(...);
+    public static int w(...);
+    public static int d(...);
+    public static int e(...);
+}

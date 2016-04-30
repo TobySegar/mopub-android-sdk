@@ -38,8 +38,13 @@ public abstract class CustomEventInterstitial {
     /*
      * Display the interstitial ad.
      */
-    protected abstract void showInterstitial();
-    
+    public abstract void showInterstitial();
+
+    /*
+   * Uses proxy activity before displaying the ad
+   */
+    protected abstract boolean usesProxy();
+
     /*
      * Called when a Custom Event is being invalidated or destroyed. Perform any final cleanup here.
      */

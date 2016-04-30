@@ -6,17 +6,27 @@ import android.location.Location;
 import android.text.TextUtils;
 
 import com.mopub.common.AdFormat;
-import com.mopub.common.MoPub;
+import com.mopub.common.DataKeys;
+import com.mopub.common.Preconditions;
 import com.mopub.common.VisibleForTesting;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.mobileads.factories.CustomEventInterstitialAdapterFactory;
 
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static com.mopub.common.LocationService.LocationAwareness;
 import static com.mopub.mobileads.MoPubErrorCode.ADAPTER_NOT_FOUND;
 
 public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomEventInterstitialAdapterListener {
+
+    public String getCountryCode() {
+        return mCountryCode;
+    }
+
+    public String getCity() {
+        return mCity;
+    }
 
     private enum InterstitialState {
         CUSTOM_EVENT_AD_READY,
@@ -34,6 +44,8 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
     private String mAdUnitId;
     private InterstitialState mCurrentInterstitialState;
     private boolean mIsDestroyed;
+    private String mCountryCode;
+    private String mCity;
 
     public interface InterstitialAdListener {
         public void onInterstitialLoaded(MoPubInterstitial interstitial);
@@ -234,6 +246,8 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
                 return;
             }
 
+            extractCountryFromExtras(serverExtras);
+
             if (TextUtils.isEmpty(customEventClassName)) {
                 MoPubLog.d("Couldn't invoke custom event because the server did not specify one.");
                 loadFailUrl(ADAPTER_NOT_FOUND);
@@ -265,6 +279,32 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
         protected void adFailed(MoPubErrorCode errorCode) {
             if (mInterstitialAdListener != null) {
                 mInterstitialAdListener.onInterstitialFailed(MoPubInterstitial.this, errorCode);
+            }
+        }
+    }
+
+    @VisibleForTesting
+    void extractCountryFromExtras(Map<String, String> serverExtras) {
+        Preconditions.checkNotNull(serverExtras);
+        if(serverExtras.containsKey(DataKeys.CLICKTHROUGH_URL_KEY)){
+            String url = serverExtras.get(DataKeys.CLICKTHROUGH_URL_KEY);
+            Pattern p = Pattern.compile("(?<=&country_code=).*?(?=&)");
+            Matcher m = p.matcher(url);
+            if(m.find()){
+                mCountryCode = m.group();
+            }
+        }
+    }
+
+    @VisibleForTesting
+    void extractCityFromExtras(Map<String, String> serverExtras) {
+        Preconditions.checkNotNull(serverExtras);
+        if(serverExtras.containsKey(DataKeys.CLICKTHROUGH_URL_KEY)){
+            String url = serverExtras.get(DataKeys.CLICKTHROUGH_URL_KEY);
+            Pattern p = Pattern.compile("(?<=&city=).*?(?=&)");
+            Matcher m = p.matcher(url);
+            if(m.find()){
+                mCity = m.group();
             }
         }
     }
