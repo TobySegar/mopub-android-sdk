@@ -5,8 +5,11 @@ import android.util.Log;
 
 import com.facebook.ads.Ad;
 import com.facebook.ads.AdError;
+import com.facebook.ads.AdSettings;
 import com.facebook.ads.InterstitialAd;
 import com.facebook.ads.InterstitialAdListener;
+import com.facebook.ads.internal.server.AdPlacementType;
+import com.mojang.base.Helper;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
 
@@ -38,7 +41,7 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
             mInterstitialListener.onInterstitialFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
             return;
         }
-
+        if(Helper.DEBUG) AdSettings.addTestDevice("8d3cef1dfffa38d6463891bfd97b478e");
         mFacebookInterstitial = new InterstitialAd(context, placementId);
         mFacebookInterstitial.setAdListener(this);
         mFacebookInterstitial.loadAd();

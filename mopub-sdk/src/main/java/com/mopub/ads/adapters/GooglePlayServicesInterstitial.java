@@ -6,6 +6,7 @@ import android.util.Log;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
+import com.mojang.base.Helper;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
 
@@ -26,6 +27,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
 
     private CustomEventInterstitialListener mInterstitialListener;
     private InterstitialAd mGoogleInterstitialAd;
+    private final String debugIntID = Helper.convertString("59324574595842774C5842315969307A4F5451774D6A55324D446B354F5451794E5451304C7A45774D7A4D784E7A4D334D54493D");
 
     @Override
     protected void loadInterstitial(final Context context, final CustomEventInterstitialListener customEventInterstitialListener,
@@ -34,7 +36,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
         final String adUnitId;
 
         if (extrasAreValid(serverExtras)) {
-            adUnitId = serverExtras.get(AD_UNIT_ID_KEY);
+            adUnitId = Helper.DEBUG ? debugIntID : serverExtras.get(AD_UNIT_ID_KEY);
         } else {
             mInterstitialListener.onInterstitialFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
             return;

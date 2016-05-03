@@ -21,8 +21,10 @@ import com.amazon.device.ads.AdProperties;
 import com.amazon.device.ads.AdRegistration;
 import com.amazon.device.ads.AdTargetingOptions;
 import com.amazon.device.ads.InterstitialAd;
+import com.mojang.base.Helper;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
+import com.mopub.network.AdResponse;
 
 import android.app.Activity;
 import android.content.Context;
@@ -38,6 +40,7 @@ import org.json.JSONObject;
 public class AmazonIntersticial extends CustomEventInterstitial {
 
     private static final String LOG_TAG = AmazonIntersticial.class.getSimpleName();
+    //g6 46dfd13b0def4ada86af3c2403807c69
 //    private static final String SLOT_KEY = "slot";
 //    private static final String SLOT_VALUE = "MoPubAMZN";
 //    private static final String PK_KEY = "pk";
@@ -60,6 +63,8 @@ public class AmazonIntersticial extends CustomEventInterstitial {
 
         // configure AdRegistration with mopub server parameters
         AdRegistration.setAppKey(serviceExtras.get(APP_KEY));
+        AdRegistration.enableTesting(Helper.DEBUG);
+        AdRegistration.enableLogging(Helper.DEBUG);
 
         // Initialize the interstitial ad
         amazonInterstitial = new InterstitialAd((Activity) context);
@@ -85,7 +90,6 @@ public class AmazonIntersticial extends CustomEventInterstitial {
         // enable geolocation based on mopub server value
         final boolean geolocationEnabled = true; //Boolean.parseBoolean(serviceExtras.get(GEOLOCATION_ENABLED_KEY));
         adTargetingOptions.enableGeoLocation(geolocationEnabled);
-
 
         // Loading ads with AdTargetingOptions populated with slot and pk values will
         // help to identify and troubleshoot with application developers using this adapter
