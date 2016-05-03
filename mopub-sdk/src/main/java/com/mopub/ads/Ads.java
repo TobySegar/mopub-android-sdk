@@ -1,9 +1,10 @@
 package com.mopub.ads;
 
 
-import android.app.Activity;
+import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.mojang.base.Helper;
 import com.mojang.base.InternetObserver;
 import com.mojang.base.events.AppEvent;
 import com.mojang.base.events.GuideGameEvent;
@@ -14,6 +15,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.Calendar;
+
 /**
  * Inicialization start stop, network management
  */
@@ -22,51 +25,34 @@ public class Ads {
     private final String TAG = this.getClass().getName();
     private final InternetObserver internetObserver;
     private Interstitial interstitial;
-    private final FreeAdPeriod freeAdPeriod;
     private int numOfPlayers;
     private boolean firstGamePlayStart;
     private int timesBlockChanged;
+    private long[] blockPlaceTimes = new long[5];
+    private boolean isBuilding;
+    private SharedPreferences sharedPreferences;
+    private Calendar calendar;
+    private static final String FIRST_RUN_DAY_KEY = "FirstRunDay";
+    static final String FIRST_RUN_KEY = "FirstRun";
+    private static final int NUM_FREE_DAYS = 2;
+    private final int measureUnit = Calendar.DAY_OF_YEAR;
+    private boolean freePeriodAllowed;
+    private boolean fingerAdShowed;
 
 
-    public Ads(Interstitial interstitial, InternetObserver internetObserver, FreeAdPeriod freeAdPeriod) {
+    public Ads(Interstitial interstitial, InternetObserver internetObserver, SharedPreferences sharedPreferences, Calendar calendar, boolean freePeriodAllowed) {
         this.internetObserver = internetObserver;
         this.interstitial = interstitial;
-        this.freeAdPeriod = freeAdPeriod;
         this.numOfPlayers = 1;
         this.firstGamePlayStart = true;
+        this.sharedPreferences = sharedPreferences;
+        this.calendar = calendar;
+        this.freePeriodAllowed = freePeriodAllowed;
+
+        markFirstRun();
 
         EventBus.getDefault().register(this);
     }
-
-//    @Subscribe(threadMode = ThreadMode.MAIN)
-//    public void forRewardedVideo(AppEvent appEvent) {
-//        switch (appEvent.lifeCycle) {
-//            case Destroy:
-//                MoPub.onDestroy(activity);
-//                break;
-//            case Stop:
-//                MoPub.onStop(activity);
-//                break;
-//            case Start:
-//                MoPub.onStart(activity);
-//                break;
-//            case Resume:
-//                MoPub.onResume(activity);
-//                break;
-//            case Pause:
-//                MoPub.onPause(activity);
-//                break;
-//            case Create:
-//                MoPub.onCreate(activity);
-//                break;
-//            case Restart:
-//                MoPub.onRestart(activity);
-//                break;
-//            case BackPressed:
-//                MoPub.onBackPressed(activity);
-//                break;
-//        }
-//    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onAppEvent(AppEvent appEvent) {
@@ -85,12 +71,8 @@ public class Ads {
                 interstitial.lock();
                 break;
             case PlayerDisconnected:
-                if (numOfPlayers > 1) {
-                    numOfPlayers--;
-                }
-                if (numOfPlayers == 1) {
-                    interstitial.unlock();
-                }
+                if (numOfPlayers > 1) numOfPlayers--;
+                if (numOfPlayers == 1) interstitial.unlock();
                 break;
             case GamePlayStart:
                 if (!interstitial.show() && firstGamePlayStart) {
@@ -107,9 +89,17 @@ public class Ads {
             case PlayerHurt:
                 interstitial.lockFor(10000);
                 break;
+            case BlockPlaced:
+                isBuilding = checkIfBuilding(blockPlaceTimes, 2, 700, System.currentTimeMillis());
+                break;
+            case CameraMoveX:
+                if(interstitial.canGetFingerAd) showAdIfBuilding();
+                break;
+            case CameraMoveY:
+                if(interstitial.canGetFingerAd) showAdIfBuilding();
+                break;
         }
     }
-
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void guideEvent(GuideGameEvent gameEvent) {
@@ -123,7 +113,6 @@ public class Ads {
                 break;
         }
     }
-
 
     @Subscribe
     public void onViewEvent(OfflineEvent viewEvent) {
@@ -139,7 +128,7 @@ public class Ads {
     }
 
     public void init() {
-        if (freeAdPeriod.isFree()) {
+        if (isInFreePeriod()) {
             Log.e(TAG, "start: FreePeriond");
             return;
         }
@@ -151,4 +140,74 @@ public class Ads {
             Log.i(TAG, "start: No Internet Avaible for ads");
         }
     }
+
+    public boolean isInFreePeriod() {
+        if (Helper.DEBUG) {
+            Log.e(TAG, "isInFreePeriod: false cause debug");
+            return false;
+        }
+        if (freePeriodAllowed) {
+            int firstRunDay = sharedPreferences.getInt(FIRST_RUN_DAY_KEY, -1);
+            if (firstRunDay != -1) {
+                int today = calendar.get(measureUnit);
+                int endFreeDay = firstRunDay + NUM_FREE_DAYS;
+                return today >= firstRunDay && today <= endFreeDay;
+            }
+        }
+        return false;
+    }
+
+    void markFirstRun() {
+        final boolean runnedBefore = !sharedPreferences.getBoolean(FIRST_RUN_KEY, false);
+        if (!runnedBefore) {
+            int today = calendar.get(measureUnit);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt(FIRST_RUN_DAY_KEY, today).apply();
+            editor.putBoolean(FIRST_RUN_KEY, true);
+        }
+    }
+
+    /**
+     *  Should be called when block is placed, checks previous block placements times
+     *  and sums up difference in placements between last {@code numOfElemetsToSum} and compares
+     *  it to {@code averageTimeBetweenPlacement}
+     *
+     * @param blockPlaceTimes System times of previous block placements
+     * @param numOfElemetsToSum number times between placement to sum
+     * @param averageTimeBetweenPlacement average period between block placements to be considered building
+     * @return if {@code numOfElemetsToSum} <= {@code averageTimeBetweenPlacement}
+     */
+    boolean checkIfBuilding(long[] blockPlaceTimes, int numOfElemetsToSum, int averageTimeBetweenPlacement, long currentBlockPlaceTime) {
+        //shift elements up && add time to last position
+        final int lastIndex = blockPlaceTimes.length - 1;
+        System.arraycopy(blockPlaceTimes, 1, blockPlaceTimes, 0, lastIndex);
+        blockPlaceTimes[lastIndex] = currentBlockPlaceTime;
+
+        //zrataj time differences bettwenn last numOfElemetsToSum
+        long sumOfTimeDifferences = 0;
+        for (int i = lastIndex; i >= 0; i--) {
+            if (i >= blockPlaceTimes.length - numOfElemetsToSum) {
+                long difference = blockPlaceTimes[i] - blockPlaceTimes[i-1];
+                sumOfTimeDifferences += difference;
+            }else{
+                break;
+            }
+        }
+
+        final int totalBetweenPeriod = averageTimeBetweenPlacement * numOfElemetsToSum;
+        final boolean isBuilding = sumOfTimeDifferences <= totalBetweenPeriod;
+        if(isBuilding) Log.e(TAG, "checkIfBuilding: TRUE" );
+        return isBuilding;
+    }
+
+    private void showAdIfBuilding() {
+        if (isBuilding && !fingerAdShowed) {
+            if(interstitial.show()){
+                fingerAdShowed = true;
+            }
+            isBuilding = false;
+        }
+
+    }
+
 }

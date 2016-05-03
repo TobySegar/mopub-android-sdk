@@ -33,6 +33,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private double disableTouchChance;
     private WorkerThread workerThread;
     private final List<String> highECPMcountries;
+    public boolean canGetFingerAd;
 
     public Interstitial(Activity activity, String interstitialId, Screen screen, long minimalAdGapMills, double disableTouchChance, WorkerThread workerThread,List<String> highECPMcountrys) {
         this.activity = activity;
@@ -55,9 +56,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public void onInterstitialLoaded(MoPubInterstitial interstitial) {
         showOnLoadIfScheduled(5000);
 
-        if(highECPMcountries.contains(interstitial.getCountryCode())){
-            scheduleFingerAd();
-        }
+        canGetFingerAd = highECPMcountries.contains(interstitial.getCountryCode());
     }
 
     @Override
@@ -94,10 +93,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                unlock();
             }
         },timeMills);
-    }
-
-    private void scheduleFingerAd() {
-
     }
 
     private void showOnLoadIfScheduled(long maxTimeToWaitForAd) {
