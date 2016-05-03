@@ -15,7 +15,7 @@ import com.mopub.mobileads.MoPubInterstitial;
 import java.util.List;
 
 /**
- * Intertitial showing logic
+ * Intertitial functionality for showing ads
  */
 public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 

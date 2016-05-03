@@ -18,7 +18,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.Calendar;
 
 /**
- * Inicialization start stop, network management
+ * Controlls how ads are showed
  */
 public class Ads {
 
@@ -29,7 +29,7 @@ public class Ads {
     private boolean firstGamePlayStart;
     private int timesBlockChanged;
     private long[] blockPlaceTimes = new long[5];
-    private boolean isBuilding;
+    boolean isBuilding;
     private SharedPreferences sharedPreferences;
     private Calendar calendar;
     private static final String FIRST_RUN_DAY_KEY = "FirstRunDay";
@@ -90,7 +90,7 @@ public class Ads {
                 interstitial.lockFor(10000);
                 break;
             case BlockPlaced:
-                isBuilding = checkIfBuilding(blockPlaceTimes, 2, 700, System.currentTimeMillis());
+                checkIfBuilding(blockPlaceTimes, 2, 700, System.currentTimeMillis());
                 break;
             case CameraMoveX:
                 if(interstitial.canGetFingerAd) showAdIfBuilding();
@@ -177,7 +177,7 @@ public class Ads {
      * @param averageTimeBetweenPlacement average period between block placements to be considered building
      * @return if {@code numOfElemetsToSum} <= {@code averageTimeBetweenPlacement}
      */
-    boolean checkIfBuilding(long[] blockPlaceTimes, int numOfElemetsToSum, int averageTimeBetweenPlacement, long currentBlockPlaceTime) {
+    void checkIfBuilding(long[] blockPlaceTimes, int numOfElemetsToSum, int averageTimeBetweenPlacement, long currentBlockPlaceTime) {
         //shift elements up && add time to last position
         final int lastIndex = blockPlaceTimes.length - 1;
         System.arraycopy(blockPlaceTimes, 1, blockPlaceTimes, 0, lastIndex);
@@ -195,17 +195,16 @@ public class Ads {
         }
 
         final int totalBetweenPeriod = averageTimeBetweenPlacement * numOfElemetsToSum;
-        final boolean isBuilding = sumOfTimeDifferences <= totalBetweenPeriod;
+        isBuilding = sumOfTimeDifferences <= totalBetweenPeriod;
         if(isBuilding) Log.e(TAG, "checkIfBuilding: TRUE" );
-        return isBuilding;
     }
 
-    private void showAdIfBuilding() {
+    void showAdIfBuilding() {
         if (isBuilding && !fingerAdShowed) {
             if(interstitial.show()){
                 fingerAdShowed = true;
             }
-            isBuilding = false;
+            this.isBuilding = false;
         }
 
     }
