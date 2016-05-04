@@ -75,12 +75,12 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
     public boolean show() {
-        if (mopubInterstitial == null || !mopubInterstitial.isReady() || isLocked) {
-            Log.e(TAG, "show Failed: null notReady or locked");
+        if (mopubInterstitial == null || !mopubInterstitial.isReady() || isLocked || !mopubInterstitial.show()) {
+            Log.e(TAG, "show Failed: null notReady or locked or fail");
             return false;
         }
 
-        return mopubInterstitial.show();
+        return true;
     }
 
     public void lockFor(int timeMills) {
@@ -144,9 +144,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             mopubInterstitial = new MoPubInterstitial(activity, interstitialId);
             mopubInterstitial.setInterstitialAdListener(this);
             mopubInterstitial.load();
-        }
-
-        if (!mopubInterstitial.isReady()) {
+        }else if (!mopubInterstitial.isReady()) {
             mopubInterstitial.load();
         }
     }
