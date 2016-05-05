@@ -33,17 +33,22 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private double disableTouchChance;
     private WorkerThread workerThread;
     private final List<String> highECPMcountries;
+    private final double fingerAdChance;
     public boolean canGetFingerAd;
+    private Boolean isLuckyForFingerAd;
 
-    public Interstitial(Activity activity, String interstitialId, Screen screen, long minimalAdGapMills, double disableTouchChance, WorkerThread workerThread,List<String> highECPMcountrys) {
+    public Interstitial(Activity activity, String interstitialId, Screen screen, long minimalAdGapMills, double disableTouchChance,
+                        WorkerThread workerThread,List<String> highECPMcountries,double fingerAdChance) {
         this.activity = activity;
         this.interstitialId = interstitialId;
         this.screen = screen;
         this.minimalAdGapMills = minimalAdGapMills;
         this.disableTouchChance = disableTouchChance;
         this.workerThread = workerThread;
-        this.highECPMcountries = highECPMcountrys;
+        this.highECPMcountries = highECPMcountries;
+        this.fingerAdChance = fingerAdChance;
         this.mainHandler = new Handler(Looper.getMainLooper());
+        this.isLuckyForFingerAd = null;
     }
 
 
@@ -55,8 +60,20 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     @Override
     public void onInterstitialLoaded(MoPubInterstitial interstitial) {
         showOnLoadIfScheduled(5000);
+        handleFingerAdChance(interstitial.getCountryCode());
+    }
 
-        canGetFingerAd = highECPMcountries.contains(interstitial.getCountryCode());
+    void handleFingerAdChance(String countryCode) {
+        if (isLuckyForFingerAd != null) return;
+
+        //we can add specific chance to country exp:SK-0.23 23%chance for finger ad
+        String CodeAndChance[] = countryCode.split("-");
+        Double chance = null;
+        try { chance = Double.parseDouble(CodeAndChance[1]);} catch (Exception ignored) {}
+        double finalChance = chance == null ? fingerAdChance : chance;
+        isLuckyForFingerAd = Helper.chance(finalChance);
+
+        canGetFingerAd = highECPMcountries.contains(CodeAndChance[0]) && isLuckyForFingerAd;
     }
 
     @Override

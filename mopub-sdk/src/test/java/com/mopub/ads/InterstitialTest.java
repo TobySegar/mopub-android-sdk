@@ -1,5 +1,6 @@
 package com.mopub.ads;
 
+import com.mojang.base.Helper;
 import com.mopub.common.test.support.SdkTestRunner;
 import com.mopub.mobileads.BuildConfig;
 import com.mopub.mobileads.MoPubInterstitial;
@@ -25,12 +26,13 @@ public class InterstitialTest {
     private String interstitialId = "interstitialID";
     private long minimalAdGapMills = 15000;
     private double disableTouchChance = 0.0;
+    private double fingerAdChance = 0.5;
     private List<String> highECPMcountries = new ArrayList<>();
     @Mock MoPubInterstitial moPubInterstitialMock;
 
     @Before
     public void setUp() throws Exception {
-        subject = new Interstitial(null,interstitialId,null,minimalAdGapMills,disableTouchChance,null,highECPMcountries);
+        subject = new Interstitial(null,interstitialId,null,minimalAdGapMills,disableTouchChance,null,highECPMcountries,fingerAdChance);
     }
 
     @Test
@@ -52,5 +54,24 @@ public class InterstitialTest {
         subject.onInterstitialLoaded(moPubInterstitialMock);
 
         assertFalse(subject.canGetFingerAd);
+    }
+
+    @Test
+    public void handleFingerAdChance_withFingerCountryCodeAndChance_shouldCheckChances() throws Exception {
+        String highECPmCountryCodeAndChance = "SK-0.23"; //shoud use this chance
+
+
+        subject.handleFingerAdChance(highECPmCountryCodeAndChance);
+
+        //no assertion cause using Helper.chance static
+    }
+
+    @Test
+    public void handleFingerAdChance_withFingerCountryCodeOnly_shouldCheckChances() throws Exception {
+        String highECPmCountryCodeOnly = "SK"; // should use global chance
+
+        subject.handleFingerAdChance(highECPmCountryCodeOnly);
+
+        //no assertion cause using Helper.chance static
     }
 }
