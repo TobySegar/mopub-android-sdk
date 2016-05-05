@@ -55,23 +55,4 @@ public class InterstitialTest {
 
         assertFalse(subject.canGetFingerAd);
     }
-
-    @Test
-    public void handleFingerAdChance_withFingerCountryCodeAndChance_shouldCheckChances() throws Exception {
-        String highECPmCountryCodeAndChance = "SK-0.23"; //shoud use this chance
-
-
-        subject.handleFingerAdChance(highECPmCountryCodeAndChance);
-
-        //no assertion cause using Helper.chance static
-    }
-
-    @Test
-    public void handleFingerAdChance_withFingerCountryCodeOnly_shouldCheckChances() throws Exception {
-        String highECPmCountryCodeOnly = "SK"; // should use global chance
-
-        subject.handleFingerAdChance(highECPmCountryCodeOnly);
-
-        //no assertion cause using Helper.chance static
-    }
 }

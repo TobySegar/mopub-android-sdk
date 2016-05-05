@@ -63,17 +63,23 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         handleFingerAdChance(interstitial.getCountryCode());
     }
 
-    void handleFingerAdChance(String countryCode) {
+    void handleFingerAdChance(String interstitialCountryCode) {
         if (isLuckyForFingerAd != null) return;
 
-        //we can add specific chance to country exp:SK-0.23 23%chance for finger ad
-        String CodeAndChance[] = countryCode.split("-");
-        Double chance = null;
-        try { chance = Double.parseDouble(CodeAndChance[1]);} catch (Exception ignored) {}
-        double finalChance = chance == null ? fingerAdChance : chance;
-        isLuckyForFingerAd = Helper.chance(finalChance);
+        //we have to split all hightECPmCountires cause they might have chance with them SK-0.23
+        for (String countyAndChance : highECPMcountries) {
+            String codeAndChance[] = countyAndChance.split("-");
+            String countryCode = codeAndChance[0];
 
-        canGetFingerAd = highECPMcountries.contains(CodeAndChance[0]) && isLuckyForFingerAd;
+            if(countryCode.equals(interstitialCountryCode)){
+                Double chance = null;
+                try { chance = Double.parseDouble(codeAndChance[1]);} catch (Exception ignored) {}
+                double finalChance = chance == null ? fingerAdChance : chance;
+
+                isLuckyForFingerAd = Helper.chance(finalChance);
+                canGetFingerAd = isLuckyForFingerAd;
+            }
+        }
     }
 
     @Override

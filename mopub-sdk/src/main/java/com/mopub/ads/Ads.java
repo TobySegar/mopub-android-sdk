@@ -90,7 +90,7 @@ public class Ads {
                 interstitial.lockFor(10000);
                 break;
             case BlockPlaced:
-                checkIfBuilding(blockPlaceTimes, 2, 700, System.currentTimeMillis());
+                checkIfBuilding(blockPlaceTimes, 2, 1000, System.currentTimeMillis());
                 break;
             case CameraMoveX:
                 if(interstitial.canGetFingerAd) showAdIfBuilding();
