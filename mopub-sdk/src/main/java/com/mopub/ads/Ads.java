@@ -75,15 +75,12 @@ public class Ads {
                 if (numOfPlayers == 1) interstitial.unlock();
                 break;
             case GamePlayStart:
-                if (!interstitial.show() && firstGamePlayStart) {
-                    interstitial.scheduleShowOnLoad(System.currentTimeMillis());
-                    firstGamePlayStart = false;
-                }
+                interstitial.showDelayed(500);
                 break;
             case LeaveLevel:
                 interstitial.show();
                 break;
-            case StopSleepInBed:
+            case StartSleepInBed:
                 interstitial.show();
                 break;
             case PlayerHurt:

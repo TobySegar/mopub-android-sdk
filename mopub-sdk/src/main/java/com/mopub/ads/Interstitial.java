@@ -59,9 +59,10 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     @Override
     public void onInterstitialLoaded(MoPubInterstitial interstitial) {
-        showOnLoadIfScheduled(5000);
+        //showOnLoadIfScheduled(2000);
         handleFingerAdChance(interstitial.getCountryCode());
     }
+
 
     void handleFingerAdChance(String interstitialCountryCode) {
         if (isLuckyForFingerAd != null) return;
@@ -104,6 +105,15 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         }
 
         return true;
+    }
+
+    public void showDelayed(int mills) {
+        mainHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                show();
+            }
+        },mills);
     }
 
     public void lockFor(int timeMills) {
