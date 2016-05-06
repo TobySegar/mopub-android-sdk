@@ -103,7 +103,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             Log.e(TAG, "show Failed: null notReady or locked or fail");
             return false;
         }
-
         return true;
     }
 

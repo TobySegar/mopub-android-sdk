@@ -78,10 +78,10 @@ public class Ads {
                 interstitial.showDelayed(500);
                 break;
             case LeaveLevel:
-                interstitial.show();
+                interstitial.showDelayed(500);
                 break;
             case StartSleepInBed:
-                interstitial.show();
+                interstitial.showDelayed(500);
                 break;
             case PlayerHurt:
                 interstitial.lockFor(10000);

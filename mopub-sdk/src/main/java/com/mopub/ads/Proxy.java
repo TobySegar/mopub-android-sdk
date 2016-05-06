@@ -30,7 +30,11 @@ public class Proxy extends Activity {
         super.onCreate(savedInstanceState);
         Log.d(proxy, "create");
         createClickSpace();
-        customEventInterstitial.showInterstitial();
+        if(Proxy.customEventInterstitial != null){
+        Proxy.customEventInterstitial.showInterstitial();
+        }else{
+            Finish();
+        }
     }
 
 
@@ -39,7 +43,7 @@ public class Proxy extends Activity {
         super.onDestroy();
         //BUG ked pozeraz vydeo a minimalizujes tak sa proxy destroyne a potom nemas nic pod tym
         Log.d(proxy, "destroy");
-        customEventInterstitial = null;
+        Proxy.customEventInterstitial = null;
     }
 
     public void Finish(){

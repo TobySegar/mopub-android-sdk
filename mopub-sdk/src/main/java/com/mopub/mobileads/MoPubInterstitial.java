@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.mopub.common.AdFormat;
 import com.mopub.common.DataKeys;
