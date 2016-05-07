@@ -36,6 +36,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private final double fingerAdChance;
     public boolean canGetFingerAd;
     private Boolean isLuckyForFingerAd;
+    private boolean freePeriod;
 
     public Interstitial(Activity activity, String interstitialId, Screen screen, long minimalAdGapMills, double disableTouchChance,
                         WorkerThread workerThread,List<String> highECPMcountries,double fingerAdChance) {
@@ -61,6 +62,10 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public void onInterstitialLoaded(MoPubInterstitial interstitial) {
         //showOnLoadIfScheduled(2000);
         handleFingerAdChance(interstitial.getCountryCode());
+    }
+
+    public void setFreePeriod(boolean freePeriod) {
+        this.freePeriod = freePeriod;
     }
 
 
@@ -99,8 +104,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
     public boolean show() {
-        if (mopubInterstitial == null || !mopubInterstitial.isReady() || isLocked || !mopubInterstitial.show()) {
-            Log.e(TAG, "show Failed: null notReady or locked or fail");
+        if (mopubInterstitial == null || !mopubInterstitial.isReady() || isLocked || freePeriod || !mopubInterstitial.show()) { //show has to be last
+            Log.e(TAG, "show Failed: null notReady or locked or fail or freePeriod");
             return false;
         }
         return true;

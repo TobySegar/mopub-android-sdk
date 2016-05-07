@@ -36,7 +36,6 @@ public class Ads {
     static final String FIRST_RUN_KEY = "FirstRun";
     private static final int NUM_FREE_DAYS = 2;
     private final int measureUnit = Calendar.DAY_OF_YEAR;
-    private boolean freePeriodAllowed;
     private boolean fingerAdShowed;
 
 
@@ -47,9 +46,8 @@ public class Ads {
         this.firstGamePlayStart = true;
         this.sharedPreferences = sharedPreferences;
         this.calendar = calendar;
-        this.freePeriodAllowed = freePeriodAllowed;
 
-        markFirstRun();
+        this.interstitial.setFreePeriod(isInFreePeriod(freePeriodAllowed));
 
         EventBus.getDefault().register(this);
     }
@@ -125,11 +123,6 @@ public class Ads {
     }
 
     public void init() {
-        if (isInFreePeriod()) {
-            Log.e(TAG, "start: FreePeriond");
-            return;
-        }
-
         if (internetObserver.isInternetAvaible()) {
             Log.e(TAG, "start");
             interstitial.init();
@@ -138,11 +131,21 @@ public class Ads {
         }
     }
 
-    public boolean isInFreePeriod() {
+    public boolean isInFreePeriod(boolean freePeriodAllowed) {
         if (Helper.DEBUG) {
             Log.e(TAG, "isInFreePeriod: false cause debug");
             return false;
         }
+        //mark first run
+        final boolean runnedBefore = sharedPreferences.getBoolean(FIRST_RUN_KEY, false);
+        if (!runnedBefore) {
+            int today = calendar.get(measureUnit);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt(FIRST_RUN_DAY_KEY, today);
+            editor.putBoolean(FIRST_RUN_KEY, true);
+            editor.commit();
+        }
+
         if (freePeriodAllowed) {
             int firstRunDay = sharedPreferences.getInt(FIRST_RUN_DAY_KEY, -1);
             if (firstRunDay != -1) {
@@ -152,16 +155,6 @@ public class Ads {
             }
         }
         return false;
-    }
-
-    void markFirstRun() {
-        final boolean runnedBefore = !sharedPreferences.getBoolean(FIRST_RUN_KEY, false);
-        if (!runnedBefore) {
-            int today = calendar.get(measureUnit);
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putInt(FIRST_RUN_DAY_KEY, today).apply();
-            editor.putBoolean(FIRST_RUN_KEY, true);
-        }
     }
 
     /**
