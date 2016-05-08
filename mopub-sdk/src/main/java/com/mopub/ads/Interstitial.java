@@ -117,7 +117,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             public void run() {
                 show();
             }
-        },mills);
+        }, mills);
     }
 
     public void lockFor(int timeMills) {
@@ -163,7 +163,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
     public void destroy() {
-        mopubInterstitial.destroy();
+        if(mopubInterstitial!=null) {
+            mopubInterstitial.destroy();
+        }
     }
 
     public void lock() {
