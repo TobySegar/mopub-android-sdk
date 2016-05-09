@@ -161,7 +161,7 @@ public class AdViewController {
         final MoPubErrorCode errorCode = getErrorCodeFromVolleyError(error, mContext);
         if (errorCode == MoPubErrorCode.SERVER_ERROR) {
             mBackoffPower++;
-            onAdLoadSuccess(getFailoverResponse()); //todo test
+            onAdLoadSuccess(getFailoverResponse());
             return;
         }
 
@@ -169,7 +169,8 @@ public class AdViewController {
         adDidFail(errorCode);
     }
 
-    private AdResponse getFailoverResponse() {
+    @VisibleForTesting
+    AdResponse getFailoverResponse() {
         Map<String,String> serverExtras = new HashMap<>();
         serverExtras.put(GooglePlayServicesInterstitial.AD_UNIT_ID_KEY, Data.Ads.Interstitial.failoverId);
 

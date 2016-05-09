@@ -1,6 +1,8 @@
 package com.mopub.ads;
 
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Environment;
 
 import com.mopub.common.test.support.SdkTestRunner;
 import com.mopub.mobileads.BuildConfig;
@@ -10,9 +12,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
+import java.util.Calendar;
+
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
@@ -25,17 +31,19 @@ import static org.mockito.Mockito.when;
 public class AdsTest {
 
     private Ads subject;
-    @Mock private SharedPreferences sharedPreferencesMock;
     @Mock private Interstitial interstitialMock;
+    @Mock private Calendar calendarMock;
 
     @Before
     public void setUp() throws Exception {
-        subject = new Ads(interstitialMock,null, sharedPreferencesMock,null,false);
-        when(sharedPreferencesMock.getBoolean(Ads.FIRST_RUN_KEY,false)).thenReturn(true);
+        SharedPreferences sharedPreferences = RuntimeEnvironment.application.getSharedPreferences("TEST", Context.MODE_PRIVATE);
+        subject = new Ads(interstitialMock,null, sharedPreferences,calendarMock,false);
+
+        when(calendarMock.get(subject.measureUnit)).thenReturn(0);
     }
 
     @Test
-    public void checkIfBuilding_withCloseTimingsArray_shoudReturnTrue() throws Exception{
+    public void checkIfBuilding_withFastBlockPlacements_shoudReturnTrue() throws Exception{
         int numberOfElementsToSum = 3; //we check placement times of last two placed blocks
         int closePlacementDiffereence = 700; //to be considered Build
         long firstPlaceTime = 100000;
@@ -54,7 +62,7 @@ public class AdsTest {
     }
 
     @Test
-    public void checkIfBuilding_withLongTimingsArray_shoudReturnTrue() throws Exception{
+    public void checkIfBuilding_withLongBlockPlacements_shoudReturnFalse() throws Exception{
         int numberOfElementsToSum = 3; //we check placement times of last two placed blocks
         int closePlacementDiffereence = 700; //to be considered Build
         int longPlacementDifference = 800;

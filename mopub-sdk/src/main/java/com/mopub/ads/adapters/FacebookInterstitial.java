@@ -8,7 +8,6 @@ import com.facebook.ads.AdError;
 import com.facebook.ads.AdSettings;
 import com.facebook.ads.InterstitialAd;
 import com.facebook.ads.InterstitialAdListener;
-import com.facebook.ads.internal.server.AdPlacementType;
 import com.mojang.base.Helper;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
@@ -24,29 +23,6 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
     private InterstitialAd mFacebookInterstitial;
     private CustomEventInterstitialListener mInterstitialListener;
 
-    /**
-     * CustomEventInterstitial implementation
-     */
-    @Override
-    protected void loadInterstitial(final Context context,
-            final CustomEventInterstitialListener customEventInterstitialListener,
-            final Map<String, Object> localExtras,
-            final Map<String, String> serverExtras) {
-        mInterstitialListener = customEventInterstitialListener;
-
-        final String placementId;
-        if (extrasAreValid(serverExtras)) {
-            placementId = serverExtras.get(PLACEMENT_ID_KEY);
-        } else {
-            mInterstitialListener.onInterstitialFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
-            return;
-        }
-        if(Helper.DEBUG) AdSettings.addTestDevice("8d3cef1dfffa38d6463891bfd97b478e");
-        mFacebookInterstitial = new InterstitialAd(context, placementId);
-        mFacebookInterstitial.setAdListener(this);
-        mFacebookInterstitial.loadAd();
-    }
-
     @Override
     public void showInterstitial() {
         if (mFacebookInterstitial != null && mFacebookInterstitial.isAdLoaded()) {
@@ -58,19 +34,6 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
             } else {
                 Log.d("MoPub", "Interstitial listener not instantiated. Please load interstitial again.");
             }
-        }
-    }
-
-    @Override
-    protected boolean usesProxy() {
-        return true;
-    }
-
-    @Override
-    protected void onInvalidate() {
-        if (mFacebookInterstitial != null) {
-            mFacebookInterstitial.destroy();
-            mFacebookInterstitial = null;
         }
     }
 
@@ -86,7 +49,7 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
 
     @Override
     public void onError(final Ad ad, final AdError error) {
-        Log.d("MoPub", "Facebook interstitial ad failed to load.");
+        Log.d("MoPub", "Facebook interstitial ad failed to load. " + error.getErrorMessage());
         if (error == AdError.NO_FILL) {
             mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
         } else if (error == AdError.INTERNAL_ERROR) {
@@ -114,12 +77,52 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
         mInterstitialListener.onInterstitialDismissed();
     }
 
+    /**
+     * CustomEventInterstitial implementation
+     */
+    @Override
+    protected void loadInterstitial(final Context context,
+                                    final CustomEventInterstitialListener customEventInterstitialListener,
+                                    final Map<String, Object> localExtras,
+                                    final Map<String, String> serverExtras) {
+        mInterstitialListener = customEventInterstitialListener;
+
+        final String placementId;
+        if (extrasAreValid(serverExtras)) {
+            placementId = serverExtras.get(PLACEMENT_ID_KEY);
+        } else {
+            mInterstitialListener.onInterstitialFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
+            return;
+        }
+        if (Helper.DEBUG) {
+            AdSettings.addTestDevice("8d3cef1dfffa38d6463891bfd97b478e");
+            AdSettings.addTestDevice("21f3542e3b4f4a0c5469b674257d2933");
+        }
+        mFacebookInterstitial = new InterstitialAd(context, placementId);
+        mFacebookInterstitial.setAdListener(this);
+        mFacebookInterstitial.loadAd();
+    }
+
+    @Override
+    protected boolean usesProxy() {
+        return true;
+    }
+
+    @Override
+    protected void onInvalidate() {
+        if (mFacebookInterstitial != null) {
+            mFacebookInterstitial.destroy();
+            mFacebookInterstitial = null;
+        }
+    }
+
     private boolean extrasAreValid(final Map<String, String> serverExtras) {
         final String placementId = serverExtras.get(PLACEMENT_ID_KEY);
         return (placementId != null && placementId.length() > 0);
     }
 
-    @Deprecated // for testing
+    @Deprecated
+        // for testing
     InterstitialAd getInterstitialAd() {
         return mFacebookInterstitial;
     }

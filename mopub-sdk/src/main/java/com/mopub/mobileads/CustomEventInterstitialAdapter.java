@@ -10,6 +10,7 @@ import com.mopub.ads.Proxy;
 import com.mopub.common.AdReport;
 import com.mopub.common.Constants;
 import com.mopub.common.Preconditions;
+import com.mopub.common.VisibleForTesting;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.mobileads.CustomEventInterstitial.CustomEventInterstitialListener;
 import com.mopub.mobileads.factories.CustomEventInterstitialFactory;
@@ -95,10 +96,11 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
             return;
         }
 
-        //todo test
         //We use proxy activity for some ad networks
         if(mCustomEventInterstitial.usesProxy()){
-            mProxy = new Proxy();
+            if (mProxy == null) {
+                mProxy = new Proxy();
+            }
             mProxy.startProxyActivity(mContext,mCustomEventInterstitial);
             return;
         }
@@ -235,6 +237,11 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         if(mProxy != null) {
             mProxy.Finish();
         }
+    }
+
+    @VisibleForTesting
+    void setProxy(Proxy proxy){
+        mProxy = proxy;
     }
 
     @Deprecated

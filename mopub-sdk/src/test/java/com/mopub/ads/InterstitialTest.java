@@ -26,7 +26,7 @@ public class InterstitialTest {
     private String interstitialId = "interstitialID";
     private long minimalAdGapMills = 15000;
     private double disableTouchChance = 0.0;
-    private double fingerAdChance = 0.5;
+    private double fingerAdChance = 1.0;
     private List<String> highECPMcountries = new ArrayList<>();
     @Mock MoPubInterstitial moPubInterstitialMock;
 
