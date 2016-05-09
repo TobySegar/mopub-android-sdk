@@ -111,9 +111,9 @@ public class Ads {
 
     @Subscribe
     public void onViewEvent(OfflineEvent viewEvent) {
-        if (viewEvent.playOffline_Accepted) {
+        if (viewEvent.playOffline_Accepted && !internetObserver.isInternetAvaible()) {
             interstitial.lock();
-        } else if (viewEvent.playOnline_Accepted) {
+        } else if (viewEvent.playOnline_Accepted && internetObserver.isInternetAvaible()) {
             if (numOfPlayers != 1) {
                 throw new RuntimeException("numOfPlayer > 1 this should never happen");
             }
