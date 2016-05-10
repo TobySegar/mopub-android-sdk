@@ -95,7 +95,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     @Override
     public void onInterstitialShown(MoPubInterstitial interstitial) {
-        lockForTime(minimalAdGapMills);
+        if (!Helper.DEBUG) lockForTime(minimalAdGapMills);
     }
 
     @Override

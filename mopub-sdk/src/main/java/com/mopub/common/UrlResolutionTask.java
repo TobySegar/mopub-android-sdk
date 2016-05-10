@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.AsyncTasks;
@@ -74,8 +75,7 @@ public class UrlResolutionTask extends AsyncTask<String, Void, String> {
     }
 
     @Nullable
-    private String getRedirectLocation(@NonNull final String urlString) throws IOException,
-            URISyntaxException {
+    private String getRedirectLocation(@NonNull final String urlString) throws IOException, URISyntaxException {
         final URL url = new URL(urlString);
 
         HttpURLConnection httpUrlConnection = null;
@@ -98,6 +98,7 @@ public class UrlResolutionTask extends AsyncTask<String, Void, String> {
         final URI baseUri = new URI(baseUrl);
         final int responseCode = httpUrlConnection.getResponseCode();
         final String redirectUrl = httpUrlConnection.getHeaderField("Location");
+        Log.d("MoPub", "resolveRedirectLocation: responseCode = "+responseCode);
         String result = null;
 
         if (responseCode >= 300 && responseCode < 400) {
@@ -106,6 +107,7 @@ public class UrlResolutionTask extends AsyncTask<String, Void, String> {
                 // otherwise, resolve() will return the redirectUrl
                 result =  baseUri.resolve(redirectUrl).toString();
             } catch (IllegalArgumentException e) {
+                Log.e("MoPub", "resolveRedirectLocation: ", e);
                 // Ensure the request is cancelled instead of resolving an intermediary URL
                 throw new URISyntaxException(redirectUrl, "Unable to parse invalid URL");
             }
@@ -119,6 +121,7 @@ public class UrlResolutionTask extends AsyncTask<String, Void, String> {
         super.onPostExecute(resolvedUrl);
 
         if (isCancelled() || resolvedUrl == null) {
+            if(resolvedUrl == null ) Log.d("MoPub", "onPostExecute: ResolveUrl Null");
             onCancelled();
         } else {
             mListener.onSuccess(resolvedUrl);
