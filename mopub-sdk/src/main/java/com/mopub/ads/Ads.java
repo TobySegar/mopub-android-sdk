@@ -35,7 +35,7 @@ public class Ads {
     private static final String FIRST_RUN_DAY_KEY = "FirstRunDay";
     static final String FIRST_RUN_KEY = "FirstRun";
     private static final int NUM_FREE_DAYS = 2;
-    private final int measureUnit = Calendar.DAY_OF_YEAR;
+    final int measureUnit = Calendar.DAY_OF_YEAR;
     private boolean fingerAdShowed;
 
 
