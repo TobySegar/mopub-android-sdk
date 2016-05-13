@@ -37,9 +37,10 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public boolean canGetFingerAd;
     private Boolean isLuckyForFingerAd;
     private boolean freePeriod;
+    private final Runnable reloadRunnable;
 
     public Interstitial(Activity activity, String interstitialId, Screen screen, long minimalAdGapMills, double disableTouchChance,
-                        WorkerThread workerThread,List<String> highECPMcountries,double fingerAdChance) {
+                        WorkerThread workerThread, List<String> highECPMcountries, double fingerAdChance) {
         this.activity = activity;
         this.interstitialId = interstitialId;
         this.screen = screen;
@@ -50,6 +51,13 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.fingerAdChance = fingerAdChance;
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.isLuckyForFingerAd = null;
+        this.reloadRunnable = new Runnable() {
+            @Override
+            public void run() {
+                mopubInterstitial.load();
+            }
+        };
+
     }
 
 
@@ -68,29 +76,13 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.freePeriod = freePeriod;
     }
 
-
-    void handleFingerAdChance(String interstitialCountryCode) {
-        if (isLuckyForFingerAd != null) return;
-
-        //we have to split all hightECPmCountires cause they might have chance with them SK-0.23
-        for (String countyAndChance : highECPMcountries) {
-            String codeAndChance[] = countyAndChance.split("-");
-            String countryCode = codeAndChance[0];
-
-            if(countryCode.equals(interstitialCountryCode)){
-                Double chance = null;
-                try { chance = Double.parseDouble(codeAndChance[1]);} catch (Exception ignored) {}
-                double finalChance = chance == null ? fingerAdChance : chance;
-
-                isLuckyForFingerAd = Helper.chance(finalChance);
-                canGetFingerAd = isLuckyForFingerAd;
-            }
-        }
-    }
-
     @Override
     public void onInterstitialFailed(MoPubInterstitial interstitial, MoPubErrorCode errorCode) {
+        Log.e(TAG, "onInterstitialFailed: " + errorCode);
 
+        if (errorCode.equals(MoPubErrorCode.NO_FILL)) {
+            loadAfterDelay(30000);
+        }
     }
 
     @Override
@@ -121,19 +113,72 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
     public void lockFor(int timeMills) {
-        if(isLocked) return;
+        if (isLocked) return;
 
         lock();
         workerThread.scheduleGameTime(new Runnable() {
             @Override
             public void run() {
-               unlock();
+                unlock();
             }
-        },timeMills);
+        }, timeMills);
+    }
+
+    public void destroy() {
+        if (mopubInterstitial != null) {
+            mopubInterstitial.destroy();
+        }
+    }
+
+    public void lock() {
+        Log.e(TAG, "interstitial lock");
+        isLocked = true;
+    }
+
+    public void unlock() {
+        Log.e(TAG, "interstitial unlock");
+        isLocked = false;
+    }
+
+    public void init() {
+        if (mopubInterstitial == null) {
+            mopubInterstitial = new MoPubInterstitial(activity, interstitialId);
+            mopubInterstitial.setInterstitialAdListener(this);
+            mopubInterstitial.load();
+        } else if (!mopubInterstitial.isReady()) {
+            mopubInterstitial.load();
+        }
+    }
+
+    public void scheduleShowOnLoad(long callTimeMills) {
+        showOnLoadCallTime = callTimeMills;
+        showOnLoad = true;
+    }
+
+    void handleFingerAdChance(String interstitialCountryCode) {
+        if (isLuckyForFingerAd != null) return;
+
+        //we have to split all hightECPmCountires cause they might have chance with them SK-0.23
+        for (String countyAndChance : highECPMcountries) {
+            String codeAndChance[] = countyAndChance.split("-");
+            String countryCode = codeAndChance[0];
+
+            if (countryCode.equals(interstitialCountryCode)) {
+                Double chance = null;
+                try {
+                    chance = Double.parseDouble(codeAndChance[1]);
+                } catch (Exception ignored) {
+                }
+                double finalChance = chance == null ? fingerAdChance : chance;
+
+                isLuckyForFingerAd = Helper.chance(finalChance);
+                canGetFingerAd = isLuckyForFingerAd;
+            }
+        }
     }
 
     private void showOnLoadIfScheduled(long maxTimeToWaitForAd) {
-        if(showOnLoadCallTime + maxTimeToWaitForAd >= System.currentTimeMillis() && showOnLoad){
+        if (showOnLoadCallTime + maxTimeToWaitForAd >= System.currentTimeMillis() && showOnLoad) {
             show();
             showOnLoad = false;
         }
@@ -150,46 +195,14 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
     private void disableTouch(double disableTouchChance) {
-        if (Helper.chance(disableTouchChance)) {screen.disableTouch(DISABLE_SCREEN_MILLS);}
+        if (Helper.chance(disableTouchChance)) {
+            screen.disableTouch(DISABLE_SCREEN_MILLS);
+        }
     }
 
     private void loadAfterDelay(long delay) {
-        mainHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                mopubInterstitial.load();
-            }
-        }, delay);
-    }
+        mainHandler.removeCallbacks(reloadRunnable);
 
-    public void destroy() {
-        if(mopubInterstitial!=null) {
-            mopubInterstitial.destroy();
-        }
-    }
-
-    public void lock() {
-        Log.e(TAG, "interstitial lock");
-        isLocked = true;
-    }
-
-    public void unlock(){
-        Log.e(TAG, "interstitial unlock");
-        isLocked = false;
-    }
-
-    public void init() {
-        if (mopubInterstitial == null) {
-            mopubInterstitial = new MoPubInterstitial(activity, interstitialId);
-            mopubInterstitial.setInterstitialAdListener(this);
-            mopubInterstitial.load();
-        }else if (!mopubInterstitial.isReady()) {
-            mopubInterstitial.load();
-        }
-    }
-
-    public void scheduleShowOnLoad(long callTimeMills) {
-        showOnLoadCallTime = callTimeMills;
-        showOnLoad = true;
+        mainHandler.postDelayed(reloadRunnable, delay);
     }
 }
