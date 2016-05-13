@@ -81,7 +81,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         Log.e(TAG, "onInterstitialFailed: " + errorCode);
 
         if (errorCode.equals(MoPubErrorCode.NO_FILL)) {
-            loadAfterDelay(30000);
+            loadAfterDelay(45000);
         }
     }
 
