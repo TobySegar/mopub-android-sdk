@@ -38,6 +38,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private Boolean isLuckyForFingerAd;
     private boolean freePeriod;
     private final Runnable reloadRunnable;
+    private double backOffPower = 1;
 
     public Interstitial(Activity activity, String interstitialId, Screen screen, long minimalAdGapMills, double disableTouchChance,
                         WorkerThread workerThread, List<String> highECPMcountries, double fingerAdChance) {
@@ -81,7 +82,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         Log.e(TAG, "onInterstitialFailed: " + errorCode);
 
         if (errorCode.equals(MoPubErrorCode.NO_FILL)) {
-            loadAfterDelay(45000);
+            final double BACKOFF_FACTOR = 1.3;
+            final int time = 45000;
+            final long reloadTime = time * (long) Math.pow(BACKOFF_FACTOR, backOffPower);
+            backOffPower++;
+            loadAfterDelay(reloadTime);
         }
     }
 
