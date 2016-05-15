@@ -233,7 +233,6 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
             mCustomEventInterstitialAdapterListener.onCustomEventInterstitialDismissed();
         }
 
-        //todo test
         if(mProxy != null) {
             mProxy.Finish();
         }

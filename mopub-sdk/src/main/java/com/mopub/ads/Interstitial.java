@@ -11,6 +11,8 @@ import com.mojang.base.Screen;
 import com.mojang.base.WorkerThread;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.mobileads.MoPubInterstitial;
+import com.unity3d.ads.android.IUnityAdsListener;
+import com.unity3d.ads.android.UnityAds;
 
 import java.util.List;
 
@@ -27,8 +29,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private final Handler mainHandler;
     private String TAG = this.getClass().getName();
     private boolean isLocked;
-    private boolean showOnLoad;
-    private long showOnLoadCallTime;
     private long minimalAdGapMills;
     private double disableTouchChance;
     private WorkerThread workerThread;
@@ -58,7 +58,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 mopubInterstitial.load();
             }
         };
-
     }
 
 
@@ -150,14 +149,59 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             mopubInterstitial = new MoPubInterstitial(activity, interstitialId);
             mopubInterstitial.setInterstitialAdListener(this);
             mopubInterstitial.load();
+            if (UnityAds.isSupported()) {
+                UnityAds.setDebugMode(Helper.DEBUG);
+                UnityAds.setTestMode(Helper.DEBUG);
+                UnityAds.init(activity, Helper.convertString("4D5445304D6A5535"), new IUnityAdsListener() {
+                    @Override
+                    public void onHide() {
+                        onInterstitialDismissed(mopubInterstitial);
+                    }
+
+                    @Override
+                    public void onShow() {
+                        onInterstitialShown(mopubInterstitial);
+                    }
+
+                    @Override
+                    public void onVideoStarted() {
+
+                    }
+
+                    @Override
+                    public void onVideoCompleted(String s, boolean b) {
+
+                    }
+
+                    @Override
+                    public void onFetchCompleted() {
+                        onInterstitialLoaded(mopubInterstitial);
+                    }
+
+                    @Override
+                    public void onFetchFailed() {
+                        onInterstitialFailed(mopubInterstitial, MoPubErrorCode.NETWORK_NO_FILL);
+                    }
+                });
+                UnityAds.canShow();
+            }
         } else if (!mopubInterstitial.isReady()) {
             mopubInterstitial.load();
         }
     }
 
-    public void scheduleShowOnLoad(long callTimeMills) {
-        showOnLoadCallTime = callTimeMills;
-        showOnLoad = true;
+
+    public void showUnityAdsVideo() {
+        if (isLocked || freePeriod) {
+            Log.e(TAG, "showUnityAdsVideo: locked or freePeriod");
+        } else if (UnityAds.canShow()) {
+            if (!UnityAds.show()) {
+                Log.e(TAG, "showUnityAdsVideo: show false");
+                show();
+            }
+        } else {
+            Log.e(TAG, "showUnityAdsVideo: canShow false");
+        }
     }
 
     void handleFingerAdChance(String interstitialCountryCode) {
@@ -182,12 +226,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         }
     }
 
-    private void showOnLoadIfScheduled(long maxTimeToWaitForAd) {
-        if (showOnLoadCallTime + maxTimeToWaitForAd >= System.currentTimeMillis() && showOnLoad) {
-            show();
-            showOnLoad = false;
-        }
-    }
 
     private void lockForTime(long minimalAdGapMills) {
         lock();

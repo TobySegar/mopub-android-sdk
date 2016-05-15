@@ -79,7 +79,7 @@ public class Ads {
                 interstitial.showDelayed(500);
                 break;
             case StartSleepInBed:
-                interstitial.showDelayed(500);
+                interstitial.showUnityAdsVideo();
                 break;
             case PlayerHurt:
                 interstitial.lockFor(10000);

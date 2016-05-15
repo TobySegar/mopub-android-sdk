@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Environment;
 
+import com.mojang.base.events.MinecraftGameEvent;
 import com.mopub.common.test.support.SdkTestRunner;
 import com.mopub.mobileads.BuildConfig;
 
@@ -12,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
@@ -19,6 +21,8 @@ import java.util.Calendar;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
@@ -124,6 +128,13 @@ public class AdsTest {
         subject.showAdIfBuilding();
 
         verify(interstitialMock, never()).show();
+    }
+
+    @Test
+    public void onStartSleepEventShould_ShowUnityVideo() throws Exception {
+        subject.onGameEvent(new MinecraftGameEvent(null, MinecraftGameEvent.Event.StartSleepInBed));
+
+        verify(interstitialMock, times(1)).showUnityAdsVideo();
     }
 
 
