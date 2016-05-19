@@ -34,14 +34,17 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private WorkerThread workerThread;
     private final List<String> highECPMcountries;
     private final double fingerAdChance;
+    private final double periodicMills;
     public boolean canGetFingerAd;
     private Boolean isLuckyForFingerAd;
     private boolean freePeriod;
     private final Runnable reloadRunnable;
     private double backOffPower = 1;
+    private Runnable periodicShowRunnable;
+    private Runnable showRunnable;
 
-    public Interstitial(Activity activity, String interstitialId, Screen screen, long minimalAdGapMills, double disableTouchChance,
-                        WorkerThread workerThread, List<String> highECPMcountries, double fingerAdChance) {
+    public Interstitial(final Activity activity, String interstitialId, Screen screen, long minimalAdGapMills, double disableTouchChance,
+                        WorkerThread workerThread, List<String> highECPMcountries, double fingerAdChance, double periodicMills) {
         this.activity = activity;
         this.interstitialId = interstitialId;
         this.screen = screen;
@@ -50,6 +53,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.workerThread = workerThread;
         this.highECPMcountries = highECPMcountries;
         this.fingerAdChance = fingerAdChance;
+        this.periodicMills = periodicMills;
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.isLuckyForFingerAd = null;
         this.reloadRunnable = new Runnable() {
@@ -58,11 +62,22 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 mopubInterstitial.load();
             }
         };
+        this.showRunnable = new Runnable() {
+            @Override
+            public void run() {
+                show();
+            }
+        };
+        this.periodicShowRunnable = new Runnable() {
+            @Override
+            public void run() {activity.runOnUiThread(showRunnable);}
+        };
     }
 
 
     @Override
     public void onInterstitialDismissed(MoPubInterstitial interstitial) {
+        if (!Helper.DEBUG) lockForTime(minimalAdGapMills);
         loadAfterDelay(3000);
     }
 
@@ -91,7 +106,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     @Override
     public void onInterstitialShown(MoPubInterstitial interstitial) {
-        if (!Helper.DEBUG) lockForTime(minimalAdGapMills);
+
     }
 
     @Override
@@ -108,12 +123,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
     public void showDelayed(int mills) {
-        mainHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                show();
-            }
-        }, mills);
+        mainHandler.postDelayed(showRunnable, mills);
     }
 
     public void lockFor(int timeMills) {
@@ -204,6 +214,18 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         }
     }
 
+    public void un_schedulePeriodicShows() {
+        if(!canGetFingerAd) return;
+        Log.e(TAG, "schedulePeriodicShows: Unscheduled");
+        workerThread.removeScheduledItem(periodicShowRunnable);
+    }
+
+    public void schedulePeriodicShows() {
+        if(!canGetFingerAd) return;
+        Log.e(TAG, "schedulePeriodicShows: Scheduled");
+        workerThread.scheduleGameTime(periodicShowRunnable,(long) periodicMills,true);
+    }
+
     void handleFingerAdChance(String interstitialCountryCode) {
         if (isLuckyForFingerAd != null) return;
 
@@ -224,6 +246,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 canGetFingerAd = isLuckyForFingerAd;
             }
         }
+        if(Helper.DEBUG) canGetFingerAd = true;
     }
 
 

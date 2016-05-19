@@ -74,24 +74,23 @@ public class Ads {
                 break;
             case GamePlayStart:
                 interstitial.showDelayed(500);
+                interstitial.schedulePeriodicShows();
                 break;
             case LeaveLevel:
                 interstitial.showDelayed(500);
+                interstitial.un_schedulePeriodicShows();
                 break;
             case StartSleepInBed:
                 interstitial.showUnityAdsVideo();
-                break;
-            case PlayerHurt:
-                interstitial.lockFor(10000);
                 break;
             case BlockPlaced:
                 checkIfBuilding(blockPlaceTimes, 2, 1000, System.currentTimeMillis());
                 break;
             case CameraMoveX:
-                if(interstitial.canGetFingerAd) showAdIfBuilding();
+                showAdIfBuilding();
                 break;
             case CameraMoveY:
-                if(interstitial.canGetFingerAd) showAdIfBuilding();
+                showAdIfBuilding();
                 break;
         }
     }
@@ -190,7 +189,7 @@ public class Ads {
     }
 
     void showAdIfBuilding() {
-        if (isBuilding && !fingerAdShowed) {
+        if (interstitial.canGetFingerAd && isBuilding && !fingerAdShowed) {
             if(interstitial.show()){
                 fingerAdShowed = true;
             }
