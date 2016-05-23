@@ -13,6 +13,8 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.mojang.base.Analytics;
 import com.mopub.ads.adapters.GooglePlayServicesInterstitial;
 import com.mopub.common.AdReport;
 import com.mopub.common.AdType;
@@ -162,6 +164,8 @@ public class AdViewController {
         if (errorCode == MoPubErrorCode.SERVER_ERROR) {
             mBackoffPower++;
             onAdLoadSuccess(getFailoverResponse());
+            Analytics.sendEvent(new HitBuilders.EventBuilder().setCategory("MoPub")
+                    .setAction("Error").setLabel("SERVER_ERROR").build());
             return;
         }
 
