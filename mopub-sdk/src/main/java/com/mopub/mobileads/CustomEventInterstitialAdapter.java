@@ -6,6 +6,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.mojang.base.Analytics;
+import com.mopub.ads.Interstitial;
 import com.mopub.ads.Proxy;
 import com.mopub.common.AdReport;
 import com.mopub.common.Constants;
@@ -92,6 +94,8 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
     }
 
     void showInterstitial() {
+        Analytics.toAd = true;
+
         if (isInvalidated() || mCustomEventInterstitial == null) {
             return;
         }
