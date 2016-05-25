@@ -83,15 +83,6 @@ public class Ads {
             case StartSleepInBed:
                 interstitial.showUnityAdsVideo();
                 break;
-            case BlockPlaced:
-                checkIfBuilding(blockPlaceTimes, 2, 1000, System.currentTimeMillis());
-                break;
-            case CameraMoveX:
-                showAdIfBuilding();
-                break;
-            case CameraMoveY:
-                showAdIfBuilding();
-                break;
         }
     }
 

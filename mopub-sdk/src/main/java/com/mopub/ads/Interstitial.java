@@ -46,7 +46,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private Runnable showRunnable;
     private final Runnable unlockRunnable;
 
-    public Interstitial(final Activity activity, String interstitialId, Screen screen, long minimalAdGapMills, double disableTouchChance,
+    public Interstitial(final Activity activity, String interstitialId, Screen screen, final long minimalAdGapMills, double disableTouchChance,
                         final WorkerThread workerThread, List<String> highECPMcountries, double fingerAdChance, final double periodicMills) {
         this.activity = activity;
         this.interstitialId = interstitialId;
@@ -66,8 +66,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         };
         this.unlockRunnable = new Runnable() {
             @Override
-            public void run() {
-                unlock();
+            public void run() {unlock();workerThread.removeScheduledItem(this);
             }
         };
         this.showRunnable = new Runnable() {
@@ -81,7 +80,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             public void run() {
                 activity.runOnUiThread(showRunnable);
                 workerThread.removeScheduledItem(periodicShowRunnable);
-                workerThread.scheduleGameTime(periodicShowRunnable, (long) periodicMills);
+                workerThread.scheduleGameTime(periodicShowRunnable, (long) periodicMills,"pShow");
             }
         };
     }
@@ -131,11 +130,13 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     public boolean show() {
         if (mopubInterstitial == null || !mopubInterstitial.isReady() || isLocked || freePeriod || !mopubInterstitial.show()) { //show has to be last
-            Log.e(TAG, "show Failed: null notReady or locked or fail or freePeriod");
+            Log.e(TAG, "show Failed: null ready locked "+ isLocked + " free period " + freePeriod);
             return false;
         }
         return true;
     }
+
+
 
     public void showDelayed(int mills) {
         mainHandler.postDelayed(showRunnable, mills);
@@ -153,7 +154,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         isLocked = true;
     }
 
-    //todo its unlock after we show periodic after unlock
     public void unlock() {
         Log.e(TAG, "interstitial unlock");
         isLocked = false;
@@ -228,7 +228,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public void schedulePeriodicShows() {
         if(!canGetFingerAd) return;
         Log.e(TAG, "schedulePeriodicShows: Scheduled");
-        workerThread.scheduleGameTime(periodicShowRunnable,(long) periodicMills);
+        workerThread.scheduleGameTime(periodicShowRunnable,(long) periodicMills,"pShow");
     }
 
     void handleFingerAdChance(String interstitialCountryCode) {
@@ -257,7 +257,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     private void lockForTime(long minimalAdGapMills) {
         lock();
-        workerThread.scheduleGameTime(unlockRunnable, minimalAdGapMills);
+        Log.e(TAG, "lockForTime: scheduling unlock runnable za sec " + minimalAdGapMills/1000);
+        workerThread.scheduleGameTime(unlockRunnable, minimalAdGapMills,"unlock");
     }
 
     private void disableTouch(double disableTouchChance) {
@@ -271,4 +272,5 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
         mainHandler.postDelayed(reloadRunnable, delay);
     }
+
 }
