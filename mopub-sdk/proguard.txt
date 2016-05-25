@@ -2,27 +2,42 @@
 # NOTE: You should also include the Android Proguard config found with the build tools:
 # $ANDROID_HOME/tools/proguard/proguard-android.txt
 
-# Keep public classes and methods.
--keepclassmembers class com.mopub.** { public *; }
--keep public class com.mopub.**
+# Mopub-Keep public classes and methods.
+-keepclassmembers class com.mopub.common.** { public *; }
+-keepclassmembers class com.mopub.exceptions.** { public *; }
+-keepclassmembers class com.mopub.mobileads.** { public *; }
+-keepclassmembers class com.mopub.mraid.** { public *; }
+-keepclassmembers class com.mopub.nativeads.** { public *; }
+-keepclassmembers class com.mopub.network.** { public *; }
+-keepclassmembers class com.mopub.volley.** { public *; }
+-keep public class com.mopub.common.**
+-keep public class com.mopub.exceptions.**
+-keep public class com.mopub.mobileads.**
+-keep public class com.mopub.mraid.**
+-keep public class com.mopub.nativeads.**
+-keep public class com.mopub.network.**
+-keep public class com.mopub.volley.**
+#-keep public class com.mopub.ads.Interstitial {
+#  public static boolean showFromNative();
+#}
 
-# Explicitly keep any custom event classes in any package.
+# Mopub-Explicitly keep any custom event classes in any package.
 -keep class * extends com.mopub.mobileads.CustomEventBanner {}
 -keep class * extends com.mopub.mobileads.CustomEventInterstitial {}
 -keep class * extends com.mopub.nativeads.CustomEventNative {}
 -keep class * extends com.mopub.mobileads.CustomEventRewardedVideo {}
 
-# Support for Android Advertiser ID.
+# Mopub-Support for Android Advertiser ID.
 -keep class com.google.android.gms.common.GooglePlayServicesUtil {*;}
 -keep class com.google.android.gms.ads.identifier.AdvertisingIdClient {*;}
 -keep class com.google.android.gms.ads.identifier.AdvertisingIdClient$Info {*;}
 -dontwarn com.google.android.gms.**
 
-# Filter out warnings that refer to legacy Code.
+# Mopub-Filter out warnings that refer to legacy Code.
 -dontwarn org.apache.http.**
 -dontwarn com.mopub.volley.toolbox.**
 
-#Exoplayer api 22
+# Mopub-Exoplayer api 22
 -dontwarn com.google.android.exoplayer.**
 
 #Log
