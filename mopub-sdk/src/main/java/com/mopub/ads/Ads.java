@@ -74,7 +74,6 @@ public class Ads {
                 break;
             case GamePlayStart:
                 interstitial.showDelayed(500);
-                interstitial.schedulePeriodicShows();
                 break;
             case LeaveLevel:
                 interstitial.showDelayed(500);
@@ -145,48 +144,6 @@ public class Ads {
             }
         }
         return false;
-    }
-
-    /**
-     *  Should be called when block is placed, checks previous block placements times
-     *  and sums up difference in placements between last {@code numOfElemetsToSum} and compares
-     *  it to {@code averageTimeBetweenPlacement}
-     *
-     * @param blockPlaceTimes System times of previous block placements
-     * @param numOfElemetsToSum number times between placement to sum
-     * @param averageTimeBetweenPlacement average period between block placements to be considered building
-     * @return if {@code numOfElemetsToSum} <= {@code averageTimeBetweenPlacement}
-     */
-    void checkIfBuilding(long[] blockPlaceTimes, int numOfElemetsToSum, int averageTimeBetweenPlacement, long currentBlockPlaceTime) {
-        //shift elements up && add time to last position
-        final int lastIndex = blockPlaceTimes.length - 1;
-        System.arraycopy(blockPlaceTimes, 1, blockPlaceTimes, 0, lastIndex);
-        blockPlaceTimes[lastIndex] = currentBlockPlaceTime;
-
-        //zrataj time differences bettwenn last numOfElemetsToSum
-        long sumOfTimeDifferences = 0;
-        for (int i = lastIndex; i >= 0; i--) {
-            if (i >= blockPlaceTimes.length - numOfElemetsToSum) {
-                long difference = blockPlaceTimes[i] - blockPlaceTimes[i-1];
-                sumOfTimeDifferences += difference;
-            }else{
-                break;
-            }
-        }
-
-        final int totalBetweenPeriod = averageTimeBetweenPlacement * numOfElemetsToSum;
-        isBuilding = sumOfTimeDifferences <= totalBetweenPeriod;
-        if(isBuilding) Log.e(TAG, "checkIfBuilding: TRUE" );
-    }
-
-    void showAdIfBuilding() {
-        if (interstitial.canGetFingerAd && isBuilding && !fingerAdShowed) {
-            if(interstitial.show()){
-                fingerAdShowed = true;
-            }
-            this.isBuilding = false;
-        }
-
     }
 
 }

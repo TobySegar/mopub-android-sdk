@@ -4,6 +4,7 @@ package com.mopub.ads;
 import android.app.Activity;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.google.android.gms.analytics.HitBuilders;
@@ -35,19 +36,20 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private double disableTouchChance;
     private WorkerThread workerThread;
     private final List<String> highECPMcountries;
-    private final double fingerAdChance;
-    private final double periodicMills;
-    public boolean canGetFingerAd;
-    private Boolean isLuckyForFingerAd;
+    private double fingerAdChance;
+    private final double periodicMillsHigh;
+    @Nullable  public Boolean canGetFingerAd = null;
     private boolean freePeriod;
     private final Runnable reloadRunnable;
     private double backOffPower = 1;
     private Runnable periodicShowRunnable;
     private Runnable showRunnable;
     private final Runnable unlockRunnable;
+    private double periodicMills;
+    private final double fingerAdChanceHigh;
 
     public Interstitial(final Activity activity, String interstitialId, Screen screen, final long minimalAdGapMills, double disableTouchChance,
-                        final WorkerThread workerThread, List<String> highECPMcountries, double fingerAdChance, final double periodicMills) {
+                        final WorkerThread workerThread, List<String> highECPMcountries, double fingerAdChanceLow, double fingerAdChanceHigh,final double periodicMillsLow,final double periodicMillsHigh) {
         this.activity = activity;
         this.interstitialId = interstitialId;
         this.screen = screen;
@@ -55,10 +57,12 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.disableTouchChance = disableTouchChance;
         this.workerThread = workerThread;
         this.highECPMcountries = highECPMcountries;
-        this.fingerAdChance = fingerAdChance;
-        this.periodicMills = periodicMills;
+        this.fingerAdChance = fingerAdChanceLow;
+        this.fingerAdChanceHigh = fingerAdChanceHigh;
+        this.periodicMillsHigh = periodicMillsHigh;
+        this.periodicMills = periodicMillsLow;
         this.mainHandler = new Handler(Looper.getMainLooper());
-        this.isLuckyForFingerAd = null;
+        this.canGetFingerAd = null;
         this.reloadRunnable = new Runnable() {
             @Override
             public void run() {mopubInterstitial.load();Analytics.toAd = false;
@@ -75,27 +79,20 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 show();
             }
         };
-        this.periodicShowRunnable = new Runnable() {
-            @Override
-            public void run() {
-                activity.runOnUiThread(showRunnable);
-                workerThread.removeScheduledItem(periodicShowRunnable);
-                workerThread.scheduleGameTime(periodicShowRunnable, (long) periodicMills,"pShow");
-            }
-        };
     }
+
 
 
     @Override
     public void onInterstitialDismissed(MoPubInterstitial interstitial) {
         lockForTime(minimalAdGapMills);
         loadAfterDelay(3000);
+        schedulePeriodicShows();
     }
 
     @Override
     public void onInterstitialLoaded(MoPubInterstitial interstitial) {
-        //showOnLoadIfScheduled(2000);
-        handleFingerAdChance(interstitial.getCountryCode());
+        setPeriodicMillsAndFingerChance(interstitial.getCountryCode());
     }
 
     public void setFreePeriod(boolean freePeriod) {
@@ -220,19 +217,34 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
     public void un_schedulePeriodicShows() {
-        if(!canGetFingerAd) return;
+        if(canGetFingerAd == null || !canGetFingerAd) return;
         Log.e(TAG, "schedulePeriodicShows: Unscheduled");
+        initPeriodicRunnable();
         workerThread.removeScheduledItem(periodicShowRunnable);
     }
 
-    public void schedulePeriodicShows() {
-        if(!canGetFingerAd) return;
-        Log.e(TAG, "schedulePeriodicShows: Scheduled");
-        workerThread.scheduleGameTime(periodicShowRunnable,(long) periodicMills,"pShow");
+    private void schedulePeriodicShows() {
+        if(canGetFingerAd == null || !canGetFingerAd) return;
+        Log.e(TAG, "schedulePeriodicShows: Scheduled ");
+        initPeriodicRunnable();
+        workerThread.scheduleGameTime(periodicShowRunnable, (long) periodicMills,"pShow");
     }
 
-    void handleFingerAdChance(String interstitialCountryCode) {
-        if (isLuckyForFingerAd != null) return;
+    private void initPeriodicRunnable() {
+        if (periodicShowRunnable == null) {
+            periodicShowRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    activity.runOnUiThread(showRunnable);
+                    workerThread.removeScheduledItem(periodicShowRunnable);
+                    workerThread.scheduleGameTime(periodicShowRunnable, (long) periodicMills,"pShow");
+                }
+            };
+        }
+    }
+
+    void setPeriodicMillsAndFingerChance(String interstitialCountryCode) {
+        if (canGetFingerAd != null) return;
 
         //we have to split all hightECPmCountires cause they might have chance with them SK-0.23
         for (String countyAndChance : highECPMcountries) {
@@ -240,18 +252,15 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             String countryCode = codeAndChance[0];
 
             if (countryCode.equals(interstitialCountryCode)) {
-                Double chance = null;
+                periodicMills = periodicMillsHigh;
+                fingerAdChance = fingerAdChanceHigh;
                 try {
-                    chance = Double.parseDouble(codeAndChance[1]);
+                    fingerAdChance = Double.parseDouble(codeAndChance[1]);
                 } catch (Exception ignored) {
                 }
-                double finalChance = chance == null ? fingerAdChance : chance;
-
-                isLuckyForFingerAd = Helper.chance(finalChance);
-                canGetFingerAd = isLuckyForFingerAd;
             }
         }
-        if(Helper.DEBUG) canGetFingerAd = true;
+        canGetFingerAd = Helper.chance(fingerAdChance);
     }
 
 
