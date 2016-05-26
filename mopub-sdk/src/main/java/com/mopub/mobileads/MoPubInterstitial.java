@@ -3,6 +3,7 @@ package com.mopub.mobileads;
 import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -21,7 +22,8 @@ import static com.mopub.mobileads.MoPubErrorCode.ADAPTER_NOT_FOUND;
 
 public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomEventInterstitialAdapterListener {
 
-    public String getCountryCode() {
+    //http://www.nationsonline.org/oneworld/country_code_list.htm
+    @Nullable public String getCountryCode() {
         return mCountryCode;
     }
 

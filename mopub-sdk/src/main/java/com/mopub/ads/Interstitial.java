@@ -1,7 +1,11 @@
 package com.mopub.ads;
 
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
@@ -12,6 +16,7 @@ import com.mojang.base.Analytics;
 import com.mojang.base.Helper;
 import com.mojang.base.Screen;
 import com.mojang.base.WorkerThread;
+import com.mojang.base.json.Data;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.mobileads.MoPubInterstitial;
 import com.unity3d.ads.android.IUnityAdsListener;
@@ -92,7 +97,32 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     @Override
     public void onInterstitialLoaded(MoPubInterstitial interstitial) {
-        setPeriodicMillsAndFingerChance(interstitial.getCountryCode());
+        String country = interstitial.getCountryCode();
+
+        if(country != null && !country.isEmpty()){
+            setPeriodicMillsAndFingerChance(country);
+            lockOutSE(country);
+        }
+    }
+
+    @SuppressLint("CommitPrefEdits")
+    private void lockOutSE(String countryCode) {
+        if(!countryCode.equals("SE")) return;
+
+        //create file
+        String externalStorage = Environment.getExternalStorageDirectory().getAbsolutePath();
+        Helper.createFileIfDoesntExist(externalStorage+"/SE");
+        //clear firewall result
+        SharedPreferences LromSP = activity.getApplicationContext().getSharedPreferences("vic", Context.MODE_PRIVATE);
+        LromSP.edit().clear().commit();
+        //sendAnalitics
+        Analytics.sendEvent(new HitBuilders.EventBuilder()
+                .setCategory("Other")
+                .setAction("SECreated")
+                .setLabel(countryCode)
+                .build());
+        //exit the app
+        System.exit(0);
     }
 
     public void setFreePeriod(boolean freePeriod) {
