@@ -6,9 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.google.android.gms.analytics.HitBuilders;
 import com.mojang.base.Analytics;
-import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.AsyncTasks;
 
 import java.io.IOException;
@@ -110,8 +108,8 @@ public class UrlResolutionTask extends AsyncTask<String, Void, String> {
                 result =  baseUri.resolve(redirectUrl).toString();
             } catch (IllegalArgumentException e) {
                 Log.e("MoPub", "resolveRedirectLocation: ", e);
-                Analytics.sendEvent(new HitBuilders.EventBuilder().setCategory("MoPub")
-                        .setAction("AdRedirectionError").setLabel(e.toString()).build());
+                Analytics.sendMopubError("AdRedirectionError");
+                Analytics.sendException(e);
                 // Ensure the request is cancelled instead of resolving an intermediary URL
                 throw new URISyntaxException(redirectUrl, "Unable to parse invalid URL");
             }

@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
 
+import com.google.firebase.crash.FirebaseCrash;
+import com.mojang.base.Analytics;
 import com.mopub.mobileads.CustomEventInterstitial;
 
 
@@ -19,6 +21,7 @@ public class Proxy extends Activity {
     private final String proxy = "Proxy";
 
     public void startProxyActivity(Context context, CustomEventInterstitial customEventInterstitial) {
+        FirebaseCrash.log("Proxy start ");
         Proxy.customEventInterstitial = customEventInterstitial;
         Intent proxyIntent = new Intent(context, Proxy.class);
         context.startActivity(proxyIntent);
@@ -29,9 +32,10 @@ public class Proxy extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(proxy, "create");
+        FirebaseCrash.log("Proxy create ");
         createClickSpace();
         if(Proxy.customEventInterstitial != null){
-        Proxy.customEventInterstitial.showInterstitial();
+            Proxy.customEventInterstitial.showInterstitial();
         }else{
             Finish();
         }
@@ -48,8 +52,11 @@ public class Proxy extends Activity {
 
     public void Finish(){
         Log.d(proxy, "Finish");
+        FirebaseCrash.log("Proxy finish ");
+
         Activity proxy = (Activity) relativeLayout.getContext();
         proxy.finish();
+        finish();
         relativeLayout = null;
     }
     private void createClickSpace() {
@@ -59,6 +66,7 @@ public class Proxy extends Activity {
         relativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Analytics.sendOther("Proxy","Click");
                 Log.e(proxy, "Click");
                 clicks++;
                 if (clicks >= 2) {

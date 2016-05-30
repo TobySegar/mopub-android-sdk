@@ -1,6 +1,5 @@
 package com.mopub.ads;
 
-import com.mojang.base.Helper;
 import com.mopub.common.test.support.SdkTestRunner;
 import com.mopub.mobileads.BuildConfig;
 import com.mopub.mobileads.MoPubInterstitial;

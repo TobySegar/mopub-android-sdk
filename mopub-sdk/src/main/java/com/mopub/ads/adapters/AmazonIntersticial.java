@@ -24,7 +24,6 @@ import com.amazon.device.ads.InterstitialAd;
 import com.mojang.base.Helper;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
-import com.mopub.network.AdResponse;
 
 import android.app.Activity;
 import android.content.Context;

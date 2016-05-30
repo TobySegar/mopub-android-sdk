@@ -4,6 +4,7 @@ import android.content.Context;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -13,7 +14,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.google.android.gms.analytics.HitBuilders;
 import com.mojang.base.Analytics;
 import com.mopub.ads.adapters.GooglePlayServicesInterstitial;
 import com.mopub.common.AdReport;
@@ -161,11 +161,13 @@ public class AdViewController {
         }
 
         final MoPubErrorCode errorCode = getErrorCodeFromVolleyError(error, mContext);
+
         if (errorCode == MoPubErrorCode.SERVER_ERROR) {
             mBackoffPower++;
             onAdLoadSuccess(getFailoverResponse());
-            Analytics.sendEvent(new HitBuilders.EventBuilder().setCategory("MoPub")
-                    .setAction("Error").setLabel("SERVER_ERROR").build());
+            Bundle bundle = new Bundle();
+            bundle.putString("Error",MoPubErrorCode.SERVER_ERROR.toString());
+            Analytics.sendMopubError(MoPubErrorCode.SERVER_ERROR.toString());
             return;
         }
 

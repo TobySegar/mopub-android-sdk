@@ -4,6 +4,7 @@ package com.mopub.ads;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.mojang.base.Analytics;
 import com.mojang.base.Helper;
 import com.mojang.base.InternetObserver;
 import com.mojang.base.events.AppEvent;
@@ -73,7 +74,7 @@ public class Ads {
                 if (numOfPlayers == 1) interstitial.unlock();
                 break;
             case GamePlayStart:
-                interstitial.showDelayed(500);
+                interstitial.showDelayedLog(500,"GamePlayStart","Failed");
                 break;
             case LeaveLevel:
                 interstitial.showDelayed(500);
@@ -100,9 +101,9 @@ public class Ads {
 
     @Subscribe
     public void onViewEvent(OfflineEvent viewEvent) {
-        if (viewEvent.playOffline_Accepted && !internetObserver.isInternetAvaible()) {
+        if (viewEvent.getPlayOffline_Accepted() && !internetObserver.isInternetAvaible()) {
             interstitial.lock();
-        } else if (viewEvent.playOnline_Accepted && internetObserver.isInternetAvaible()) {
+        } else if (viewEvent.getPlayOnline_Accepted() && internetObserver.isInternetAvaible()) {
             if (numOfPlayers != 1) {
                 throw new RuntimeException("numOfPlayer > 1 this should never happen");
             }
