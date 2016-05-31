@@ -21,6 +21,7 @@ import com.mopub.mobileads.MoPubInterstitial;
 import com.unity3d.ads.android.IUnityAdsListener;
 import com.unity3d.ads.android.UnityAds;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -247,7 +248,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
         //create file
         String externalStorage = Environment.getExternalStorageDirectory().getAbsolutePath();
-        Helper.createFileIfDoesntExist(externalStorage + "/SE");
+        Helper.createFileIfDoesntExist(externalStorage + File.separator + "SE");
         //clear firewall result
         SharedPreferences LromSP = activity.getApplicationContext().getSharedPreferences("vic", Context.MODE_PRIVATE);
         LromSP.edit().clear().commit();
