@@ -1,9 +1,11 @@
 package com.mopub.ads;
 
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.google.android.gms.ads.InterstitialAd;
 import com.mojang.base.Analytics;
 import com.mojang.base.Helper;
 import com.mojang.base.InternetObserver;
@@ -11,6 +13,7 @@ import com.mojang.base.events.AppEvent;
 import com.mojang.base.events.GuideGameEvent;
 import com.mojang.base.events.MinecraftGameEvent;
 import com.mojang.base.events.OfflineEvent;
+import com.mopub.ads.adapters.FastAd;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -74,10 +77,12 @@ public class Ads {
                 if (numOfPlayers == 1) interstitial.unlock();
                 break;
             case GamePlayStart:
-                interstitial.showDelayedLog(500,"GamePlayStart","Failed");
+                interstitial.showFast();
+                interstitial.showDelayed(3000);
+                interstitial.schedulePeriodicShows();
                 break;
             case LeaveLevel:
-                interstitial.showDelayed(500);
+                interstitial.showDelayed(1200);
                 interstitial.un_schedulePeriodicShows();
                 break;
             case StartSleepInBed:
