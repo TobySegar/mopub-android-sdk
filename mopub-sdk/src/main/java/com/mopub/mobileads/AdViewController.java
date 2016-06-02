@@ -162,11 +162,9 @@ public class AdViewController {
 
         final MoPubErrorCode errorCode = getErrorCodeFromVolleyError(error, mContext);
 
-        if (errorCode == MoPubErrorCode.SERVER_ERROR) {
+        if (errorCode == MoPubErrorCode.SERVER_ERROR || errorCode == MoPubErrorCode.NO_FILL) {
             mBackoffPower++;
             onAdLoadSuccess(getFailoverResponse());
-            Bundle bundle = new Bundle();
-            bundle.putString("Error",MoPubErrorCode.SERVER_ERROR.toString());
             Analytics.sendMopubError(MoPubErrorCode.SERVER_ERROR.toString());
             return;
         }
