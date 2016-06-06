@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.mojang.base.Analytics;
+import com.mojang.base.CounterView;
 import com.mojang.base.Helper;
 import com.mojang.base.Screen;
 import com.mojang.base.WorkerThread;
@@ -55,8 +56,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private boolean fastAdUsed;
     private boolean onLoadedOnce;
     private boolean periodicScheduled;
+    private CounterView counterView;
 
-    public Interstitial(final Activity activity, String interstitialId, Screen screen, final long minimalAdGapMills, double disableTouchChance,
+    public Interstitial(final Activity activity, String interstitialId, final Screen screen, final long minimalAdGapMills, double disableTouchChance,
                         final WorkerThread workerThread, List<String> highECPMcountries, double fingerAdChanceLow, double fingerAdChanceHigh, final double periodicMillsLow, final double periodicMillsHigh) {
         this.activity = activity;
         this.interstitialId = interstitialId;
@@ -89,6 +91,14 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 show();
             }
         };
+        this.counterView = new CounterView(activity, new Runnable() {
+            @Override
+            public void run() {
+                activity.runOnUiThread(showRunnable);
+                workerThread.removeScheduledItem(periodicShowRunnable);
+                workerThread.scheduleGameTime(periodicShowRunnable, (long) periodicMills, "pShow");
+            }
+        }, screen);
     }
 
 
@@ -214,7 +224,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         if (!periodicScheduled) {
             Log.e(TAG, "schedulePeriodicShows: Scheduled ");
             initPeriodicRunnable();
-            workerThread.scheduleGameTime(periodicShowRunnable, (long) periodicMills, "pShow");
+            workerThread.scheduleGameTime(periodicShowRunnable, (long) 5000, "pShow"); //todo fix b4 release
             periodicScheduled = true;
         }
     }
@@ -292,9 +302,12 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             periodicShowRunnable = new Runnable() {
                 @Override
                 public void run() {
-                    activity.runOnUiThread(showRunnable);
-                    workerThread.removeScheduledItem(periodicShowRunnable);
-                    workerThread.scheduleGameTime(periodicShowRunnable, (long) periodicMills, "pShow");
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            counterView.show();
+                        }
+                    });
                 }
             };
         }
