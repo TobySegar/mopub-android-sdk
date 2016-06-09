@@ -18,6 +18,7 @@ public class FastAd {
     }
 
     public void load(Context context, final Runnable runnable) {
+        Log.e("FastAd", "load: LOADING FAST AD");
         mGoogleInterstitialAd = new InterstitialAd(context);
         mGoogleInterstitialAd.setAdUnitId(admobId);
         mGoogleInterstitialAd.setAdListener(new AdListener() {
