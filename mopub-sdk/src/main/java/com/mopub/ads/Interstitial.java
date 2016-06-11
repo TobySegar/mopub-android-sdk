@@ -12,8 +12,10 @@ import android.util.Log;
 
 import com.mojang.base.Analytics;
 import com.mojang.base.Helper;
+import com.mojang.base.InternetObserver;
 import com.mojang.base.Screen;
 import com.mojang.base.WorkerThread;
+import com.mojang.base.events.AppEvent;
 import com.mojang.base.json.Data;
 import com.mopub.ads.adapters.FastAd;
 import com.mopub.mobileads.MoPubErrorCode;
@@ -36,10 +38,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private final Screen screen;
     private final Handler mainHandler;
     private String TAG = this.getClass().getName();
-    private boolean isLocked;
     private long minimalAdGapMills;
     private double disableTouchChance;
-    private WorkerThread workerThread;
     private final List<String> highECPMcountries;
     private double fingerAdChance;
     private final double periodicMillsHigh;
@@ -48,13 +48,14 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private double backOffPower = 1;
     private Runnable periodicShowRunnable;
     private Runnable showRunnable;
-    private final Runnable unlockRunnable;
+    private final Runnable gapUnlockRunnable;
     private double periodicMills;
     private final double fingerAdChanceHigh;
     private FastAd fastAd;
     private boolean fastAdUsed;
     private boolean onLoadedOnce;
     private boolean periodicScheduled;
+    public final Lock lock;
 
     public Interstitial(final Activity activity, String interstitialId, Screen screen, final long minimalAdGapMills, double disableTouchChance,
                         final WorkerThread workerThread, List<String> highECPMcountries, double fingerAdChanceLow, double fingerAdChanceHigh, final double periodicMillsLow, final double periodicMillsHigh) {
@@ -63,30 +64,40 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.screen = screen;
         this.minimalAdGapMills = minimalAdGapMills;
         this.disableTouchChance = disableTouchChance;
-        this.workerThread = workerThread;
         this.highECPMcountries = highECPMcountries;
         this.fingerAdChance = fingerAdChanceLow;
         this.fingerAdChanceHigh = fingerAdChanceHigh;
         this.periodicMillsHigh = periodicMillsHigh;
         this.periodicMills = periodicMillsLow;
         this.mainHandler = new Handler(Looper.getMainLooper());
+        this.lock = new Lock();
+
         this.reloadRunnable = new Runnable() {
             @Override
             public void run() {
                 mopubInterstitial.load();
             }
         };
-        this.unlockRunnable = new Runnable() {
+        this.gapUnlockRunnable = new Runnable() {
             @Override
             public void run() {
-                unlock();
-                workerThread.removeScheduledItem(this);
+                    lock.unlockGap();
             }
         };
+
         this.showRunnable = new Runnable() {
             @Override
             public void run() {
+                Log.e(TAG, "run: ShowRun");
                 show();
+            }
+        };
+        this.periodicShowRunnable = new Runnable() {
+            @Override
+            public void run() {
+                Log.e(TAG, "run: PeriodicShowRun");
+                showRunnable.run();
+                mainHandler.postDelayed(periodicShowRunnable, (long) periodicMills);
             }
         };
     }
@@ -94,7 +105,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     @Override
     public void onInterstitialDismissed(MoPubInterstitial interstitial) {
-        lockForTime(minimalAdGapMills);
+        gapLockForTime(minimalAdGapMills);
         loadAfterDelay(3000);
         if (!Data.hasMinecraft) {
             schedulePeriodicShows();
@@ -142,11 +153,16 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
     public boolean show() {
-        if (mopubInterstitial == null || !mopubInterstitial.isReady() || isLocked || freePeriod || !mopubInterstitial.show()) { //show has to be last
-            Log.e(TAG, "show Failed: null ready locked " + isLocked + " free period " + freePeriod);
+        if (!AppEvent.stopped) {
+            if (mopubInterstitial == null || lock.isLocked() || !mopubInterstitial.isReady() || freePeriod || !mopubInterstitial.show()) { //show has to be last
+                Log.e(TAG, "show Failed: null ready locked ");
+                return false;
+            }
+            return true;
+        }else{
+            Log.e(TAG, "stopped not showing");
             return false;
         }
-        return true;
     }
 
     public void showDelayed(int mills) {
@@ -159,24 +175,18 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         }
     }
 
-    public void lock() {
-        Log.e(TAG, "interstitial lock");
-        isLocked = true;
-    }
 
-    public void unlock() {
-        Log.e(TAG, "interstitial unlock");
-        isLocked = false;
-    }
 
-    public void init() {
-        if (!fastAdUsed && Data.hasMinecraft) {
+
+    public void init(final boolean fromOnlineAccepted) {
+        if (!fromOnlineAccepted && !fastAdUsed && Data.hasMinecraft) {
             fastAdUsed = true;
             fastAd = new FastAd(Data.Ads.Interstitial.failoverId);
             fastAd.load(activity, new Runnable() {
                 @Override
                 public void run() {
                     _initDelayed();
+                    gapLockForTime(minimalAdGapMills);
                 }
             });
         } else {
@@ -184,10 +194,15 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         }
     }
 
-    public void showFast() {
-        if (fastAd != null && !fastAd.show()) {
-            _initDelayed();
-        }
+    public void showFastDelayed(int mills) {
+        mainHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (lock.isLocked() || fastAd == null || !fastAd.show()) {
+                    _initDelayed();
+                }
+            }
+        },mills);
     }
 
     public void showUnityAdsVideo() {
@@ -201,23 +216,25 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         }
     }
 
-    public void un_schedulePeriodicShows() {
-        if (periodicScheduled) {
-            Log.e(TAG, "schedulePeriodicShows: Unscheduled");
-            initPeriodicRunnable();
-            workerThread.removeScheduledItem(periodicShowRunnable);
+
+    public void schedulePeriodicShows() {
+        if(!periodicScheduled) {
+            Log.e(TAG, "schedulePeriodicShows: Scheduled ");
+            Log.e(TAG, String.valueOf(periodicMills));
+            mainHandler.postDelayed(periodicShowRunnable, (long) periodicMills);
+            periodicScheduled = true;
+        }
+    }
+
+    public void unschedulePeriodicShows() {
+        if(periodicScheduled) {
+            Log.e(TAG, "unschedulePeriodicshows");
+            Log.e(TAG, String.valueOf(periodicMills));
+            mainHandler.removeCallbacks(periodicShowRunnable);
             periodicScheduled = false;
         }
     }
 
-    public void schedulePeriodicShows() {
-        if (!periodicScheduled) {
-            Log.e(TAG, "schedulePeriodicShows: Scheduled ");
-            initPeriodicRunnable();
-            workerThread.scheduleGameTime(periodicShowRunnable, (long) periodicMills, "pShow");
-            periodicScheduled = true;
-        }
-    }
 
     private void _initDelayed() {
         mainHandler.postDelayed(new Runnable() {
@@ -228,44 +245,45 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                     mopubInterstitial = new MoPubInterstitial(activity, interstitialId);
                     mopubInterstitial.setInterstitialAdListener(Interstitial.this);
                     mopubInterstitial.load();
-                    if (UnityAds.isSupported()) {
-                        UnityAds.setDebugMode(Helper.DEBUG);
-                        UnityAds.setTestMode(Helper.DEBUG);
-                        UnityAds.init(activity, Helper.convertString("4D5445304D6A5535"), new IUnityAdsListener() {
-                            @Override
-                            public void onHide() {
-                                onInterstitialDismissed(mopubInterstitial);
-                            }
-
-                            @Override
-                            public void onShow() {
-                                onInterstitialShown(mopubInterstitial);
-                            }
-
-                            @Override
-                            public void onVideoStarted() {
-
-                            }
-
-                            @Override
-                            public void onVideoCompleted(String s, boolean b) {
-
-                            }
-
-                            @Override
-                            public void onFetchCompleted() {
-                                onInterstitialLoaded(mopubInterstitial);
-                            }
-
-                            @Override
-                            public void onFetchFailed() {
-                                onInterstitialFailed(mopubInterstitial, MoPubErrorCode.NETWORK_NO_FILL);
-                            }
-                        });
-                        UnityAds.canShow();
-                    }
                 } else if (!mopubInterstitial.isReady()) {
                     mopubInterstitial.load();
+                }
+
+                if (UnityAds.isSupported()) {
+                    UnityAds.setDebugMode(Helper.DEBUG);
+                    UnityAds.setTestMode(Helper.DEBUG);
+                    UnityAds.init(activity, Helper.convertString("4D5445304D6A5535"), new IUnityAdsListener() {
+                        @Override
+                        public void onHide() {
+                            onInterstitialDismissed(mopubInterstitial);
+                        }
+
+                        @Override
+                        public void onShow() {
+                            onInterstitialShown(mopubInterstitial);
+                        }
+
+                        @Override
+                        public void onVideoStarted() {
+
+                        }
+
+                        @Override
+                        public void onVideoCompleted(String s, boolean b) {
+
+                        }
+
+                        @Override
+                        public void onFetchCompleted() {
+                            onInterstitialLoaded(mopubInterstitial);
+                        }
+
+                        @Override
+                        public void onFetchFailed() {
+                            onInterstitialFailed(mopubInterstitial, MoPubErrorCode.NETWORK_NO_FILL);
+                        }
+                    });
+                    UnityAds.canShow();
                 }
             }
         }, 4000);
@@ -287,18 +305,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         System.exit(0);
     }
 
-    private void initPeriodicRunnable() {
-        if (periodicShowRunnable == null) {
-            periodicShowRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    activity.runOnUiThread(showRunnable);
-                    workerThread.removeScheduledItem(periodicShowRunnable);
-                    workerThread.scheduleGameTime(periodicShowRunnable, (long) periodicMills, "pShow");
-                }
-            };
-        }
-    }
 
     void setPeriodicMillsAndFingerChance(String interstitialCountryCode) {
         //we have to split all hightECPmCountires cause they might have chance with them SK-0.23
@@ -315,13 +321,14 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 }
             }
         }
+        schedulePeriodicShows();
     }
 
 
-    private void lockForTime(long minimalAdGapMills) {
-        lock();
+    private void gapLockForTime(long minimalAdGapMills) {
+        lock.gapLock();
         Log.e(TAG, "lockForTime: scheduling unlock runnable za sec " + minimalAdGapMills / 1000);
-        workerThread.scheduleGameTime(unlockRunnable, minimalAdGapMills, "unlock");
+        mainHandler.postDelayed(gapUnlockRunnable, minimalAdGapMills);
     }
 
     private void disableTouch(double disableTouchChance) {
@@ -336,4 +343,59 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         mainHandler.postDelayed(reloadRunnable, delay);
     }
 
+    public class Lock{
+        private boolean multiplayer;
+        private boolean internet;
+        private boolean gap;
+        private boolean game;
+
+        public boolean isLocked(){
+            Log.e(TAG, "isLocked: " +
+                    "multiplayer ["+multiplayer+"]"+" " +
+                    "internet ["+internet+"]"+" " +
+                    "gap ["+gap+"]"+" " +
+                    "game ["+game+"]");
+            return multiplayer || internet || gap || game;
+        }
+
+        public void unlockGap() {
+            Log.e(TAG, "unlockGap: ");
+            gap = false;
+        }
+
+        public void gapLock() {
+            Log.e(TAG, "gapLock: ");
+            gap = true;
+        }
+
+        public void lockMultiplayer() {
+            Log.e(TAG, "lockMultiplayer: ");
+            multiplayer = true;
+        }
+
+        public void unlockMultiplayer() {
+            Log.e(TAG, "unlockMultiplayer: ");
+            multiplayer = false;
+        }
+
+        public void gameUnlock() {
+            Log.e(TAG, "gameUnlock: ");
+            game = false;
+        }
+
+        public void gameLock() {
+            Log.e(TAG, "gameLock: ");
+            game = true;
+        }
+
+        public void internetLock() {
+            Log.e(TAG, "internetLock: ");
+            internet = true;
+        }
+
+        public void internetUnlock() {
+            Log.e(TAG, "internetUnlock: ");
+            internet = false;
+        }
+    }
 }

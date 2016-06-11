@@ -7,11 +7,14 @@ import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.firebase.crash.FirebaseCrash;
+import com.mojang.base.events.AppEvent;
+import com.mopub.ads.Proxy;
 
 
 public class FastAd {
     private final String admobId;
     private InterstitialAd mGoogleInterstitialAd;
+    private Context context;
 
     public FastAd(String admobId) {
         this.admobId = admobId;
@@ -19,6 +22,7 @@ public class FastAd {
 
     public void load(Context context, final Runnable runnable) {
         Log.e("FastAd", "load: LOADING FAST AD");
+        this.context = context;
         mGoogleInterstitialAd = new InterstitialAd(context);
         mGoogleInterstitialAd.setAdUnitId(admobId);
         mGoogleInterstitialAd.setAdListener(new AdListener() {
@@ -27,10 +31,12 @@ public class FastAd {
                 super.onAdClosed();
                 runnable.run();
             }
+
         });
 
         final AdRequest adRequest = new AdRequest.Builder()
                 .setRequestAgent("MoPub")
+                .addTestDevice("E883C2BB7DE538BAADA96556402DA41F")
                 .build();
 
         mGoogleInterstitialAd.loadAd(adRequest);
@@ -42,9 +48,10 @@ public class FastAd {
         if(!mGoogleInterstitialAd.isLoaded()){
             mGoogleInterstitialAd = null;
             return false;
-        }else{
-            mGoogleInterstitialAd.show();
+        }else if(!AppEvent.stopped){
+            new Proxy().startProxyActivity(context,mGoogleInterstitialAd);
             return true;
         }
+        return false;
     }
 }

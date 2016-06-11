@@ -1,19 +1,15 @@
 package com.mopub.ads;
 
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import com.google.android.gms.ads.InterstitialAd;
-import com.mojang.base.Analytics;
 import com.mojang.base.Helper;
 import com.mojang.base.InternetObserver;
 import com.mojang.base.events.AppEvent;
 import com.mojang.base.events.GuideGameEvent;
 import com.mojang.base.events.MinecraftGameEvent;
 import com.mojang.base.events.OfflineEvent;
-import com.mopub.ads.adapters.FastAd;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -70,20 +66,20 @@ public class Ads {
         switch (gameEvent.event) {
             case PlayerConnected:
                 numOfPlayers++;
-                interstitial.lock();
+                interstitial.lock.lockMultiplayer();
                 break;
             case PlayerDisconnected:
                 if (numOfPlayers > 1) numOfPlayers--;
-                if (numOfPlayers == 1) interstitial.unlock();
+                if (numOfPlayers == 1) interstitial.lock.unlockMultiplayer();
                 break;
             case GamePlayStart:
-                interstitial.showFast();
-                interstitial.showDelayed(3000);
+                interstitial.showFastDelayed(3000);
+                interstitial.lock.gameUnlock();
                 interstitial.schedulePeriodicShows();
                 break;
             case LeaveLevel:
                 interstitial.showDelayed(1200);
-                interstitial.un_schedulePeriodicShows();
+                interstitial.lock.gameLock();
                 break;
             case StartSleepInBed:
                 interstitial.showUnityAdsVideo();
@@ -106,21 +102,21 @@ public class Ads {
 
     @Subscribe
     public void onViewEvent(OfflineEvent viewEvent) {
-        if (viewEvent.getPlayOffline_Accepted() && !internetObserver.isInternetAvaible()) {
-            interstitial.lock();
-        } else if (viewEvent.getPlayOnline_Accepted() && internetObserver.isInternetAvaible()) {
+        if (viewEvent.getPlayOffline_Accepted() && !InternetObserver.isInternetAvaible()) {
+            interstitial.lock.internetLock();
+        } else if (viewEvent.getPlayOnline_Accepted() && InternetObserver.isInternetAvaible()) {
             if (numOfPlayers != 1) {
                 throw new RuntimeException("numOfPlayer > 1 this should never happen");
             }
-            interstitial.unlock();
-            interstitial.init();
+            interstitial.lock.internetUnlock();
+            interstitial.init(true);
         }
     }
 
     public void init() {
-        if (internetObserver.isInternetAvaible()) {
+        if (InternetObserver.isInternetAvaible()) {
             Log.e(TAG, "start");
-            interstitial.init();
+            interstitial.init(false);
         } else {
             Log.i(TAG, "start: No Internet Avaible for ads");
         }

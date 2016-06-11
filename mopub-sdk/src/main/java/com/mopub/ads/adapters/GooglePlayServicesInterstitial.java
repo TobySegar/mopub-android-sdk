@@ -48,6 +48,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
 
         final AdRequest adRequest = new AdRequest.Builder()
                 .setRequestAgent("MoPub")
+                .addTestDevice("E883C2BB7DE538BAADA96556402DA41F")
                 .build();
 
         try {
