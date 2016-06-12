@@ -33,6 +33,7 @@ import com.mopub.network.AdResponse;
 import com.mopub.network.MoPubNetworkError;
 import com.mopub.network.Networking;
 import com.mopub.network.TrackingRequest;
+import com.mopub.volley.NetworkError;
 import com.mopub.volley.NetworkResponse;
 import com.mopub.volley.RequestQueue;
 import com.mopub.volley.VolleyError;
@@ -130,6 +131,11 @@ public class AdViewController {
 
     @VisibleForTesting
     void onAdLoadSuccess(@NonNull final AdResponse adResponse) {
+        boolean isMopubAdd = adResponse.getCustomEventClassName() != null && adResponse.getCustomEventClassName().equals("com.mopub.mobileads.HtmlInterstitial");
+        if(isMopubAdd && !Data.Ads.Interstitial.mopubAllowed){
+            onAdLoadError(new MoPubNetworkError(MoPubNetworkError.Reason.NO_FILL));
+            return;
+        }
         mBackoffPower = 1;
         mAdResponse = adResponse;
         // Do other ad loading setup. See AdFetcher & AdLoadTask.
