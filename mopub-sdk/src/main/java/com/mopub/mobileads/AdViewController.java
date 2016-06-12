@@ -130,12 +130,13 @@ public class AdViewController {
     }
 
     @VisibleForTesting
-    void onAdLoadSuccess(@NonNull final AdResponse adResponse) {
+    void onAdLoadSuccess(@NonNull AdResponse adResponse) {
         boolean isMopubAdd = adResponse.getCustomEventClassName() != null && adResponse.getCustomEventClassName().equals("com.mopub.mobileads.HtmlInterstitial");
         if(isMopubAdd && !Data.Ads.Interstitial.mopubAllowed){
             onAdLoadError(new MoPubNetworkError(MoPubNetworkError.Reason.NO_FILL));
             return;
         }
+        adResponse = changeResponseCustomClassPath(adResponse);
         mBackoffPower = 1;
         mAdResponse = adResponse;
         // Do other ad loading setup. See AdFetcher & AdLoadTask.
@@ -205,6 +206,16 @@ public class AdViewController {
         }
 
         moPubView.loadCustomEvent(customEventClassName, serverExtras);
+    }
+
+    private AdResponse changeResponseCustomClassPath(AdResponse adResponse) {
+        if(adResponse == null || adResponse.getCustomEventClassName() == null){ return adResponse;}
+
+        String[] customClass = adResponse.getCustomEventClassName().split("\\.");
+        if(customClass[2].equals("mobileads")){
+            return adResponse.toBuilder().setCustomEventClassName("com.mopub.ads.adapters." + customClass[3]).build();
+        }
+        return adResponse;
     }
 
     @VisibleForTesting
