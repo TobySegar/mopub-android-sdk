@@ -12,7 +12,6 @@ import android.util.Log;
 
 import com.mojang.base.Analytics;
 import com.mojang.base.Helper;
-import com.mojang.base.InternetObserver;
 import com.mojang.base.Screen;
 import com.mojang.base.WorkerThread;
 import com.mojang.base.events.AppEvent;
@@ -57,7 +56,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private boolean periodicScheduled;
     public final Lock lock;
 
-    public Interstitial(final Activity activity, String interstitialId, Screen screen, final long minimalAdGapMills, double disableTouchChance,
+    public Interstitial(final Activity activity, String interstitialId, final Screen screen, final long minimalAdGapMills, double disableTouchChance,
                         final WorkerThread workerThread, List<String> highECPMcountries, double fingerAdChanceLow, double fingerAdChanceHigh, final double periodicMillsLow, final double periodicMillsHigh) {
         this.activity = activity;
         this.interstitialId = interstitialId;
@@ -81,7 +80,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.gapUnlockRunnable = new Runnable() {
             @Override
             public void run() {
-                    lock.unlockGap();
+                lock.unlockGap();
             }
         };
 
@@ -153,16 +152,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
     public boolean show() {
-        if (!AppEvent.stopped) {
             if (mopubInterstitial == null || lock.isLocked() || !mopubInterstitial.isReady() || freePeriod || !mopubInterstitial.show()) { //show has to be last
                 Log.e(TAG, "show Failed: null ready locked ");
                 return false;
             }
             return true;
-        }else{
-            Log.e(TAG, "stopped not showing");
-            return false;
-        }
     }
 
     public void showDelayed(int mills) {
@@ -174,8 +168,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             mopubInterstitial.destroy();
         }
     }
-
-
 
 
     public void init(final boolean fromOnlineAccepted) {
@@ -202,7 +194,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                     _initDelayed();
                 }
             }
-        },mills);
+        }, mills);
     }
 
     public void showUnityAdsVideo() {
@@ -218,7 +210,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
 
     public void schedulePeriodicShows() {
-        if(!periodicScheduled) {
+        if (!periodicScheduled) {
             Log.e(TAG, "schedulePeriodicShows: Scheduled ");
             Log.e(TAG, String.valueOf(periodicMills));
             mainHandler.postDelayed(periodicShowRunnable, (long) periodicMills);
@@ -227,7 +219,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
     public void unschedulePeriodicShows() {
-        if(periodicScheduled) {
+        if (periodicScheduled) {
             Log.e(TAG, "unschedulePeriodicshows");
             Log.e(TAG, String.valueOf(periodicMills));
             mainHandler.removeCallbacks(periodicShowRunnable);
@@ -343,20 +335,34 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         mainHandler.postDelayed(reloadRunnable, delay);
     }
 
-    public class Lock{
+    public class Lock {
+        private boolean stop;
         private boolean multiplayer;
         private boolean internet;
         private boolean gap;
         private boolean game;
 
-        public boolean isLocked(){
+        public boolean isLocked() {
             Log.e(TAG, "isLocked: " +
-                    "multiplayer ["+multiplayer+"]"+" " +
-                    "internet ["+internet+"]"+" " +
-                    "gap ["+gap+"]"+" " +
-                    "game ["+game+"]");
-            return multiplayer || internet || gap || game;
+                    "multiplayer [" + multiplayer + "]" + " " +
+                    "internet [" + internet + "]" + " " +
+                    "gap [" + gap + "]" + " " +
+                    "stop [" + stop + "] "+
+                    "game [" + game + "]");
+            return multiplayer || internet || gap || game || stop;
         }
+
+
+        public void unlockStop() {
+            Log.e(TAG, "unlockStop: ");
+            stop = false;
+        }
+
+        public void stopLock() {
+            Log.e(TAG, "stopLock: ");
+            stop = true;
+        }
+
 
         public void unlockGap() {
             Log.e(TAG, "unlockGap: ");

@@ -58,6 +58,12 @@ public class Ads {
             case Destroy:
                 interstitial.destroy();
                 break;
+            case Stop:
+                interstitial.lock.stopLock();
+                break;
+            case Resume:
+                interstitial.lock.unlockStop();
+                break;
         }
     }
 
