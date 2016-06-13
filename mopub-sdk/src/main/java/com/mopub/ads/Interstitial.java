@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.mojang.base.Analytics;
+import com.mojang.base.CounterView;
 import com.mojang.base.Helper;
 import com.mojang.base.Screen;
 import com.mojang.base.WorkerThread;
@@ -55,6 +56,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private boolean onLoadedOnce;
     private boolean periodicScheduled;
     public final Lock lock;
+    private final CounterView counterView;
 
     public Interstitial(final Activity activity, String interstitialId, final Screen screen, final long minimalAdGapMills, double disableTouchChance,
                         final WorkerThread workerThread, List<String> highECPMcountries, double fingerAdChanceLow, double fingerAdChanceHigh, final double periodicMillsLow, final double periodicMillsHigh) {
@@ -70,6 +72,12 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.periodicMills = periodicMillsLow;
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.lock = new Lock();
+        this.counterView = new CounterView(activity, new Runnable() {
+            @Override
+            public void run() {
+                show();
+            }
+        },screen);
 
         this.reloadRunnable = new Runnable() {
             @Override
@@ -88,7 +96,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             @Override
             public void run() {
                 Log.e(TAG, "run: ShowRun");
-                show();
+                if(!lock.isLocked()) {
+                    counterView.show();
+                }
             }
         };
         this.periodicShowRunnable = new Runnable() {
@@ -152,6 +162,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
     public boolean show() {
+        Helper.wtf("show");
             if (mopubInterstitial == null || lock.isLocked() || !mopubInterstitial.isReady() || freePeriod || !mopubInterstitial.show()) { //show has to be last
                 Log.e(TAG, "show Failed: null ready locked ");
                 return false;
@@ -161,6 +172,16 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     public void showDelayed(int mills) {
         mainHandler.postDelayed(showRunnable, mills);
+    }
+
+    public void showDelayed(int mills, final Runnable runnable) {
+        mainHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                showRunnable.run();
+                runnable.run();
+            }
+        },mills);
     }
 
     public void destroy() {

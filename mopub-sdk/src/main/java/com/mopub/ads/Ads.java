@@ -79,13 +79,17 @@ public class Ads {
                 if (numOfPlayers == 1) interstitial.lock.unlockMultiplayer();
                 break;
             case GamePlayStart:
-                interstitial.showFastDelayed(3000);
                 interstitial.lock.gameUnlock();
+                interstitial.showFastDelayed(1800);
                 interstitial.schedulePeriodicShows();
                 break;
             case LeaveLevel:
-                interstitial.showDelayed(1200);
-                interstitial.lock.gameLock();
+                interstitial.showDelayed(1200, new Runnable() {
+                    @Override
+                    public void run() {
+                        interstitial.lock.gameLock();
+                    }
+                });
                 break;
             case StartSleepInBed:
                 interstitial.showUnityAdsVideo();
