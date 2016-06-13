@@ -15,6 +15,7 @@ public class FastAd {
     private final String admobId;
     private InterstitialAd mGoogleInterstitialAd;
     private Context context;
+    public boolean showed;
 
     public FastAd(String admobId) {
         this.admobId = admobId;
@@ -44,7 +45,7 @@ public class FastAd {
 
     public boolean show(){
         Log.w("FastAd", "show() called with: FastAd");
-
+        showed = true;
         if(!mGoogleInterstitialAd.isLoaded()){
             mGoogleInterstitialAd = null;
             return false;
