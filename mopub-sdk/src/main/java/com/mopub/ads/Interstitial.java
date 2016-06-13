@@ -178,7 +178,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         mainHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                showRunnable.run();
+                show();
                 runnable.run();
             }
         },mills);
@@ -211,7 +211,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         mainHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if(mopubInterstitial != null && fastAd.showed){
+                if(mopubInterstitial != null){
                     mopubInterstitial.show();
                 }else if (lock.isLocked() || fastAd == null || !fastAd.show()) {
                     _initDelayed();
