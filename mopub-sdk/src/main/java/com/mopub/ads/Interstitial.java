@@ -364,7 +364,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         private boolean game;
 
         public boolean isLocked() {
-            Log.e(TAG, "isLocked: " +
+            Helper.wtf("isLocked: " +
                     "multiplayer [" + multiplayer + "]" + " " +
                     "internet [" + internet + "]" + " " +
                     "gap [" + gap + "]" + " " +
@@ -375,53 +375,53 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
 
         public void unlockStop() {
-            Log.e(TAG, "unlockStop: ");
+            Helper.wtf("unlockStop: ");
             stop = false;
         }
 
         public void stopLock() {
-            Log.e(TAG, "stopLock: ");
+            Helper.wtf("stopLock: ");
             stop = true;
         }
 
 
         public void unlockGap() {
-            Log.e(TAG, "unlockGap: ");
+            Helper.wtf("unlockGap: ");
             gap = false;
         }
 
         public void gapLock() {
-            Log.e(TAG, "gapLock: ");
+            Helper.wtf("gapLock: ");
             gap = true;
         }
 
         public void lockMultiplayer() {
-            Log.e(TAG, "lockMultiplayer: ");
+            Helper.wtf("lockMultiplayer: ");
             multiplayer = true;
         }
 
         public void unlockMultiplayer() {
-            Log.e(TAG, "unlockMultiplayer: ");
+            Helper.wtf("unlockMultiplayer: ");
             multiplayer = false;
         }
 
         public void gameUnlock() {
-            Log.e(TAG, "gameUnlock: ");
+            Helper.wtf("gameUnlock: ");
             game = false;
         }
 
         public void gameLock() {
-            Log.e(TAG, "gameLock: ");
+            Helper.wtf("gameLock: ");
             game = true;
         }
 
         public void internetLock() {
-            Log.e(TAG, "internetLock: ");
+            Helper.wtf("internetLock: ");
             internet = true;
         }
 
         public void internetUnlock() {
-            Log.e(TAG, "internetUnlock: ");
+            Helper.wtf("internetUnlock: ");
             internet = false;
         }
     }
