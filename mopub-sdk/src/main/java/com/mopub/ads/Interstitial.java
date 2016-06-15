@@ -30,7 +30,7 @@ import java.util.List;
  */
 public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
-    private static final long DISABLE_SCREEN_MILLS = 3000;
+    private static final long DISABLE_SCREEN_MILLS = 4000;
     private MoPubInterstitial mopubInterstitial;
     private final Activity activity;
     private final String interstitialId;
