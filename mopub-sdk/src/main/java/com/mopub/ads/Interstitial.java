@@ -87,14 +87,14 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.showRunnable = new Runnable() {
             @Override
             public void run() {
-                Log.wtf(TAG, "run: ShowRun");
+                Helper.wtf(TAG, "run: ShowRun");
                 show();
             }
         };
         this.periodicShowRunnable = new Runnable() {
             @Override
             public void run() {
-                Log.wtf(TAG, "run: PeriodicShowRun");
+                Helper.wtf(TAG, "run: PeriodicShowRun");
                 showRunnable.run();
                 mainHandler.postDelayed(periodicShowRunnable, (long) periodicMills);
             }
@@ -128,7 +128,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     @Override
     public void onInterstitialFailed(MoPubInterstitial interstitial, MoPubErrorCode errorCode) {
-        Log.wtf(TAG, "onInterstitialFailed: " + errorCode);
+        Helper.wtf(TAG, "onInterstitialFailed: " + errorCode);
 
         if (errorCode.equals(MoPubErrorCode.NO_FILL)) {
             final double BACKOFF_FACTOR = 1.3;
@@ -152,9 +152,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
     public boolean show() {
-            Log.wtf("I","show");
+            Helper.wtf("I","show");
             if (mopubInterstitial == null || lock.isLocked() || !mopubInterstitial.isReady() || freePeriod || !mopubInterstitial.show()) { //show has to be last
-                Log.wtf(TAG, "show Failed: null ready locked ");
+                Helper.wtf(TAG, "show Failed: null ready locked ");
                 return false;
             }
             return true;
@@ -214,19 +214,19 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public void showUnityAdsVideo() {
         if (UnityAds.canShow()) {
             if (!UnityAds.show()) {
-                Log.wtf(TAG, "showUnityAdsVideo: show false");
+                Helper.wtf(TAG, "showUnityAdsVideo: show false");
                 show();
             }
         } else {
-            Log.wtf(TAG, "showUnityAdsVideo: canShow false");
+            Helper.wtf(TAG, "showUnityAdsVideo: canShow false");
         }
     }
 
 
     public void schedulePeriodicShows() {
         if (!periodicScheduled) {
-            Log.wtf(TAG, "schedulePeriodicShows: Scheduled ");
-            Log.wtf(TAG, String.valueOf(periodicMills));
+            Helper.wtf(TAG, "schedulePeriodicShows: Scheduled ");
+            Helper.wtf(TAG, String.valueOf(periodicMills));
             mainHandler.postDelayed(periodicShowRunnable, (long) periodicMills);
             periodicScheduled = true;
         }
@@ -234,8 +234,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     public void unschedulePeriodicShows() {
         if (periodicScheduled) {
-            Log.wtf(TAG, "unschedulePeriodicshows");
-            Log.wtf(TAG, String.valueOf(periodicMills));
+            Helper.wtf(TAG, "unschedulePeriodicshows");
+            Helper.wtf(TAG, String.valueOf(periodicMills));
             mainHandler.removeCallbacks(periodicShowRunnable);
             periodicScheduled = false;
         }
@@ -334,7 +334,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     private void gapLockForTime(long minimalAdGapMills) {
         lock.gapLock();
-        Log.wtf(TAG, "lockForTime: scheduling unlock runnable za sec " + minimalAdGapMills / 1000);
+        Helper.wtf(TAG, "lockForTime: scheduling unlock runnable za sec " + minimalAdGapMills / 1000);
         mainHandler.postDelayed(gapUnlockRunnable, minimalAdGapMills);
     }
 
@@ -358,7 +358,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         private boolean game;
 
         public boolean isLocked() {
-            Log.wtf("I","isLocked: " +
+            Helper.wtf("I","isLocked: " +
                     "multiplayer [" + multiplayer + "]" + " " +
                     "internet [" + internet + "]" + " " +
                     "gap [" + gap + "]" + " " +
@@ -369,53 +369,53 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
 
         public void unlockStop() {
-            Log.wtf("I","unlockStop: ");
+            Helper.wtf("I","unlockStop: ");
             stop = false;
         }
 
         public void stopLock() {
-            Log.wtf("I","stopLock: ");
+            Helper.wtf("I","stopLock: ");
             stop = true;
         }
 
 
         public void unlockGap() {
-            Log.wtf("I","unlockGap: ");
+            Helper.wtf("I","unlockGap: ");
             gap = false;
         }
 
         public void gapLock() {
-            Log.wtf("I","gapLock: ");
+            Helper.wtf("I","gapLock: ");
             gap = true;
         }
 
         public void lockMultiplayer() {
-            Log.wtf("I","lockMultiplayer: ");
+            Helper.wtf("I","lockMultiplayer: ");
             multiplayer = true;
         }
 
         public void unlockMultiplayer() {
-            Log.wtf("I","unlockMultiplayer: ");
+            Helper.wtf("I","unlockMultiplayer: ");
             multiplayer = false;
         }
 
         public void gameUnlock() {
-            Log.wtf("I","gameUnlock: ");
+            Helper.wtf("I","gameUnlock: ");
             game = false;
         }
 
         public void gameLock() {
-            Log.wtf("I","gameLock: ");
+            Helper.wtf("I","gameLock: ");
             game = true;
         }
 
         public void internetLock() {
-            Log.wtf("I","internetLock: ");
+            Helper.wtf("I","internetLock: ");
             internet = true;
         }
 
         public void internetUnlock() {
-            Log.wtf("I","internetUnlock: ");
+            Helper.wtf("I","internetUnlock: ");
             internet = false;
         }
     }

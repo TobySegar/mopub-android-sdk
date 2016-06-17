@@ -7,6 +7,7 @@ import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.firebase.crash.FirebaseCrash;
+import com.mojang.base.Helper;
 import com.mojang.base.events.AppEvent;
 import com.mopub.ads.Proxy;
 
@@ -22,7 +23,7 @@ public class FastAd {
     }
 
     public void load(Context context, final Runnable runnable) {
-        Log.wtf("FastAd", "load: LOADING FAST AD");
+        Helper.wtf("FastAd", "load: LOADING FAST AD");
         this.context = context;
         mGoogleInterstitialAd = new InterstitialAd(context);
         mGoogleInterstitialAd.setAdUnitId(admobId);
@@ -44,7 +45,7 @@ public class FastAd {
     }
 
     public boolean show(){
-        Log.wtf("FastAd", "show() called with: FastAd");
+        Helper.wtf("FastAd", "show() called with: FastAd");
         showed = true;
         if(!mGoogleInterstitialAd.isLoaded()){
             mGoogleInterstitialAd = null;

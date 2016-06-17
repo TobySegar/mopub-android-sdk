@@ -28,11 +28,11 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
         if (mFacebookInterstitial != null && mFacebookInterstitial.isAdLoaded()) {
             mFacebookInterstitial.show();
         } else {
-            Log.wtf("MoPub", "Tried to show a Facebook interstitial ad before it finished loading. Please try again.");
+            Helper.wtf("MoPub", "Tried to show a Facebook interstitial ad before it finished loading. Please try again.");
             if (mInterstitialListener != null) {
                 onError(mFacebookInterstitial, AdError.INTERNAL_ERROR);
             } else {
-                Log.wtf("MoPub", "Interstitial listener not instantiated. Please load interstitial again.");
+                Helper.wtf("MoPub", "Interstitial listener not instantiated. Please load interstitial again.");
             }
         }
     }
@@ -43,13 +43,13 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
 
     @Override
     public void onAdLoaded(final Ad ad) {
-        Log.wtf("MoPub", "Facebook interstitial ad loaded successfully.");
+        Helper.wtf("MoPub", "Facebook interstitial ad loaded successfully.");
         mInterstitialListener.onInterstitialLoaded();
     }
 
     @Override
     public void onError(final Ad ad, final AdError error) {
-        Log.wtf("MoPub", "Facebook interstitial ad failed to load. " + error.getErrorMessage());
+        Helper.wtf("MoPub", "Facebook interstitial ad failed to load. " + error.getErrorMessage());
         if (error == AdError.NO_FILL) {
             mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
         } else if (error == AdError.INTERNAL_ERROR) {
@@ -61,19 +61,19 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
 
     @Override
     public void onInterstitialDisplayed(final Ad ad) {
-        Log.wtf("MoPub", "Showing Facebook interstitial ad.");
+        Helper.wtf("MoPub", "Showing Facebook interstitial ad.");
         mInterstitialListener.onInterstitialShown();
     }
 
     @Override
     public void onAdClicked(final Ad ad) {
-        Log.wtf("MoPub", "Facebook interstitial ad clicked.");
+        Helper.wtf("MoPub", "Facebook interstitial ad clicked.");
         mInterstitialListener.onInterstitialClicked();
     }
 
     @Override
     public void onInterstitialDismissed(final Ad ad) {
-        Log.wtf("MoPub", "Facebook interstitial ad dismissed.");
+        Helper.wtf("MoPub", "Facebook interstitial ad dismissed.");
         mInterstitialListener.onInterstitialDismissed();
     }
 
