@@ -22,7 +22,7 @@ public class FastAd {
     }
 
     public void load(Context context, final Runnable runnable) {
-        Log.e("FastAd", "load: LOADING FAST AD");
+        Log.wtf("FastAd", "load: LOADING FAST AD");
         this.context = context;
         mGoogleInterstitialAd = new InterstitialAd(context);
         mGoogleInterstitialAd.setAdUnitId(admobId);
@@ -44,7 +44,7 @@ public class FastAd {
     }
 
     public boolean show(){
-        Log.w("FastAd", "show() called with: FastAd");
+        Log.wtf("FastAd", "show() called with: FastAd");
         showed = true;
         if(!mGoogleInterstitialAd.isLoaded()){
             mGoogleInterstitialAd = null;

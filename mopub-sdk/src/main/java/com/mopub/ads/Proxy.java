@@ -34,7 +34,7 @@ public class Proxy extends Activity {
     }
 
     public void Finish() {
-        Log.d(proxy, "Finish");
+        Log.wtf(proxy, "Finish");
         FirebaseCrash.log("Proxy finish ");
         EventBus.getDefault().post(new AppEvent(this, AppEvent.on.Stop));
         finish();
@@ -43,7 +43,7 @@ public class Proxy extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(proxy, "create");
+        Log.wtf(proxy, "create");
         FirebaseCrash.log("Proxy create ");
 
         if (Proxy.customEventInterstitial != null) {
@@ -57,7 +57,7 @@ public class Proxy extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.d(proxy, "destroy");
+        Log.wtf(proxy, "destroy");
         Proxy.customEventInterstitial = null;
         Proxy.mGoogleInterstitialAd = null;
     }

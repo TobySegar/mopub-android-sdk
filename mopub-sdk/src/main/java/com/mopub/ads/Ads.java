@@ -125,16 +125,16 @@ public class Ads {
 
     public void init() {
         if (InternetObserver.isInternetAvaible()) {
-            Log.e(TAG, "start");
+            Log.wtf(TAG, "start");
             interstitial.init(false);
         } else {
-            Log.i(TAG, "start: No Internet Avaible for ads");
+            Log.wtf(TAG, "start: No Internet Avaible for ads");
         }
     }
 
     public boolean isInFreePeriod(boolean freePeriodAllowed) {
         if (Helper.DEBUG) {
-            Log.e(TAG, "isInFreePeriod: false cause debug");
+            Log.wtf(TAG, "isInFreePeriod: false cause debug");
             return false;
         }
         //mark first run
