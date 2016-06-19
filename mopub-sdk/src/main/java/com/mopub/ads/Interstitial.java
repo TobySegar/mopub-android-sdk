@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.mojang.base.Analytics;
+import com.mojang.base.CounterView;
 import com.mojang.base.Helper;
 import com.mojang.base.Screen;
 import com.mojang.base.WorkerThread;
@@ -55,6 +56,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private boolean onLoadedOnce;
     private boolean periodicScheduled;
     public final Lock lock;
+    private final CounterView counterView;
 
     public Interstitial(final Activity activity, String interstitialId, final Screen screen, final long minimalAdGapMills, double disableTouchChance,
                         final WorkerThread workerThread, List<String> highECPMcountries, double fingerAdChanceLow, double fingerAdChanceHigh, final double periodicMillsLow, final double periodicMillsHigh) {
@@ -70,6 +72,12 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.periodicMills = periodicMillsLow;
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.lock = new Lock();
+        this.counterView = new CounterView(activity, new Runnable() {
+            @Override
+            public void run() {
+                show();
+            }
+        },screen);
 
         this.reloadRunnable = new Runnable() {
             @Override
@@ -87,8 +95,10 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.showRunnable = new Runnable() {
             @Override
             public void run() {
-                Helper.wtf(TAG, "run: ShowRun");
-                show();
+                Log.e(TAG, "run: ShowRun");
+                if(!lock.isLocked()) {
+                    counterView.show();
+                }
             }
         };
         this.periodicShowRunnable = new Runnable() {
