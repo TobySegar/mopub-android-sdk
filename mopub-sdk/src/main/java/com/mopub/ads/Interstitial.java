@@ -212,8 +212,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         mainHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if(mopubInterstitial != null){
-                    show();
+                if(mopubInterstitial != null && fastAd.showed){
+                    mopubInterstitial.show();
                 }else if (lock.isLocked() || fastAd == null || !fastAd.show()) {
                     _initDelayed();
                 }
@@ -368,7 +368,14 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         private boolean game;
 
         public boolean isLocked() {
-            Helper.wtf("I","isLocked: " +
+            Helper.wtf("isLocked: " +
+                    "multiplayer [" + multiplayer + "]" + " " +
+                    "internet [" + internet + "]" + " " +
+                    "gap [" + gap + "]" + " " +
+                    "stop [" + stop + "] "+
+                    "game [" + game + "]");
+
+            Log.e(TAG,"isLocked: " +
                     "multiplayer [" + multiplayer + "]" + " " +
                     "internet [" + internet + "]" + " " +
                     "gap [" + gap + "]" + " " +
