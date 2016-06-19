@@ -269,7 +269,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 if (UnityAds.isSupported()) {
                     UnityAds.setDebugMode(Helper.DEBUG);
                     UnityAds.setTestMode(Helper.DEBUG);
-                    UnityAds.init(activity, Helper.convertString("4D5445304D6A5535"), new IUnityAdsListener() {
+                    UnityAds.init(activity, Helper.convertString("4E7A49334E7A453D"), new IUnityAdsListener() {
                         @Override
                         public void onHide() {
                             onInterstitialDismissed(mopubInterstitial);
