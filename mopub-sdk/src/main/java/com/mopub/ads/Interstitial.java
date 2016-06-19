@@ -368,19 +368,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         private boolean game;
 
         public boolean isLocked() {
-            Helper.wtf("isLocked: " +
-                    "multiplayer [" + multiplayer + "]" + " " +
-                    "internet [" + internet + "]" + " " +
-                    "gap [" + gap + "]" + " " +
-                    "stop [" + stop + "] "+
-                    "game [" + game + "]");
+            Helper.wtf("Lock","isLocked: " + "multiplayer [" + multiplayer + "]" + " " + "internet [" + internet + "]" + " " + "gap [" + gap + "]" + " " + "stop [" + stop + "] "+ "game [" + game + "]");
 
-            Log.e(TAG,"isLocked: " +
-                    "multiplayer [" + multiplayer + "]" + " " +
-                    "internet [" + internet + "]" + " " +
-                    "gap [" + gap + "]" + " " +
-                    "stop [" + stop + "] "+
-                    "game [" + game + "]");
             return multiplayer || internet || gap || game || stop;
         }
 
