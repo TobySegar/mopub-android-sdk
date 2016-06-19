@@ -5,22 +5,21 @@ import java.util.Map;
 
 import android.app.Activity;
 import android.content.Context;
-import android.util.Log;
 
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.unity3d.ads.android.IUnityAdsListener;
 import com.unity3d.ads.android.UnityAds;
 
-public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUnityAdsListener {
+public class UnityAdsMopub extends CustomEventInterstitial implements IUnityAdsListener {
 
     private CustomEventInterstitialListener listener = null;
     private String gameId = null;
     private String zoneId = null;
     private Map<String, Object> options = null;
 
-    private static UnityAdsMopubEvents currentShowingWrapper = null;
-    private UnityAdsMopubEvents wrapperAfterShow = null;
+    private static UnityAdsMopub currentShowingWrapper = null;
+    private UnityAdsMopub wrapperAfterShow = null;
     private Activity nextActivity = null;
 
     @Override
@@ -57,7 +56,7 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
         }
     }
 
-    private void setNextWrapper(UnityAdsMopubEvents nextWrapper) {
+    private void setNextWrapper(UnityAdsMopub nextWrapper) {
         wrapperAfterShow = nextWrapper;
     }
 
