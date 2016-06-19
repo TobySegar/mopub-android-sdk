@@ -82,7 +82,7 @@ public class AmazonIntersticial extends CustomEventInterstitial {
                     adTargetingOptions.setAdvancedOption(key, value);
                 }
             } catch (JSONException ex) {
-                Log.d(LOG_TAG, "Error converting advOptions JSON.");
+                Helper.wtf(LOG_TAG, "Error converting advOptions JSON.");
             }
         }
 
@@ -144,7 +144,7 @@ public class AmazonIntersticial extends CustomEventInterstitial {
          */
         @Override
         public void onAdExpanded(Ad ad) {
-            Log.i(LOG_TAG, "Amazon Interstitial Ad Expanded.");
+            Helper.wtf(LOG_TAG, "Amazon Interstitial Ad Expanded.");
         }
 
         /**
@@ -152,7 +152,7 @@ public class AmazonIntersticial extends CustomEventInterstitial {
          */
         @Override
         public void onAdCollapsed(Ad ad) {
-            Log.i(LOG_TAG, "Amazon Interstitial Ad Collapsed.");
+            Helper.wtf(LOG_TAG, "Amazon Interstitial Ad Collapsed.");
         }
 
         /**
