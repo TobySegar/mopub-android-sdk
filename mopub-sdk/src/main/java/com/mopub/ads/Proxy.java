@@ -21,14 +21,14 @@ public class Proxy extends Activity {
     private static InterstitialAd mGoogleInterstitialAd;
 
     public void startProxyActivity(Context context, CustomEventInterstitial customEventInterstitial) {
-        FirebaseCrash.log("Proxy start ");
+        Helper.wtf(proxy, "startProxyActivity - mopub");
         Proxy.customEventInterstitial = customEventInterstitial;
         Intent proxyIntent = new Intent(context, Proxy.class);
         context.startActivity(proxyIntent);
     }
 
     public void startProxyActivity(Context context, InterstitialAd mGoogleInterstitialAd) {
-        FirebaseCrash.log("Proxy start ");
+        Helper.wtf(proxy, "startProxyActivity - mGoogleInterstitialAd");
         Proxy.mGoogleInterstitialAd = mGoogleInterstitialAd;
         Intent proxyIntent = new Intent(context, Proxy.class);
         context.startActivity(proxyIntent);
@@ -36,7 +36,6 @@ public class Proxy extends Activity {
 
     public void Finish() {
         Helper.wtf(proxy, "Finish");
-        FirebaseCrash.log("Proxy finish ");
         EventBus.getDefault().post(new AppEvent(this, AppEvent.on.Stop));
         finish();
     }
@@ -45,7 +44,6 @@ public class Proxy extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Helper.wtf(proxy, "create");
-        FirebaseCrash.log("Proxy create ");
 
         if (Proxy.customEventInterstitial != null) {
             Proxy.customEventInterstitial.showInterstitial();
