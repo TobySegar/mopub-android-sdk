@@ -92,7 +92,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.showRunnable = new Runnable() {
             @Override
             public void run() {
-                Log.e(TAG, "run: ShowRun");
+                Helper.wtf(TAG, "run: ShowRun");
                 if(!lock.isLocked()) {
                     counterView.show();
                 }
