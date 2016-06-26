@@ -8,14 +8,11 @@ import android.content.SharedPreferences;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 
 import com.mojang.base.Analytics;
 import com.mojang.base.CounterView;
 import com.mojang.base.Helper;
 import com.mojang.base.Screen;
-import com.mojang.base.WorkerThread;
-import com.mojang.base.events.AppEvent;
 import com.mojang.base.json.Data;
 import com.mopub.ads.adapters.FastAd;
 import com.mopub.mobileads.MoPubErrorCode;
@@ -59,7 +56,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private final CounterView counterView;
 
     public Interstitial(final Activity activity, String interstitialId, final Screen screen, final long minimalAdGapMills, double disableTouchChance,
-                        final WorkerThread workerThread, List<String> highECPMcountries, double fingerAdChanceLow, double fingerAdChanceHigh, final double periodicMillsLow, final double periodicMillsHigh) {
+                         List<String> highECPMcountries, double fingerAdChanceLow, double fingerAdChanceHigh, final double periodicMillsLow, final double periodicMillsHigh) {
         this.activity = activity;
         this.interstitialId = interstitialId;
         this.screen = screen;
