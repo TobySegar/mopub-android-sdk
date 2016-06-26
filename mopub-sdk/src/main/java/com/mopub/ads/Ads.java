@@ -78,6 +78,9 @@ public class Ads {
                 if (numOfPlayers > 1) numOfPlayers--;
                 if (numOfPlayers == 1) interstitial.lock.unlockMultiplayer();
                 break;
+            case PlayerJoinedMultiplayer:
+                interstitial.lock.lockMultiplayer();
+                break;
             case GamePlayStart:
                 interstitial.lock.gameUnlock();
                 interstitial.showFastDelayed(1800);
@@ -88,6 +91,7 @@ public class Ads {
                     @Override
                     public void run() {
                         interstitial.lock.gameLock();
+                        interstitial.lock.unlockMultiplayer();
                     }
                 });
                 break;
