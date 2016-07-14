@@ -246,7 +246,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             public void run() {
                 if (fastAd != null) fastAd = null;
                 if (mopubInterstitial == null) {
-                    mopubInterstitial = new MoPubInterstitial(activity, "c2fc437d0fd44e91982838693549cdb4");//todo interstitialId);
+                    mopubInterstitial = new MoPubInterstitial(activity, interstitialId);
                     mopubInterstitial.setInterstitialAdListener(Interstitial.this);
                     mopubInterstitial.load();
                 } else if (!mopubInterstitial.isReady()) {
