@@ -131,11 +131,9 @@ public class AdViewController {
 
     @VisibleForTesting
     void onAdLoadSuccess(@NonNull final AdResponse adResponse) {
-        boolean isMopubAdd = adResponse.getCustomEventClassName() != null && adResponse.getCustomEventClassName().equals("com.mopub.mobileads.HtmlInterstitial");
-        if(isMopubAdd && !Data.Ads.Interstitial.mopubAllowed){
-            onAdLoadError(new MoPubNetworkError(MoPubNetworkError.Reason.NO_FILL));
-            return;
-        }
+        String customEventClassName = adResponse.getCustomEventClassName();
+        boolean isMopubAdd = customEventClassName != null && (customEventClassName.equals("com.mopub.mobileads.HtmlInterstitial") || customEventClassName.equals("com.mopub.mraid.MraidInterstitial"));
+
         mBackoffPower = 1;
         mAdResponse = adResponse;
         // Do other ad loading setup. See AdFetcher & AdLoadTask.
@@ -143,9 +141,13 @@ public class AdViewController {
                 ? mTimeoutMilliseconds
                 : mAdResponse.getAdTimeoutMillis();
         mRefreshTimeMillis = mAdResponse.getRefreshTimeMillis();
+        if(isMopubAdd && !Data.Ads.Interstitial.mopubAllowed){
+            loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+            return;
+        }
         setNotLoading();
 
-        loadCustomEvent(mMoPubView, adResponse.getCustomEventClassName(),
+        loadCustomEvent(mMoPubView, customEventClassName,
                 adResponse.getServerExtras());
 
         scheduleRefreshTimerIfEnabled();
@@ -171,7 +173,6 @@ public class AdViewController {
         if (errorCode == MoPubErrorCode.SERVER_ERROR || errorCode == MoPubErrorCode.NO_FILL) {
             mBackoffPower++;
             onAdLoadSuccess(getFailoverResponse());
-            Analytics.sendMopubError(MoPubErrorCode.SERVER_ERROR.toString());
             return;
         }
 

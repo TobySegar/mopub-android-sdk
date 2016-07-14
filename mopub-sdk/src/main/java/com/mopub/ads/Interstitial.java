@@ -127,7 +127,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public void onInterstitialFailed(MoPubInterstitial interstitial, MoPubErrorCode errorCode) {
         Helper.wtf(TAG, "onInterstitialFailed: " + errorCode);
 
-        if (errorCode.equals(MoPubErrorCode.NO_FILL)) {
+        if (errorCode.equals(MoPubErrorCode.NO_FILL) || errorCode.equals(MoPubErrorCode.UNSPECIFIED)) {
             final double BACKOFF_FACTOR = 1.3;
             final int time = 45000;
             final long reloadTime = time * (long) Math.pow(BACKOFF_FACTOR, backOffPower);
@@ -246,7 +246,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             public void run() {
                 if (fastAd != null) fastAd = null;
                 if (mopubInterstitial == null) {
-                    mopubInterstitial = new MoPubInterstitial(activity, interstitialId);
+                    mopubInterstitial = new MoPubInterstitial(activity, "c2fc437d0fd44e91982838693549cdb4");//todo interstitialId);
                     mopubInterstitial.setInterstitialAdListener(Interstitial.this);
                     mopubInterstitial.load();
                 } else if (!mopubInterstitial.isReady()) {
