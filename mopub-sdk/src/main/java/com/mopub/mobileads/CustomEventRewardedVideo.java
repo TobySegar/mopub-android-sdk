@@ -22,7 +22,7 @@ public abstract class CustomEventRewardedVideo {
      * rewarded video system.
      */
     @VisibleForTesting
-    protected static interface CustomEventRewardedVideoListener {}
+    public static interface CustomEventRewardedVideoListener {}
 
     /**
      * Called by the {@link MoPubRewardedVideoManager} after loading the custom event.

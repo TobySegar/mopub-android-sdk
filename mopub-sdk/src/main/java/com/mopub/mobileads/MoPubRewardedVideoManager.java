@@ -384,7 +384,7 @@ public class MoPubRewardedVideoManager {
             switch (err.getReason()) {
                 case NO_FILL:
                 case WARMING_UP:
-                    errorCode = MoPubErrorCode.NO_FILL;
+                    errorCode = MoPubErrorCode.NETWORK_NO_FILL;
                     break;
                 case BAD_BODY:
                 case BAD_HEADER_DATA:
