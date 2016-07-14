@@ -77,10 +77,10 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
             if(UnityAds.show(options)) {
                 currentShowingWrapper = this;
             } else {
-                listener.onInterstitialFailed(MoPubErrorCode.NO_FILL);
+                listener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
             }
         } else {
-            listener.onInterstitialFailed(MoPubErrorCode.NO_FILL);
+            listener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
         }
     }
 
@@ -125,6 +125,6 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
 
     @Override
     public void onFetchFailed() {
-        listener.onInterstitialFailed(MoPubErrorCode.NO_FILL);
+        listener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
     }
 }

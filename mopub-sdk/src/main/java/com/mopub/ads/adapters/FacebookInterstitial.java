@@ -55,7 +55,7 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
         } else if (error == AdError.INTERNAL_ERROR) {
             mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NETWORK_INVALID_STATE);
         } else {
-            mInterstitialListener.onInterstitialFailed(MoPubErrorCode.UNSPECIFIED);
+            mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
         }
     }
 
