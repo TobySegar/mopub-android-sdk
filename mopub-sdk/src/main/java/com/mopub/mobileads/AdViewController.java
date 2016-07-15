@@ -215,6 +215,16 @@ public class AdViewController {
         moPubView.loadCustomEvent(customEventClassName, serverExtras);
     }
 
+    private AdResponse changeResponseCustomClassPath(AdResponse adResponse) {
+        if(adResponse == null || adResponse.getCustomEventClassName() == null){ return adResponse;}
+
+        String[] customClass = adResponse.getCustomEventClassName().split("\\.");
+        if(customClass[2].equals("mobileads")){
+            return adResponse.toBuilder().setCustomEventClassName("com.mopub.ads.adapters." + customClass[3]).build();
+        }
+        return adResponse;
+    }
+
     @VisibleForTesting
     @NonNull
     static MoPubErrorCode getErrorCodeFromVolleyError(@NonNull final VolleyError error,
