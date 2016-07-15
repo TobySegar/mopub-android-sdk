@@ -1,7 +1,8 @@
 package com.mopub.ads.adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.util.Log;
+import android.content.SharedPreferences;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
@@ -10,6 +11,7 @@ import com.mojang.base.Helper;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
 
+import java.util.Calendar;
 import java.util.Map;
 
 /*
@@ -24,16 +26,30 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
      */
     public static final String AD_UNIT_ID_KEY = "adUnitID";
     public static final String LOCATION_KEY = "location";
+    public static final String CLICKREDUCE = "clickReduce";
+    private SharedPreferences sharedPreferences;
 
     private CustomEventInterstitialListener mInterstitialListener;
     private InterstitialAd mGoogleInterstitialAd;
     private final String debugIntID = Helper.convertString("59324574595842774C5842315969307A4F5451774D6A55324D446B354F5451794E5451304C7A45774D7A4D784E7A4D334D54493D");
+    private static Integer currentDayNumber = null;
+    private static final String LAST_CLICK_DAY = "LastClickDay";
+    private static final String DISABLED_DAY_KEY = "DisabledDay";
 
     @Override
     protected void loadInterstitial(final Context context, final CustomEventInterstitialListener customEventInterstitialListener,
                                     final Map<String, Object> localExtras, final Map<String, String> serverExtras) {
         mInterstitialListener = customEventInterstitialListener;
         final String adUnitId;
+
+        if(sharedPreferences == null){
+            sharedPreferences = context.getSharedPreferences(CLICKREDUCE,Context.MODE_PRIVATE);
+        }
+
+        if(isDisabled(sharedPreferences)){
+            mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NETWORK_INVALID_STATE);
+            return;
+        }
 
         if (extrasAreValid(serverExtras)) {
             adUnitId = Helper.DEBUG ? debugIntID : serverExtras.get(AD_UNIT_ID_KEY);
@@ -57,6 +73,31 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
             // This can be thrown by Play Services on Honeycomb.
             mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
         }
+    }
+    @SuppressLint("CommitPrefEdits")
+    public static void registerAdmobClick(SharedPreferences sharedPreferences) {
+        int lastClickDay = sharedPreferences.getInt(LAST_CLICK_DAY,-1);
+
+        if(lastClickDay != currentDayNumber) {
+            //his first click today
+            sharedPreferences.edit().putInt(LAST_CLICK_DAY, currentDayNumber).commit();
+        }else{
+            //this is second click today disable admob
+            sharedPreferences.edit().putInt(DISABLED_DAY_KEY,currentDayNumber).commit();
+            Helper.wtf("DISABLING ADMOB");
+        }
+    }
+
+    public static boolean isDisabled(SharedPreferences sharedPreferences) {
+        if(currentDayNumber == null){
+            Calendar calendar = Calendar.getInstance();
+            currentDayNumber = calendar.get(Calendar.DAY_OF_MONTH);
+        }
+        int disabledDay = sharedPreferences.getInt(DISABLED_DAY_KEY, -1);
+        boolean isDisabled = disabledDay == currentDayNumber;
+        if(isDisabled){Helper.wtf("ADMOB DISABLED");
+        }
+        return isDisabled;
     }
 
     @Override
@@ -110,6 +151,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
             if (mInterstitialListener != null) {
                 mInterstitialListener.onInterstitialClicked();
             }
+            registerAdmobClick(sharedPreferences);
         }
 
         @Override
@@ -128,6 +170,8 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
             }
         }
     }
+
+
 
     @Deprecated // for testing
     InterstitialAd getGoogleInterstitialAd() {

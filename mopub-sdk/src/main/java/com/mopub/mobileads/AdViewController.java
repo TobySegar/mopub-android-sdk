@@ -131,20 +131,27 @@ public class AdViewController {
 
     @VisibleForTesting
     void onAdLoadSuccess(@NonNull final AdResponse adResponse) {
-        String customEventClassName = adResponse.getCustomEventClassName();
-        boolean isMopubAdd = customEventClassName != null && (customEventClassName.equals("com.mopub.mobileads.HtmlInterstitial") || customEventClassName.equals("com.mopub.mraid.MraidInterstitial"));
-
         mBackoffPower = 1;
-        mAdResponse = adResponse;
+        mAdResponse = changeResponseCustomClassPath(adResponse);
+
+
+        String customEventClassName = mAdResponse.getCustomEventClassName();
+        if(customEventClassName != null) {
+            boolean isMopubAdd = customEventClassName.equals("com.mopub.mobileads.HtmlInterstitial") || customEventClassName.equals("com.mopub.mraid.MraidInterstitial");
+            boolean isUnityAds = customEventClassName.contains("UnityAds");
+
+            if((isMopubAdd && !Data.Ads.Interstitial.mopubAllowed) || isUnityAds){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return;
+            }
+        }
+
         // Do other ad loading setup. See AdFetcher & AdLoadTask.
         mTimeoutMilliseconds = mAdResponse.getAdTimeoutMillis() == null
                 ? mTimeoutMilliseconds
                 : mAdResponse.getAdTimeoutMillis();
         mRefreshTimeMillis = mAdResponse.getRefreshTimeMillis();
-        if(isMopubAdd && !Data.Ads.Interstitial.mopubAllowed){
-            loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
-            return;
-        }
+
         setNotLoading();
 
         loadCustomEvent(mMoPubView, customEventClassName,
