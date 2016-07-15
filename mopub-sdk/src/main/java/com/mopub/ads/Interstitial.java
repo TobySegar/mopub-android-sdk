@@ -32,7 +32,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private MoPubInterstitial mopubInterstitial;
     private final Activity activity;
     private final String interstitialId;
-    private final Screen screen;
     private final Handler mainHandler;
     private String TAG = this.getClass().getName();
     private long minimalAdGapMills;
@@ -55,11 +54,10 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public final Lock lock;
     private final CounterView counterView;
 
-    public Interstitial(final Activity activity, String interstitialId, final Screen screen, final long minimalAdGapMills, double disableTouchChance,
+    public Interstitial(final Activity activity, String interstitialId, final long minimalAdGapMills, double disableTouchChance,
                          List<String> highECPMcountries, double fingerAdChanceLow, double fingerAdChanceHigh, final double periodicMillsLow, final double periodicMillsHigh) {
         this.activity = activity;
         this.interstitialId = interstitialId;
-        this.screen = screen;
         this.minimalAdGapMills = minimalAdGapMills;
         this.disableTouchChance = disableTouchChance;
         this.highECPMcountries = highECPMcountries;
@@ -74,7 +72,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             public void run() {
                 show();
             }
-        },screen);
+        },Screen.instance);
 
         this.reloadRunnable = new Runnable() {
             @Override
@@ -345,9 +343,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         mainHandler.postDelayed(gapUnlockRunnable, minimalAdGapMills);
     }
 
-    private void disableTouch(double disableTouchChance) {
-        if (Helper.chance(disableTouchChance)) {
-            screen.disableTouch(DISABLE_SCREEN_MILLS);
+    public static void disableTouch(double disableTouchChance) {
+        if (Helper.chance(disableTouchChance) && Data.hasMinecraft) {
+            Screen.instance.disableTouch(DISABLE_SCREEN_MILLS);
         }
     }
 
