@@ -2,12 +2,10 @@ package com.mopub.ads.adapters;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
-import com.google.firebase.crash.FirebaseCrash;
 import com.mojang.base.Helper;
 import com.mojang.base.events.AppEvent;
 import com.mojang.base.json.Data;
@@ -28,9 +26,8 @@ public class FastAd {
     public void load(final Context context, final Runnable initMopubRunnable) {
         Helper.wtf("FastAd", "load: LOADING FAST AD");
         this.context = context;
-        final SharedPreferences sharedPreferences = context.getSharedPreferences(GooglePlayServicesInterstitial.CLICKREDUCE, Context.MODE_PRIVATE);
 
-        if(GooglePlayServicesInterstitial.isDisabled(sharedPreferences)){
+        if(GooglePlayServicesInterstitial.isDisabled(context)){
             initMopubRunnable.run();
             return;
         }
@@ -47,7 +44,7 @@ public class FastAd {
             @Override
             public void onAdLeftApplication() {
                 super.onAdLeftApplication();
-                GooglePlayServicesInterstitial.registerAdmobClick(sharedPreferences);
+                GooglePlayServicesInterstitial.registerAdmobClick(context);
                 Interstitial.disableTouch(Data.Ads.Interstitial.disableTouchChance);
             }
         });
