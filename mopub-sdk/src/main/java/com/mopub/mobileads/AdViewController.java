@@ -15,7 +15,10 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import com.mojang.base.Analytics;
+import com.mojang.base.Helper;
+import com.mopub.ads.adapters.FacebookInterstitial;
 import com.mopub.ads.adapters.GooglePlayServicesInterstitial;
+import com.mopub.ads.adapters.UnityAdsMopubEvents;
 import com.mopub.common.AdReport;
 import com.mopub.common.AdType;
 import com.mopub.common.ClientMetadata;
@@ -88,6 +91,7 @@ public class AdViewController {
     private int mTimeoutMilliseconds;
     @Nullable private AdRequest mActiveRequest;
     @Nullable private Integer mRefreshTimeMillis;
+    private boolean wasFacebook;
 
     public static void setShouldHonorServerDimensions(View view) {
         sViewShouldHonorServerDimensions.put(view, true);
@@ -189,15 +193,30 @@ public class AdViewController {
 
     @VisibleForTesting
     AdResponse getFailoverResponse() {
-        Map<String,String> serverExtras = new HashMap<>();
-        serverExtras.put(GooglePlayServicesInterstitial.AD_UNIT_ID_KEY, Data.Ads.Interstitial.failoverId);
+        AdResponse failoverResponse;
+        if(!wasFacebook) {
+            Helper.wtf("Failover face");
+            Map<String, String> serverExtras = new HashMap<>();
+            serverExtras.put(FacebookInterstitial.PLACEMENT_ID_KEY, Data.Ads.Interstitial.failoverId);
 
-        AdResponse failoverResponse = new AdResponse.Builder()
-                .setCustomEventClassName(GooglePlayServicesInterstitial.class.getName())
-                .setServerExtras(serverExtras)
-                .setAdType(AdType.CUSTOM)
-                .build();
+            failoverResponse = new AdResponse.Builder()
+                    .setCustomEventClassName(FacebookInterstitial.class.getName())
+                    .setServerExtras(serverExtras)
+                    .setAdType(AdType.CUSTOM)
+                    .build();
+            wasFacebook = true;
+        }else {
+            Helper.wtf("Failover unity");
+            Map<String, String> serverExtras = new HashMap<>();
+            serverExtras.put(UnityAdsMopubEvents.GAME_ID_KEY, UnityAdsMopubEvents.GAME_ID_VALUE);
 
+            failoverResponse = new AdResponse.Builder()
+                    .setCustomEventClassName(UnityAdsMopubEvents.class.getName())
+                    .setServerExtras(serverExtras)
+                    .setAdType(AdType.CUSTOM)
+                    .build();
+            wasFacebook = false;
+        }
         return failoverResponse;
     }
 

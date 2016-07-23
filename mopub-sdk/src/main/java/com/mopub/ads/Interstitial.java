@@ -13,6 +13,7 @@ import com.mojang.base.Analytics;
 import com.mojang.base.Helper;
 import com.mojang.base.Screen;
 import com.mojang.base.json.Data;
+import com.mopub.ads.adapters.UnityAdsMopubEvents;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.mobileads.MoPubInterstitial;
 import com.unity3d.ads.android.IUnityAdsListener;
@@ -226,7 +227,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 if (UnityAds.isSupported()) {
                     UnityAds.setDebugMode(Helper.DEBUG);
                     UnityAds.setTestMode(Helper.DEBUG);
-                    UnityAds.init(activity, Helper.convertString("4E6A6B324D7A4D3D"), new IUnityAdsListener() {
+                    UnityAds.init(activity, UnityAdsMopubEvents.GAME_ID_VALUE, new IUnityAdsListener() {
                         @Override
                         public void onHide() {
                             onInterstitialDismissed(mopubInterstitial);

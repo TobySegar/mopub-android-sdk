@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 
+import com.mojang.base.Helper;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.unity3d.ads.android.IUnityAdsListener;
@@ -18,10 +19,11 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
     private String gameId = null;
     private String zoneId = null;
     private Map<String, Object> options = null;
-
+    public static String GAME_ID_KEY= "gameId";
     private static UnityAdsMopubEvents currentShowingWrapper = null;
     private UnityAdsMopubEvents wrapperAfterShow = null;
     private Activity nextActivity = null;
+    public static String GAME_ID_VALUE = Helper.convertString("4E6A6B324D7A4D3D");
 
     @Override
     protected void loadInterstitial(Context context,
@@ -29,12 +31,12 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
                                     Map<String, Object> localExtras, Map<String, String> serverExtras) {
         listener = customEventInterstitialListener;
 
-        if(serverExtras.get("gameId") == null || !(serverExtras.get("gameId") instanceof String)) {
+        if(serverExtras.get(GAME_ID_KEY) == null || !(serverExtras.get(GAME_ID_KEY) instanceof String)) {
             listener.onInterstitialFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
             return;
         }
 
-        gameId = serverExtras.get("gameId");
+        gameId = serverExtras.get(GAME_ID_KEY);
         zoneId = serverExtras.get("zoneId");
 
         options = new HashMap<String, Object>();
