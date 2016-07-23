@@ -13,7 +13,6 @@ import com.mojang.base.Analytics;
 import com.mojang.base.Helper;
 import com.mojang.base.Screen;
 import com.mojang.base.json.Data;
-import com.mopub.ads.adapters.FastAd;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.mobileads.MoPubInterstitial;
 import com.unity3d.ads.android.IUnityAdsListener;
@@ -46,8 +45,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private final Runnable gapUnlockRunnable;
     private double periodicMills;
     private final double fingerAdChanceHigh;
-    private FastAd fastAd;
-    private boolean fastAdUsed;
     private boolean onLoadedOnce;
     private boolean periodicScheduled;
     public final Lock lock;
@@ -178,33 +175,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
 
     public void init(final boolean fromOnlineAccepted) {
-        if (!fromOnlineAccepted && !fastAdUsed && Data.hasMinecraft) {
-            fastAdUsed = true;
-            fastAd = new FastAd(Data.Ads.Interstitial.failoverId);
-            fastAd.load(activity, new Runnable() {
-                @Override
-                public void run() {
-                    _initDelayed();
-                    gapLockForTime(minimalAdGapMills);
-                }
-            });
-        } else {
             _initDelayed();
-        }
     }
 
-    public void showFastDelayed(int mills) {
-        mainHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if(mopubInterstitial != null){
-                    show();
-                }else if (lock.isLocked() || fastAd == null || !fastAd.show()) {
-                    _initDelayed();
-                }
-            }
-        }, mills);
-    }
 
     public void showUnityAdsVideo() {
         if (UnityAds.canShow()) {
@@ -242,7 +215,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         mainHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (fastAd != null) fastAd = null;
                 if (mopubInterstitial == null) {
                     mopubInterstitial = new MoPubInterstitial(activity, interstitialId);
                     mopubInterstitial.setInterstitialAdListener(Interstitial.this);

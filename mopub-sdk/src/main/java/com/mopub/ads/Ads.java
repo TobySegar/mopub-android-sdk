@@ -83,7 +83,7 @@ public class Ads {
                 break;
             case GamePlayStart:
                 interstitial.lock.gameUnlock();
-                interstitial.showFastDelayed(1800);
+                interstitial.showDelayed(1800);
                 interstitial.schedulePeriodicShows();
                 break;
             case LeaveLevel:
