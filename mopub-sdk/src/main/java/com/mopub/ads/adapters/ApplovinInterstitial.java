@@ -124,7 +124,7 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
     {
         parentActivity.runOnUiThread( new Runnable() {
             public void run() {
-                    mInterstitialListener.onInterstitialFailed( MoPubErrorCode.NO_FILL );
+                    mInterstitialListener.onInterstitialFailed( MoPubErrorCode.NETWORK_NO_FILL );
             }
         });
     }
