@@ -140,7 +140,7 @@ public class AdViewController {
             boolean isMopubAdd = customEventClassName.equals("com.mopub.mobileads.HtmlInterstitial") || customEventClassName.equals("com.mopub.mraid.MraidInterstitial");
             boolean isUnityAds = customEventClassName.contains("UnityAds");
 
-            if((isMopubAdd && !Data.Ads.Interstitial.mopubAllowed) || isUnityAds){
+            if((isMopubAdd && !Data.Ads.Interstitial.mopubAllowed)){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
                 return;
             }
