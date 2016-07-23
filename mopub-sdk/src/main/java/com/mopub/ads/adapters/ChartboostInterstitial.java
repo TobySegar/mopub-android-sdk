@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.chartboost.sdk.Chartboost;
+import com.mojang.base.Helper;
 import com.mopub.common.Preconditions;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
@@ -40,7 +41,7 @@ class ChartboostInterstitial extends CustomEventInterstitial {
         Preconditions.checkNotNull(interstitialListener);
         Preconditions.checkNotNull(localExtras);
         Preconditions.checkNotNull(serverExtras);
-
+        Helper.wtf("Chartboost Load");
         if (!(context instanceof Activity)) {
             interstitialListener.onInterstitialFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
             return;

@@ -13,6 +13,7 @@ import android.util.Log;
 import com.applovin.adview.AppLovinInterstitialAd;
 import com.applovin.adview.AppLovinInterstitialAdDialog;
 import com.applovin.sdk.*;
+import com.mojang.base.Helper;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
 
@@ -33,6 +34,7 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
     @Override
     public void loadInterstitial(Context context, CustomEventInterstitial.CustomEventInterstitialListener interstitialListener, Map<String, Object> localExtras, Map<String, String> serverExtras)
     {
+        Helper.wtf("Applovin Load");
         mInterstitialListener = interstitialListener;
 
         if ( context instanceof Activity )
@@ -124,6 +126,7 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
     {
         parentActivity.runOnUiThread( new Runnable() {
             public void run() {
+                Helper.wtf("Applovin Fail");
                     mInterstitialListener.onInterstitialFailed( MoPubErrorCode.NETWORK_NO_FILL );
             }
         });
