@@ -42,9 +42,9 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
         options.putAll(localExtras);
         options.putAll(serverExtras);
 
+        UnityAds.setDebugMode(Helper.DEBUG);
+        UnityAds.setTestMode(Helper.DEBUG);
         if(currentShowingWrapper == null) {
-            UnityAds.setDebugMode(true);
-
             UnityAds.init((Activity)context, gameId, this);
             UnityAds.changeActivity((Activity)context);
             UnityAds.setListener(this);
@@ -74,8 +74,7 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
     @Override
     public void showInterstitial() {
         if(UnityAds.canShow() && UnityAds.canShowAds()) {
-            UnityAds.setZone(zoneId);
-            if(UnityAds.show(options)) {
+            if(UnityAds.show()) {
                 currentShowingWrapper = this;
             } else {
                 Helper.wtf("Unity Ads Failed");
