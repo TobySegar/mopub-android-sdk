@@ -214,14 +214,10 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
     public void showUnityAdsVideo() {
-        if (UnityAds.canShow()) {
             if (!UnityAds.show()) {
                 Helper.wtf(TAG, "showUnityAdsVideo: show false");
                 show();
             }
-        } else {
-            Helper.wtf(TAG, "showUnityAdsVideo: canShow false");
-        }
     }
 
 
