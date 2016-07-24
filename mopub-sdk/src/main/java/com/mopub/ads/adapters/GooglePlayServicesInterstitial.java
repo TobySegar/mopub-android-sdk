@@ -43,6 +43,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
         mInterstitialListener = customEventInterstitialListener;
         final String adUnitId;
 
+        Helper.wtf("Admob Load");
         setSharedPreferences(context);
         mContext = context;
 
@@ -147,6 +148,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
         @Override
         public void onAdFailedToLoad(int errorCode) {
             Helper.wtf("MoPub", "Google Play Services interstitial ad failed to load.");
+            Helper.wtf("Admob Failed");
             if (mInterstitialListener != null) {
                 mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
             }
