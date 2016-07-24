@@ -50,6 +50,7 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
     @Override
     public void onError(final Ad ad, final AdError error) {
         Helper.wtf("MoPub", "Facebook interstitial ad failed to load. " + error.getErrorMessage());
+        Helper.wtf("Facebook Failed");
         if (error == AdError.NO_FILL) {
             mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
         } else if (error == AdError.INTERNAL_ERROR) {
@@ -86,6 +87,8 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
                                     final Map<String, Object> localExtras,
                                     final Map<String, String> serverExtras) {
         mInterstitialListener = customEventInterstitialListener;
+
+        Helper.wtf("Facebook Load");
 
         final String placementId;
         if (extrasAreValid(serverExtras)) {

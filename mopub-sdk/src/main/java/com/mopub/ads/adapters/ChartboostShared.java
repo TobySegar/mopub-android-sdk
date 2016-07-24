@@ -8,6 +8,7 @@ import android.util.Log;
 import com.chartboost.sdk.Chartboost;
 import com.chartboost.sdk.ChartboostDelegate;
 import com.chartboost.sdk.Model.CBError;
+import com.mojang.base.Helper;
 import com.mopub.common.MoPub;
 import com.mopub.common.MoPubReward;
 import com.mopub.common.Preconditions;
@@ -180,6 +181,7 @@ public class ChartboostShared {
         public void didFailToLoadInterstitial(String location, CBError.CBImpressionError error) {
             String suffix = error != null ? "Error: " + error.name() : "";
             Log.d("MoPub", "Chartboost interstitial ad failed to load." + suffix);
+            Helper.wtf("Chartboost Failed");
             getInterstitialListener(location).onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
         }
 
