@@ -99,9 +99,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public void onInterstitialDismissed(MoPubInterstitial interstitial) {
         gapLockForTime(minimalAdGapMills);
         loadAfterDelay(3000);
-        if (!Data.hasMinecraft) {
-            schedulePeriodicShows();
-        }
     }
 
     @Override
@@ -210,6 +207,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         }
     }
 
+    public boolean isReady() {
+        return mopubInterstitial.isReady();
+    }
 
 
     private void _initDelayed() {
