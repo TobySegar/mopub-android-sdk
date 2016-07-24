@@ -29,6 +29,7 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
                                     Map<String, Object> localExtras, Map<String, String> serverExtras) {
         listener = customEventInterstitialListener;
 
+        Helper.wtf("Unity Ads load");
         if(serverExtras.get("gameId") == null || !(serverExtras.get("gameId") instanceof String)) {
             listener.onInterstitialFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
             return;
@@ -77,9 +78,11 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
             if(UnityAds.show(options)) {
                 currentShowingWrapper = this;
             } else {
+                Helper.wtf("Unity Ads Failed");
                 listener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
             }
         } else {
+            Helper.wtf("Unity Ads Failed");
             listener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
         }
     }
