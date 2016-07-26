@@ -134,7 +134,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
         if (errorCode.equals(MoPubErrorCode.NO_FILL) || errorCode.equals(MoPubErrorCode.UNSPECIFIED)) {
             final double BACKOFF_FACTOR = 1.3;
-            final int time = 45000;
+            final int time = 45001;
             final long reloadTime = time * (long) Math.pow(BACKOFF_FACTOR, backOffPower);
             backOffPower++;
             loadAfterDelay(reloadTime);
