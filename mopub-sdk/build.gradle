@@ -53,6 +53,10 @@ android {
         consumerProguardFiles 'proguard.txt'
     }
 
+    dexOptions {
+        javaMaxHeapSize "4g"
+    }
+
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
