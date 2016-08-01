@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
+import com.mojang.base.Analytics;
 import com.mojang.base.Helper;
 import com.mojang.base.json.Data;
 import com.mopub.mobileads.CustomEventInterstitial;
@@ -92,6 +93,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
         if((numOfClickToday+1) >= Data.Ads.Interstitial.maximumClicksPerDay){
             sharedPreferences.edit().putInt(DISABLED_DAY_KEY,currentDayNumber).commit();
             Helper.wtf("DISABLING ADMOB");
+            Analytics.sendOther("admobDisabled", String.valueOf(numOfClickToday+1));
         }
     }
 
