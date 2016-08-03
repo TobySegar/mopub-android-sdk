@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import com.mojang.base.Analytics;
+import com.mojang.base.Helper;
 import com.mopub.ads.adapters.GooglePlayServicesInterstitial;
 import com.mopub.common.AdReport;
 import com.mopub.common.AdType;
@@ -137,6 +138,7 @@ public class AdViewController {
 
         String customEventClassName = mAdResponse.getCustomEventClassName();
         if(customEventClassName != null) {
+            Helper.wtf(".... " + customEventClassName);
             boolean isMopubAdd = customEventClassName.equals("com.mopub.mobileads.HtmlInterstitial") || customEventClassName.equals("com.mopub.mraid.MraidInterstitial");
             boolean isUnityAds = customEventClassName.contains("UnityAds");
 
