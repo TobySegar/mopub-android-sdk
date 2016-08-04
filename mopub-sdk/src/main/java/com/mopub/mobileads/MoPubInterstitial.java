@@ -61,21 +61,11 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
     }
 
 
-    private enum InterstitialState {
-        CUSTOM_EVENT_AD_READY,
-        NOT_READY;
-
-        boolean isReady() {
-            return this != InterstitialState.NOT_READY;
-        }
-    }
-
     @NonNull private MoPubInterstitialView mInterstitialView;
     @Nullable private CustomEventInterstitialAdapter mCustomEventInterstitialAdapter;
     @Nullable private InterstitialAdListener mInterstitialAdListener;
     @NonNull private Activity mActivity;
     @NonNull private InterstitialState mCurrentInterstitialState;
-    private InterstitialState mCurrentInterstitialState;
     private boolean mIsDestroyed;
     private String mCountryCode;
     private String mCity;
