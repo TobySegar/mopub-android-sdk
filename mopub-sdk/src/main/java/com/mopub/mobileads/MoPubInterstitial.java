@@ -22,6 +22,8 @@ import static com.mopub.mobileads.MoPubErrorCode.ADAPTER_NOT_FOUND;
 
 public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomEventInterstitialAdapterListener {
 
+    public static boolean HAS_LOCATION = true;
+
     //http://www.nationsonline.org/oneworld/country_code_list.htm
     @Nullable public String getCountryCode() {
         return mCountryCode;
@@ -287,16 +289,28 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
     }
 
     @VisibleForTesting
-    void extractCountryFromExtras(Map<String, String> serverExtras) {
+    Map<String, String> extractCountryFromExtras(Map<String, String> serverExtras) {
         Preconditions.checkNotNull(serverExtras);
         if(serverExtras.containsKey(DataKeys.CLICKTHROUGH_URL_KEY)){
             String url = serverExtras.get(DataKeys.CLICKTHROUGH_URL_KEY);
             Pattern p = Pattern.compile("(?<=&country_code=).*?(?=&)");
             Matcher m = p.matcher(url);
-            if(m.find()){
+            if(m.find() && mCountryCode == null){
                 mCountryCode = m.group();
+            }else {
+                HAS_LOCATION = false;
             }
+            //else {
+                //Pattern p2 = Pattern.compile("(?<=&cid=).*?(?=&)");
+                //Matcher m2 = p2.matcher(url);
+                //if(m2.find()){
+                //    url = m2.replaceAll(m2.group()+"&city=SanFrancisco&ckv=2&country_code=US");
+                //    serverExtras.remove(DataKeys.CLICKTHROUGH_URL_KEY);
+                //    serverExtras.put(DataKeys.CLICKTHROUGH_URL_KEY, url);
+                //}
+            //}
         }
+        return serverExtras;
     }
 
     @VisibleForTesting

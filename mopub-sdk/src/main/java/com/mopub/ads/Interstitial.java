@@ -249,6 +249,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 if (mopubInterstitial == null) {
                     mopubInterstitial = new MoPubInterstitial(activity, interstitialId);
                     mopubInterstitial.setInterstitialAdListener(Interstitial.this);
+                    mopubInterstitial.setKeywords("game,minecraft,business,twitter");
                     mopubInterstitial.load();
                 } else if (!mopubInterstitial.isReady()) {
                     mopubInterstitial.load();

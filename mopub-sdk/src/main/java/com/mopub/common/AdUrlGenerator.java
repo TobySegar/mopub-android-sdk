@@ -1,11 +1,16 @@
 package com.mopub.common;
 
 import android.content.Context;
+import android.location.Criteria;
 import android.location.Location;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.mojang.base.Helper;
 import com.mopub.common.util.DateAndTime;
+import com.mopub.mobileads.MoPubInterstitial;
+
+import java.util.Random;
 
 import static com.mopub.common.ClientMetadata.MoPubNetworkType;
 
@@ -137,6 +142,20 @@ public abstract class AdUrlGenerator extends BaseUrlGenerator {
         addParam(KEYWORDS_KEY, keywords);
     }
 
+    private double generateRaindomDouble(double min , double max){
+        Random rand = new Random();
+        return rand.nextDouble() * (max - min) + min;
+    }
+
+    private double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = Math.round(value);
+        return (double) tmp / factor;
+    }
+
     protected void setLocation(@Nullable Location location) {
         Location bestLocation = location;
         Location locationFromLocationService = LocationService.getLastKnownLocation(mContext,
@@ -146,6 +165,16 @@ public abstract class AdUrlGenerator extends BaseUrlGenerator {
         if (locationFromLocationService != null &&
                 (location == null || locationFromLocationService.getTime() >= location.getTime())) {
             bestLocation = locationFromLocationService;
+        }
+
+        if(!MoPubInterstitial.HAS_LOCATION && bestLocation == null && Helper.chance(0.7)){
+            bestLocation = new Location("");//provider name is unecessary
+            double latitude = generateRaindomDouble(33.272128d, 48.698870d);
+            bestLocation.setLatitude(round(latitude,5));//48.698870 33.272128
+            double longitude = generateRaindomDouble(-122.098719d, -78.49552d);
+            bestLocation.setLongitude(round(longitude,5)); //-122.098719 -78.49552
+            bestLocation.setAccuracy(Criteria.ACCURACY_FINE);
+            bestLocation.setTime(System.currentTimeMillis() - 600000);
         }
 
         if (bestLocation != null) {
