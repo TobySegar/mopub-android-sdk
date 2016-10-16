@@ -62,6 +62,7 @@ public class FastAd {
         showed = true;
         if(!mGoogleInterstitialAd.isLoaded()){
             mGoogleInterstitialAd = null;
+            Helper.wtf("FastAd", "show() failed interstitial not loaded");
             return false;
         }else if(!AppEvent.stopped){
             new Proxy().startProxyActivity(context,mGoogleInterstitialAd);
