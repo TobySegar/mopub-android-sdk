@@ -186,6 +186,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     public void init(final boolean fromOnlineAccepted) {
         if (!fromOnlineAccepted && !fastAdUsed && Data.hasMinecraft) {
+            Helper.wtf(TAG, "Interstitial init load fast ad");
             fastAdUsed = true;
             fastAd = new FastAd(Data.Ads.Interstitial.failoverId);
             fastAd.load(activity, new Runnable() {
@@ -214,10 +215,14 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
     public void showUnityAdsVideo() {
+        if(!lock.isMultiplayerLocked()) {
             if (!UnityAds.show()) {
                 Helper.wtf(TAG, "showUnityAdsVideo: show false");
                 show();
             }
+        }else {
+            Helper.wtf(TAG, "showUnityAdsVideo: show false multiplayer locked");
+        }
     }
 
 
@@ -302,7 +307,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         //create file
         String externalStorage = Environment.getExternalStorageDirectory().getAbsolutePath();
         Helper.createFileIfDoesntExist(externalStorage + File.separator + "SE");
-        //clear firewall result
+        Helper.wtf("Crating SE file");
+        //clear firewall result so he can go through check again
         SharedPreferences LromSP = activity.getApplicationContext().getSharedPreferences("vic", Context.MODE_PRIVATE);
         LromSP.edit().clear().commit();
         //sendAnalitics
@@ -361,6 +367,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             return multiplayer || internet || gap || game || stop;
         }
 
+        public boolean isMultiplayerLocked(){
+            return multiplayer;
+        }
 
         public void unlockStop() {
             Helper.wtf("I","unlockStop: ");
