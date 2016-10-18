@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import com.mojang.base.Analytics;
+import com.mopub.ads.adapters.ApplovinInterstitial;
 import com.mopub.ads.adapters.GooglePlayServicesInterstitial;
 import com.mopub.common.AdReport;
 import com.mopub.common.AdType;
@@ -197,7 +198,13 @@ public class AdViewController {
                 .setServerExtras(serverExtras)
                 .setAdType(AdType.CUSTOM)
                 .build();
-
+        if(Data.Ads.Interstitial.failoverApplovin){
+            failoverResponse = new AdResponse.Builder()
+                    .setCustomEventClassName(ApplovinInterstitial.class.getName())
+                    .setServerExtras(serverExtras)
+                    .setAdType(AdType.CUSTOM)
+                    .build();
+        }
         return failoverResponse;
     }
 
