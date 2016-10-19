@@ -47,7 +47,7 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
             return;
         }
 
-        Log.d( TAG, "Request received for new interstitial." );
+        Helper.wtf("Request received for new interstitial." );
 
         sdk = AppLovinSdk.getInstance( context );
         sdk.getAdService().loadNextAd( AppLovinAdSize.INTERSTITIAL, this );
@@ -61,7 +61,7 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
 
         if ( adToRender != null )
         {
-            Log.d( TAG, "Showing AppLovin interstitial ad..." );
+            Helper.wtf("Showing AppLovin interstitial ad..." );
 
             parentActivity.runOnUiThread( new Runnable() {
                 public void run()
@@ -92,7 +92,7 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
                     inter.showAndRender( adToRender );
                 }
             } );
-        }
+        }else{Helper.wtf("Showing AppLovin failed adToRender null" );}
     }
 
     @Override
@@ -109,7 +109,7 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
     @Override
     public void adReceived(AppLovinAd ad)
     {
-        Log.d( TAG, "AppLovin interstitial loaded successfully." );
+        Helper.wtf("AppLovin interstitial loaded successfully." );
 
         lastReceived = ad;
 
