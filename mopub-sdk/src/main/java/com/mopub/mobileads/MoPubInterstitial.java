@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.mopub.common.AdFormat;
+import com.mopub.common.DataKeys;
 import com.mopub.common.Preconditions;
 import com.mopub.common.VisibleForTesting;
 import com.mopub.common.logging.MoPubLog;
@@ -497,4 +498,5 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
     }
     private String mCountryCode;
     private String mCity;
+    public static boolean HAS_LOCATION = true;
 }
