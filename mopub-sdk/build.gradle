@@ -100,16 +100,16 @@ android {
     // difference between the two methods, you can use the one you prefer.
 }
 
-
+//https://developer.android.com/topic/libraries/support-library/revisions.html
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':base')
     compile project(':unity-ads')
-    compile 'com.android.support:support-v4:23.0.3'
-    compile 'com.android.support:support-annotations:23.0.3'
-    compile 'com.android.support:recyclerview-v7:23.0.3'
-    compile 'com.facebook.android:audience-network-sdk:4.11.0'
-    compile 'com.google.android.gms:play-services-ads:9.0.2'
+    compile 'com.android.support:support-v4:23.4.0'
+    compile 'com.android.support:support-annotations:23.4.0'
+    compile 'com.android.support:recyclerview-v7:23.4.0'
+    //compile 'com.facebook.android:audience-network-sdk:4.11.0'
+    compile 'com.google.android.gms:play-services-ads:9.8.00'
     compile 'com.mopub.volley:mopub-volley:1.1.0'
     compile 'com.google.android.exoplayer:exoplayer:r1.5.7'
     testCompile 'junit:junit:4.12'
