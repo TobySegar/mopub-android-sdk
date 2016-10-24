@@ -42,6 +42,12 @@ public class FastAd {
             }
 
             @Override
+            public void onAdFailedToLoad(int i) {
+                super.onAdFailedToLoad(i);
+                initMopubRunnable.run();
+            }
+
+            @Override
             public void onAdLeftApplication() {
                 super.onAdLeftApplication();
                 GooglePlayServicesInterstitial.registerAdmobClick(context);
