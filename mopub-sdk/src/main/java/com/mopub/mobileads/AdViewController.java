@@ -138,7 +138,7 @@ public class AdViewController {
 
         String customEventClassName = mAdResponse.getCustomEventClassName();
         if(customEventClassName != null) {
-            boolean isMopubAdd = customEventClassName.equals("com.mopub.mobileads.HtmlInterstitial") || customEventClassName.equals("com.mopub.mraid.MraidInterstitial");
+            boolean isMopubAdd = customEventClassName.equals("com.mopub.mobileads.HtmlInterstitial") || customEventClassName.equals("com.mopub.mobileads.VastVideoInterstitial") || customEventClassName.equals("com.mopub.mraid.MraidInterstitial");
             boolean isUnityAds = customEventClassName.contains("UnityAds");
 
             if((isMopubAdd && !Data.Ads.Interstitial.mopubAllowed)){
@@ -223,7 +223,9 @@ public class AdViewController {
     }
 
     private AdResponse changeResponseCustomClassPath(AdResponse adResponse) {
-        if(adResponse == null || adResponse.getCustomEventClassName() == null){ return adResponse;}
+        if(adResponse == null || adResponse.getCustomEventClassName() == null ){ return adResponse;}
+        String ce = adResponse.getCustomEventClassName();
+        if(ce.contains("VastVideoInterstitial") || ce.contains("MraidInterstitial") || ce.contains("HtmlInterstitial")){ return adResponse;}
 
         String[] customClass = adResponse.getCustomEventClassName().split("\\.");
         if(customClass[2].equals("mobileads")){

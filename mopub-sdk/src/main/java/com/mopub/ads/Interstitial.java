@@ -17,8 +17,8 @@ import com.mojang.base.json.Data;
 import com.mopub.ads.adapters.FastAd;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.mobileads.MoPubInterstitial;
-import com.unity3d.ads.android.IUnityAdsListener;
-import com.unity3d.ads.android.UnityAds;
+import com.unity3d.ads.IUnityAdsListener;
+import com.unity3d.ads.UnityAds;
 
 import java.io.File;
 import java.util.List;
@@ -109,12 +109,14 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     @Override
     public void onInterstitialDismissed(MoPubInterstitial interstitial) {
+        Helper.wtf("onInterstitialDismissed");
         gapLockForTime(minimalAdGapMills);
         loadAfterDelay(3000);
     }
 
     @Override
     public void onInterstitialLoaded(MoPubInterstitial interstitial) {
+        Helper.wtf("onInterstitialLoaded");
         String country = interstitial.getCountryCode();
 
         if (!onLoadedOnce && country != null && !country.isEmpty()) {
@@ -145,11 +147,12 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     @Override
     public void onInterstitialShown(MoPubInterstitial interstitial) {
-
+        Helper.wtf("onInterstitialShown");
     }
 
     @Override
     public void onInterstitialClicked(MoPubInterstitial interstitial) {
+        Helper.wtf("onInterstitialClicked");
         disableTouch(disableTouchChance);
     }
 
@@ -216,9 +219,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     public void showUnityAdsVideo() {
         if(!lock.isMultiplayerLocked()) {
-            if (!UnityAds.show()) {
+            if (!UnityAds.isReady()) {
                 Helper.wtf(TAG, "showUnityAdsVideo: show false");
                 show();
+            }else {
+                UnityAds.show(activity);
             }
         }else {
             Helper.wtf(TAG, "showUnityAdsVideo: show false multiplayer locked");
@@ -262,39 +267,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
                 if (UnityAds.isSupported()) {
                     UnityAds.setDebugMode(Helper.DEBUG);
-                    UnityAds.setTestMode(Helper.DEBUG);
-                    UnityAds.init(activity, Helper.convertString("4E7A49334E7A453D"), new IUnityAdsListener() {
-                        @Override
-                        public void onHide() {
-                            onInterstitialDismissed(mopubInterstitial);
-                        }
-
-                        @Override
-                        public void onShow() {
-                            onInterstitialShown(mopubInterstitial);
-                        }
-
-                        @Override
-                        public void onVideoStarted() {
-
-                        }
-
-                        @Override
-                        public void onVideoCompleted(String s, boolean b) {
-
-                        }
-
-                        @Override
-                        public void onFetchCompleted() {
-                            onInterstitialLoaded(mopubInterstitial);
-                        }
-
-                        @Override
-                        public void onFetchFailed() {
-                            onInterstitialFailed(mopubInterstitial, MoPubErrorCode.NETWORK_NO_FILL);
-                        }
-                    });
-                    UnityAds.canShow();
+                    UnityAds.setDebugMode(Helper.DEBUG); //todo dont forget this unity id 72771 explo
+                    Helper.wtf("Initing Unity ads");
+                    UnityAds.initialize(activity, Helper.convertString("4E7A49334E7A453D"), null);
                 }
             }
         }, 4000);
