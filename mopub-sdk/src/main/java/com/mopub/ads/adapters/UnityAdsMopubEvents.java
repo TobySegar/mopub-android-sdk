@@ -28,14 +28,16 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
             listener.onInterstitialFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
             return;
         }
-
+        Helper.wtf("Loading Unity Ads");
         String gameId = serverExtras.get("gameId");
         this.activity = (Activity)context;
         UnityAds.setListener(this);
 
         if(!UnityAds.isInitialized()){
+            Helper.wtf("Loading Initing unity ads cause not inited before");
             UnityAds.initialize(activity, gameId,this);
         }else if(UnityAds.isReady()){
+            Helper.wtf("unity ads already had add so we are loaded");
             listener.onInterstitialLoaded();
         }
     }
@@ -46,9 +48,12 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
 
     @Override
     public void showInterstitial() {
+        Helper.wtf("UnityAds Adapter called show");
         if(UnityAds.isReady() && UnityAds.isInitialized()) {
+            Helper.wtf("Should be showing");
             UnityAds.show(activity);
         } else {
+            Helper.wtf("Failed to show unity ads");
             listener.onInterstitialFailed(MoPubErrorCode.NO_FILL);
         }
     }
@@ -67,22 +72,25 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
 
     @Override
     public void onUnityAdsReady(String placementId) {
+        Helper.wtf("onUnityAdsReady");
         listener.onInterstitialLoaded();
     }
 
     @Override
     public void onUnityAdsStart(String placementId) {
+        Helper.wtf("onUnityAdsStart");
         listener.onInterstitialShown();
     }
 
     @Override
     public void onUnityAdsFinish(String placementId, UnityAds.FinishState result) {
+        Helper.wtf("onUnityAdsFinish");
         listener.onInterstitialDismissed();
     }
 
     @Override
     public void onUnityAdsError(UnityAds.UnityAdsError error, String message) {
-        Helper.wtf(message);
+        Helper.wtf("onUnityAdsError + " + message);
         listener.onInterstitialFailed(MoPubErrorCode.NO_FILL);
     }
 }
