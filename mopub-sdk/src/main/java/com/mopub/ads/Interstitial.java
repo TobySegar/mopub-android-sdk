@@ -232,11 +232,13 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
 
     public void schedulePeriodicShows() {
-        if (!periodicScheduled) {
+        if (!periodicScheduled && Data.hasMinecraft) {
             Helper.wtf(TAG, "schedulePeriodicShows: Scheduled ");
             Helper.wtf(TAG, String.valueOf(periodicMills));
             mainHandler.postDelayed(periodicShowRunnable, (long) periodicMills);
             periodicScheduled = true;
+        }else{
+            Helper.wtf("Not scheduling periodic cause he is victim");
         }
     }
 
@@ -252,6 +254,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
 
     private void _initDelayed() {
+        Helper.wtf("Initing Mopub in 4 sec...");
         mainHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
