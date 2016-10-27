@@ -91,11 +91,11 @@ public class Ads {
                 break;
             case GamePlayStart:
                 interstitial.lock.gameUnlock();
-                interstitial.showFastDelayed(2600);
+                interstitial.showFastDelayed(2000);
                 interstitial.schedulePeriodicShows();
                 break;
             case LeaveLevel:
-                interstitial.showDelayed(2100, new Runnable() {
+                interstitial.showDelayed(2000, new Runnable() {
                     @Override
                     public void run() {
                         interstitial.lock.gameLock();
