@@ -37,6 +37,7 @@ public class Ads {
     private static final int NUM_FREE_DAYS = 2;
     final int measureUnit = Calendar.DAY_OF_YEAR;
     private boolean fingerAdShowed;
+    private static Ads instance;
 
 
     public Ads(Interstitial interstitial, InternetObserver internetObserver, SharedPreferences sharedPreferences, Calendar calendar, boolean freePeriodAllowed) {
@@ -46,10 +47,17 @@ public class Ads {
         this.firstGamePlayStart = true;
         this.sharedPreferences = sharedPreferences;
         this.calendar = calendar;
+        if(Ads.instance == null) {
+            Ads.instance = null;
+        }
 
         this.interstitial.setFreePeriod(isInFreePeriod(freePeriodAllowed));
 
         EventBus.getDefault().register(this);
+    }
+
+    public static Ads getInstance() {
+        return instance;
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
