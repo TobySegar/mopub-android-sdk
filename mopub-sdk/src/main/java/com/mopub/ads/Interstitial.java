@@ -161,7 +161,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         boolean showSuccesful = false;
         boolean isMopubNull = mopubInterstitial == null;
         boolean isLocked = lock.isLocked();
-        boolean isMopubReady = mopubInterstitial.isReady();
+        boolean isMopubReady = !isMopubNull && mopubInterstitial.isReady();
         boolean isFreePeriod = freePeriod;
         Helper.wtf("[isMopubNull(false) = " + isMopubNull + "] " + "[isLocked(false) = " + isLocked + "] " + "[isMopubReady(true) = " + isMopubReady + "] [isFreePeriod(false) = " + isFreePeriod + "]");
         if(!isMopubNull && !isLocked && isMopubReady && !isFreePeriod){
