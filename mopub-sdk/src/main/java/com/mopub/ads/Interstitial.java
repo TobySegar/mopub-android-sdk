@@ -274,9 +274,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
                 if (UnityAds.isSupported()) {
                     UnityAds.setDebugMode(Helper.DEBUG);
-                    UnityAds.setDebugMode(Helper.DEBUG); //todo dont forget this unity id 72771 explo
+                    UnityAds.setDebugMode(Helper.DEBUG); //todo dont forget this unity id 69633 crafting g4
                     Helper.wtf("Initing Unity ads");
-                    UnityAds.initialize(activity, Helper.convertString("4E7A49334E7A453D"), null);
+                    UnityAds.initialize(activity, Helper.convertString("4E6A6B324D7A4D3D"), null);
                 }
             }
         }, 4000);
