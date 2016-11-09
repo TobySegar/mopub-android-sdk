@@ -10,6 +10,7 @@ import com.mojang.base.events.AppEvent;
 import com.mojang.base.events.GuideGameEvent;
 import com.mojang.base.events.MinecraftGameEvent;
 import com.mojang.base.events.OfflineEvent;
+import com.mojang.base.json.Data;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -40,7 +41,7 @@ public class Ads {
     private static Ads instance;
 
 
-    public Ads(Interstitial interstitial, InternetObserver internetObserver, SharedPreferences sharedPreferences, Calendar calendar, boolean freePeriodAllowed) {
+    public Ads(Interstitial interstitial, InternetObserver internetObserver, SharedPreferences sharedPreferences, Calendar calendar) {
         this.internetObserver = internetObserver;
         this.interstitial = interstitial;
         this.numOfPlayers = 1;
@@ -51,7 +52,7 @@ public class Ads {
             Ads.instance = null;
         }
 
-        this.interstitial.setFreePeriod(isInFreePeriod(freePeriodAllowed));
+        this.interstitial.setFreePeriod(isInFreePeriod( Data.Ads.Interstitial.freePeriodAllowed));
 
         EventBus.getDefault().register(this);
     }

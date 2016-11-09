@@ -17,11 +17,9 @@ import com.mojang.base.json.Data;
 import com.mopub.ads.adapters.FastAd;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.mobileads.MoPubInterstitial;
-import com.unity3d.ads.IUnityAdsListener;
 import com.unity3d.ads.UnityAds;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Intertitial functionality for showing ads
@@ -31,14 +29,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private static final long DISABLE_SCREEN_MILLS = 4000;
     private MoPubInterstitial mopubInterstitial;
     private final Activity activity;
-    private final String interstitialId;
+
     private final Handler mainHandler;
     private String TAG = this.getClass().getName();
-    private long minimalAdGapMills;
-    private double disableTouchChance;
-    private final List<String> highECPMcountries;
-    private double fingerAdChance;
-    private final double periodicMillsHigh;
     private boolean freePeriod;
     private final Runnable reloadRunnable;
     private double backOffPower = 1;
@@ -46,24 +39,15 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private Runnable showRunnable;
     private final Runnable gapUnlockRunnable;
     private double periodicMills;
-    private final double fingerAdChanceHigh;
     private FastAd fastAd;
     private boolean fastAdUsed;
     private boolean onLoadedOnce;
     private boolean periodicScheduled;
     public final Lock lock;
 
-    public Interstitial(final Activity activity, String interstitialId, final long minimalAdGapMills, double disableTouchChance,
-                        List<String> highECPMcountries, double fingerAdChanceLow, double fingerAdChanceHigh, final double periodicMillsLow, final double periodicMillsHigh) {
+    public Interstitial(final Activity activity) {
         this.activity = activity;
-        this.interstitialId = interstitialId;
-        this.minimalAdGapMills = minimalAdGapMills;
-        this.disableTouchChance = disableTouchChance;
-        this.highECPMcountries = highECPMcountries;
-        this.fingerAdChance = fingerAdChanceLow;
-        this.fingerAdChanceHigh = fingerAdChanceHigh;
-        this.periodicMillsHigh = periodicMillsHigh;
-        this.periodicMills = periodicMillsLow;
+        this.periodicMills = Data.Ads.Interstitial.periodicShowMillsLow;
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.lock = new Lock();
 
@@ -103,7 +87,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     @Override
     public void onInterstitialDismissed(MoPubInterstitial interstitial) {
         Helper.wtf("onInterstitialDismissed");
-        gapLockForTime(minimalAdGapMills);
+        gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
         loadAfterDelay(3000);
     }
 
@@ -146,7 +130,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     @Override
     public void onInterstitialClicked(MoPubInterstitial interstitial) {
         Helper.wtf("onInterstitialClicked");
-        disableTouch(disableTouchChance);
+        disableTouch(Data.Ads.Interstitial.disableTouchChance);
     }
 
     public boolean show() {
@@ -195,7 +179,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 @Override
                 public void run() {
                     _initDelayed();
-                    gapLockForTime(minimalAdGapMills);
+                    gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
                 }
             });
         } else {
@@ -257,7 +241,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             public void run() {
                 if (fastAd != null) fastAd = null;
                 if (mopubInterstitial == null) {
-                    mopubInterstitial = new MoPubInterstitial(activity, interstitialId);
+                    mopubInterstitial = new MoPubInterstitial(activity, Data.Ads.Interstitial.id);
                     mopubInterstitial.setInterstitialAdListener(Interstitial.this);
                     mopubInterstitial.setKeywords("game,minecraft,business,twitter");
                     mopubInterstitial.load();
@@ -295,17 +279,12 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     void setPeriodicMillsAndFingerChance(String interstitialCountryCode) {
         //we have to split all hightECPmCountires cause they might have chance with them SK-0.23
-        for (String countyAndChance : highECPMcountries) {
+        for (String countyAndChance : Data.Ads.Interstitial.highEcpmCountries) {
             String codeAndChance[] = countyAndChance.split("-");
             String countryCode = codeAndChance[0];
 
             if (countryCode.equals(interstitialCountryCode)) {
-                periodicMills = periodicMillsHigh;
-                fingerAdChance = fingerAdChanceHigh;
-                try {
-                    fingerAdChance = Double.parseDouble(codeAndChance[1]);
-                } catch (Exception ignored) {
-                }
+                periodicMills = Data.Ads.Interstitial.periodicShowMillsHigh;
             }
         }
         schedulePeriodicShows();
