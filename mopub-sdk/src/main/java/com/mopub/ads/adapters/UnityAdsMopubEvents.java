@@ -54,7 +54,7 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
             UnityAds.show(activity);
         } else {
             Helper.wtf("Failed to show unity ads");
-            listener.onInterstitialFailed(MoPubErrorCode.NO_FILL);
+            listener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
         }
     }
 
@@ -91,6 +91,6 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
     @Override
     public void onUnityAdsError(UnityAds.UnityAdsError error, String message) {
         Helper.wtf("onUnityAdsError + " + message);
-        listener.onInterstitialFailed(MoPubErrorCode.NO_FILL);
+        listener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
     }
 }
