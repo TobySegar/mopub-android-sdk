@@ -4,7 +4,6 @@ import android.content.Context;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -14,7 +13,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.mojang.base.Analytics;
 import com.mopub.ads.adapters.ApplovinInterstitial;
 import com.mopub.ads.adapters.GooglePlayServicesInterstitial;
 import com.mopub.common.AdReport;
@@ -34,7 +32,6 @@ import com.mopub.network.AdResponse;
 import com.mopub.network.MoPubNetworkError;
 import com.mopub.network.Networking;
 import com.mopub.network.TrackingRequest;
-import com.mopub.volley.NetworkError;
 import com.mopub.volley.NetworkResponse;
 import com.mopub.volley.RequestQueue;
 import com.mopub.volley.VolleyError;
@@ -89,6 +86,7 @@ public class AdViewController {
     private int mTimeoutMilliseconds;
     @Nullable private AdRequest mActiveRequest;
     @Nullable private Integer mRefreshTimeMillis;
+    public Boolean wasFailoverApplovin;
 
     public static void setShouldHonorServerDimensions(View view) {
         sViewShouldHonorServerDimensions.put(view, true);
@@ -193,18 +191,24 @@ public class AdViewController {
         Map<String,String> serverExtras = new HashMap<>();
         serverExtras.put(GooglePlayServicesInterstitial.AD_UNIT_ID_KEY, Data.Ads.Interstitial.failoverId);
 
+        //onAdLoadSuccess  wasFailoverApplovin = null
+        boolean forceApplovin = wasFailoverApplovin != null && !wasFailoverApplovin;
+
         AdResponse failoverResponse = new AdResponse.Builder()
                 .setCustomEventClassName(GooglePlayServicesInterstitial.class.getName())
                 .setServerExtras(serverExtras)
                 .setAdType(AdType.CUSTOM)
                 .build();
-        if(Data.Ads.Interstitial.failoverApplovin){
+            wasFailoverApplovin = false;
+        if(Data.Ads.Interstitial.failoverApplovin || forceApplovin){
             failoverResponse = new AdResponse.Builder()
                     .setCustomEventClassName(ApplovinInterstitial.class.getName())
                     .setServerExtras(serverExtras)
                     .setAdType(AdType.CUSTOM)
                     .build();
+            wasFailoverApplovin = true;
         }
+
         return failoverResponse;
     }
 

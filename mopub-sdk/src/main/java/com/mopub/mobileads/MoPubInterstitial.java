@@ -313,6 +313,9 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
 
         if (mInterstitialAdListener != null) {
             mInterstitialAdListener.onInterstitialLoaded(this);
+            if (getMoPubInterstitialView().mAdViewController != null) {
+                getMoPubInterstitialView().mAdViewController.wasFailoverApplovin = null;
+            }
         }
     }
 

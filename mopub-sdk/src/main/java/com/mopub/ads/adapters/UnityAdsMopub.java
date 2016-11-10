@@ -50,7 +50,7 @@ public class UnityAdsMopub extends CustomEventInterstitial implements IUnityAdsL
         if(UnityAds.isReady() && UnityAds.isInitialized()) {
             UnityAds.show(activity);
         } else {
-            listener.onInterstitialFailed(MoPubErrorCode.NO_FILL);
+            listener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
         }
     }
 
@@ -84,6 +84,6 @@ public class UnityAdsMopub extends CustomEventInterstitial implements IUnityAdsL
     @Override
     public void onUnityAdsError(UnityAds.UnityAdsError error, String message) {
         Helper.wtf(message);
-        listener.onInterstitialFailed(MoPubErrorCode.NO_FILL);
+        listener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
     }
 }
