@@ -47,7 +47,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     public Interstitial(final Activity activity) {
         this.activity = activity;
-        this.periodicMills = Data.Ads.Interstitial.periodicShowMillsLow;
+        this.periodicMills = Helper.FasterAds() ? 25000 : Data.Ads.Interstitial.periodicShowMillsLow;
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.lock = new Lock();
 
