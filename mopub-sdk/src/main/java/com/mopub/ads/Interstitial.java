@@ -90,7 +90,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     private void getNativeBackPressed() {
         try {
-            nativeBackPressedMethod = minecraftActivity.getClass().getMethod("callNativeBackPressed");
+                nativeBackPressedMethod = minecraftActivity.getClass().getMethod("callNativeBackPressed");
             Helper.wtf("got nativeBackPressed");
         } catch (NoSuchMethodException e) {
             Helper.wtf("----NATIVE BACK PRESS MISSING----");
@@ -103,8 +103,10 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 @Override
                 public void run() {
                     try {
-                        Helper.wtf("called -- NativeBackPressed");
-                        nativeBackPressedMethod.invoke(minecraftActivity);
+                        if(nativeBackPressedMethod != null) {
+                            Helper.wtf("called -- NativeBackPressed");
+                            nativeBackPressedMethod.invoke(minecraftActivity);
+                        }
                     } catch (InvocationTargetException e) {e.printStackTrace();} catch (IllegalAccessException e) {e.printStackTrace();}
                     pauseScreenShowed = false;
                 }
