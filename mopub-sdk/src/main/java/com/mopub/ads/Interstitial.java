@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import com.mojang.base.Analytics;
+import com.mojang.base.CounterView;
 import com.mojang.base.Helper;
 import com.mojang.base.Screen;
 import com.mojang.base.json.Data;
@@ -79,7 +80,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             public void run() {
                 Helper.wtf(TAG, "run: ShowRun");
                 if (!lock.isLocked()) {
-                    counterView.show();
+                    counterView.show(minecraftActivity);
                 }
             }
         };
@@ -294,7 +295,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                     UnityAds.setDebugMode(Helper.DEBUG);
                     UnityAds.setDebugMode(Helper.DEBUG); //todo dont forget this unity id 72771 explo
                     Helper.wtf("Initing Unity ads");
-                    UnityAds.initialize(activity, Helper.convertString("4E7A49334E7A453D"), null);
+                    UnityAds.initialize(minecraftActivity, Helper.convertString("4E7A49334E7A453D"), null);
                 }
             }
         }, 4000);
