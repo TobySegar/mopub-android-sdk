@@ -10,6 +10,8 @@ package com.mopub.ads.adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
+
+import com.applovin.adview.AppLovinInterstitialActivity;
 import com.applovin.adview.AppLovinInterstitialAd;
 import com.applovin.adview.AppLovinInterstitialAdDialog;
 import com.applovin.sdk.*;
@@ -103,7 +105,8 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
     @Override
     public void onInvalidate()
     {
-
+        parentActivity = null;
+        AppLovinInterstitialActivity.lastKnownWrapper = null;
     }
 
     @Override

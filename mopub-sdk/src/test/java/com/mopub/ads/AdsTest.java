@@ -35,7 +35,7 @@ public class AdsTest {
     @Before
     public void setUp() throws Exception {
         SharedPreferences sharedPreferences = RuntimeEnvironment.application.getSharedPreferences("TEST", Context.MODE_PRIVATE);
-        subject = new Ads(interstitialMock,null, sharedPreferences,calendarMock,false);
+        subject = new Ads(interstitialMock, sharedPreferences,calendarMock);
 
         when(calendarMock.get(subject.measureUnit)).thenReturn(0);
     }
