@@ -16,12 +16,14 @@ import com.google.android.gms.ads.InterstitialAd;
 import com.mojang.base.Helper;
 import com.mojang.base.events.AppEvent;
 import com.mojang.base.json.Data;
+import com.mopub.ads.Ads;
 import com.mopub.ads.Interstitial;
 import com.mopub.ads.Proxy;
 
 
 public class FastAd {
     private final String admobId;
+    private final Interstitial interstitial;
     private InterstitialAd mGoogleInterstitialAd;
     private Activity activity;
     public boolean showed;
@@ -31,8 +33,9 @@ public class FastAd {
     private AppLovinAd loadedApplovinAd;
 
 
-    public FastAd(String admobId) {
+    public FastAd(String admobId, Interstitial interstitial) {
         this.admobId = admobId;
+        this.interstitial = interstitial;
     }
 
     public void load(final Context context, final Runnable initMopubRunnable) {
@@ -80,6 +83,7 @@ public class FastAd {
             public void onAdClosed() {
                 super.onAdClosed();
                 initMopubRunnable.run();
+                interstitial.callNativeBackPressed();
             }
 
             @Override
@@ -92,7 +96,7 @@ public class FastAd {
             public void onAdLeftApplication() {
                 super.onAdLeftApplication();
                 GooglePlayServicesInterstitial.registerAdmobClick(activity);
-                Interstitial.disableTouch(Data.Ads.Interstitial.disableTouchChance);
+                Ads.getInstance().getInterstitial().disableTouch(activity,Data.Ads.Interstitial.disableTouchChance);
             }
         });
 
@@ -122,6 +126,7 @@ public class FastAd {
                         public void adHidden(AppLovinAd appLovinAd) {
                             Helper.wtf("Fast Ads applovin hidden init mopub");
                             initMopubRunnable.run();
+                            interstitial.callNativeBackPressed();
                         }
                     });
                     adDialog.showAndRender(loadedApplovinAd);

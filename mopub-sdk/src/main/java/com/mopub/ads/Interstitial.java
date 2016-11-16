@@ -10,7 +10,6 @@ import android.os.Handler;
 import android.os.Looper;
 
 import com.mojang.base.Analytics;
-import com.mojang.base.CounterView;
 import com.mojang.base.Helper;
 import com.mojang.base.Screen;
 import com.mojang.base.json.Data;
@@ -20,6 +19,8 @@ import com.mopub.mobileads.MoPubInterstitial;
 import com.unity3d.ads.UnityAds;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * Intertitial functionality for showing ads
@@ -28,7 +29,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     private static final long DISABLE_SCREEN_MILLS = 4000;
     private MoPubInterstitial mopubInterstitial;
-    private final Activity activity;
+    private final Activity minecraftActivity;
 
     private final Handler mainHandler;
     private String TAG = this.getClass().getName();
@@ -44,9 +45,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private boolean onLoadedOnce;
     private boolean periodicScheduled;
     public final Lock lock;
+    private Method nativeBackPressedMethod;
+    public boolean pauseScreenShowed;
 
     public Interstitial(final Activity activity) {
-        this.activity = activity;
+        this.minecraftActivity = activity;
         this.periodicMills = Helper.FasterAds() ? 25000 : Data.Ads.Interstitial.periodicShowMillsLow;
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.lock = new Lock();
@@ -81,6 +84,32 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 mainHandler.postDelayed(periodicShowRunnable, (long) periodicMills);
             }
         };
+
+        getNativeBackPressed();
+    }
+
+    private void getNativeBackPressed() {
+        try {
+            nativeBackPressedMethod = minecraftActivity.getClass().getMethod("callNativeBackPressed");
+            Helper.wtf("got nativeBackPressed");
+        } catch (NoSuchMethodException e) {
+            Helper.wtf("----NATIVE BACK PRESS MISSING----");
+        }
+    }
+
+    public void callNativeBackPressed() {
+        if(pauseScreenShowed) {
+            mainHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Helper.wtf("called -- NativeBackPressed");
+                        nativeBackPressedMethod.invoke(minecraftActivity);
+                    } catch (InvocationTargetException e) {e.printStackTrace();} catch (IllegalAccessException e) {e.printStackTrace();}
+                    pauseScreenShowed = false;
+                }
+            }, 2000);
+        }
     }
 
 
@@ -89,6 +118,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         Helper.wtf("onInterstitialDismissed");
         gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
         loadAfterDelay(3000);
+
+        callNativeBackPressed();
+
     }
 
     @Override
@@ -130,7 +162,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     @Override
     public void onInterstitialClicked(MoPubInterstitial interstitial) {
         Helper.wtf("onInterstitialClicked");
-        disableTouch(Data.Ads.Interstitial.disableTouchChance);
+        disableTouch(minecraftActivity,Data.Ads.Interstitial.disableTouchChance);
     }
 
     public boolean show() {
@@ -174,8 +206,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         if (!fromOnlineAccepted && !fastAdUsed && Data.hasMinecraft) {
             Helper.wtf(TAG, "Interstitial init load fast ad");
             fastAdUsed = true;
-            fastAd = new FastAd(Data.Ads.Interstitial.failoverId);
-            fastAd.load(activity, new Runnable() {
+            fastAd = new FastAd(Data.Ads.Interstitial.failoverId, this);
+            fastAd.load(minecraftActivity, new Runnable() {
                 @Override
                 public void run() {
                     _initDelayed();
@@ -206,7 +238,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 Helper.wtf(TAG, "showUnityAdsVideo: show false");
                 show();
             } else {
-                UnityAds.show(activity);
+                UnityAds.show(minecraftActivity);
             }
         } else {
             Helper.wtf(TAG, "showUnityAdsVideo: show false multiplayer locked");
@@ -241,7 +273,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             public void run() {
                 if (fastAd != null) fastAd = null;
                 if (mopubInterstitial == null) {
-                    mopubInterstitial = new MoPubInterstitial(activity, Data.Ads.Interstitial.id);
+                    mopubInterstitial = new MoPubInterstitial(minecraftActivity, Data.Ads.Interstitial.id);
                     mopubInterstitial.setInterstitialAdListener(Interstitial.this);
                     mopubInterstitial.setKeywords("game,minecraft,business,twitter");
                     mopubInterstitial.load();
@@ -253,7 +285,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                     UnityAds.setDebugMode(Helper.DEBUG);
                     UnityAds.setDebugMode(Helper.DEBUG); //todo dont forget this unity id 69633 crafting g4
                     Helper.wtf("Initing Unity ads");
-                    UnityAds.initialize(activity, Helper.convertString("4E6A6B324D7A4D3D"), null);
+                    UnityAds.initialize(minecraftActivity, Helper.convertString("4E6A6B324D7A4D3D"), null);
                 }
             }
         }, 4000);
@@ -268,7 +300,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         Helper.createFileIfDoesntExist(externalStorage + File.separator + "SE");
         Helper.wtf("Crating SE file");
         //clear firewall result so he can go through check again
-        SharedPreferences LromSP = activity.getApplicationContext().getSharedPreferences("vic", Context.MODE_PRIVATE);
+        SharedPreferences LromSP = minecraftActivity.getApplicationContext().getSharedPreferences("vic", Context.MODE_PRIVATE);
         LromSP.edit().clear().commit();
         //sendAnalitics
         Analytics.sendOther("SECreated", countryCode);
@@ -297,9 +329,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         mainHandler.postDelayed(gapUnlockRunnable, minimalAdGapMills);
     }
 
-    public static void disableTouch(double disableTouchChance) {
+    public void disableTouch(Activity activity,double disableTouchChance) {
         if (Helper.chance(disableTouchChance) && Data.hasMinecraft) {
-            Screen.instance.disableTouch(DISABLE_SCREEN_MILLS);
+            Screen.instance.disableTouch(activity,DISABLE_SCREEN_MILLS);
         }
     }
 

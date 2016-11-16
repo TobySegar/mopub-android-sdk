@@ -22,15 +22,11 @@ import java.util.Calendar;
  * Controlls how ads are showed
  */
 public class Ads {
-
     private final String TAG = this.getClass().getName();
-    private final InternetObserver internetObserver;
+
     private Interstitial interstitial;
     private int numOfPlayers;
-    private boolean firstGamePlayStart;
     private int timesBlockChanged;
-    private long[] blockPlaceTimes = new long[5];
-    boolean isBuilding;
     private SharedPreferences sharedPreferences;
     private Calendar calendar;
     private static final String FIRST_RUN_DAY_KEY = "FirstRunDay";
@@ -41,15 +37,13 @@ public class Ads {
     private static Ads instance;
 
 
-    public Ads(Interstitial interstitial, InternetObserver internetObserver, SharedPreferences sharedPreferences, Calendar calendar) {
-        this.internetObserver = internetObserver;
+    public Ads(Interstitial interstitial, SharedPreferences sharedPreferences, Calendar calendar) {
         this.interstitial = interstitial;
         this.numOfPlayers = 1;
-        this.firstGamePlayStart = true;
         this.sharedPreferences = sharedPreferences;
         this.calendar = calendar;
         if(Ads.instance == null) {
-            Ads.instance = null;
+            Ads.instance = this;
         }
 
         this.interstitial.setFreePeriod(isInFreePeriod( Data.Ads.Interstitial.freePeriodAllowed));
@@ -59,6 +53,10 @@ public class Ads {
 
     public static Ads getInstance() {
         return instance;
+    }
+
+    public Interstitial getInterstitial(){
+        return interstitial;
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -107,8 +105,13 @@ public class Ads {
             case StartSleepInBed:
                 interstitial.showUnityAdsVideo();
                 break;
+            case PauseScreenPushed:
+                Helper.wtf("Setting pausescreen SHowed to true");
+                interstitial.pauseScreenShowed = true;
+                break;
         }
     }
+
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void guideEvent(GuideGameEvent gameEvent) {
