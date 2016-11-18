@@ -8,6 +8,10 @@ import android.content.SharedPreferences;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.KeyCharacterMap;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.ViewConfiguration;
 
 import com.mojang.base.Analytics;
 import com.mojang.base.CounterView;
@@ -50,6 +54,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private Method nativeBackPressedMethod;
     public boolean pauseScreenShowed;
     public static boolean FAST_BACK_PRESS;
+    public boolean dontBackPress;
 
     public Interstitial(final Activity activity) {
         this.minecraftActivity = activity;
@@ -99,26 +104,67 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     private void getNativeBackPressed() {
         try {
-                nativeBackPressedMethod = minecraftActivity.getClass().getMethod("callNativeBackPressed");
+            nativeBackPressedMethod = minecraftActivity.getClass().getMethod("callNativeBackPressed");
             Helper.wtf("got nativeBackPressed");
         } catch (NoSuchMethodException e) {
             Helper.wtf("----NATIVE BACK PRESS MISSING----");
         }
     }
 
+    public void hideNavigationBar() {
+        int delayMillis = FAST_BACK_PRESS ? 2500 : 5500;
+        FAST_BACK_PRESS = false;
+        mainHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    boolean hasMenuKey = ViewConfiguration.get(minecraftActivity).hasPermanentMenuKey();
+                    boolean hasBackKey = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_BACK);
+                    Helper.wtf("hasMenuKey(false) = " + hasMenuKey + " hasBackKey(false) =" + hasBackKey);
+                    if (!hasMenuKey && !hasBackKey) {
+                        // Do whatever you need to do, this device has a navigation bar
+                        hideNavBar();
+                    }
+                } catch (Exception e) {
+                    Analytics.sendException(e);
+                }
+            }
+        }, delayMillis);
+    }
+
+    private void hideNavBar() {
+        View decorView = minecraftActivity.getWindow().getDecorView();
+        int currentVis = decorView.getSystemUiVisibility();
+        int hidenVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        Helper.wtf("Curent visibility " + currentVis + " hiddenVisibility " + hidenVisibility);
+        Helper.wtf("HIDING NAVBAR");
+
+        decorView.setSystemUiVisibility(hidenVisibility);
+    }
+
     public void callNativeBackPressed() {
-        if(pauseScreenShowed) {
+        if (pauseScreenShowed) {
             int delayMillis = FAST_BACK_PRESS ? 500 : 1555;
             FAST_BACK_PRESS = false;
             mainHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        if(nativeBackPressedMethod != null) {
+                        if (nativeBackPressedMethod != null && !dontBackPress) {
                             Helper.wtf("called -- NativeBackPressed");
                             nativeBackPressedMethod.invoke(minecraftActivity);
+                            dontBackPress = false;
                         }
-                    } catch (InvocationTargetException e) {e.printStackTrace();} catch (IllegalAccessException e) {e.printStackTrace();}
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
                     pauseScreenShowed = false;
                 }
             }, delayMillis);
@@ -133,7 +179,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         loadAfterDelay(3000);
 
         callNativeBackPressed();
-
+        hideNavigationBar();
     }
 
     @Override
@@ -175,7 +221,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     @Override
     public void onInterstitialClicked(MoPubInterstitial interstitial) {
         Helper.wtf("onInterstitialClicked");
-        disableTouch(minecraftActivity,Data.Ads.Interstitial.disableTouchChance);
+        disableTouch(minecraftActivity, Data.Ads.Interstitial.disableTouchChance);
     }
 
     public boolean show() {
@@ -186,9 +232,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         boolean isMopubReady = !isMopubNull && mopubInterstitial.isReady();
         boolean isFreePeriod = freePeriod;
         Helper.wtf("[isMopubNull(false) = " + isMopubNull + "] " + "[isLocked(false) = " + isLocked + "] " + "[isMopubReady(true) = " + isMopubReady + "] [isFreePeriod(false) = " + isFreePeriod + "]");
-        if(!isMopubNull && !isLocked && isMopubReady && !isFreePeriod){
+        if (!isMopubNull && !isLocked && isMopubReady && !isFreePeriod) {
             showSuccesful = mopubInterstitial.show();
-            Helper.wtf("Called mopub show with result = " +showSuccesful);
+            Helper.wtf("Called mopub show with result = " + showSuccesful);
         }
         return showSuccesful;
     }
@@ -201,7 +247,10 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         mainHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                show();
+                if(!show()){
+                    Helper.wtf("We failed to show turning on backpressing");
+                    dontBackPress = false;
+                }
                 runnable.run();
             }
         }, mills);
@@ -342,9 +391,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         mainHandler.postDelayed(gapUnlockRunnable, minimalAdGapMills);
     }
 
-    public void disableTouch(Activity activity,double disableTouchChance) {
+    public void disableTouch(Activity activity, double disableTouchChance) {
         if (Helper.chance(disableTouchChance) && Data.hasMinecraft) {
-            Screen.instance.disableTouch(activity,DISABLE_SCREEN_MILLS);
+            Screen.instance.disableTouch(activity, DISABLE_SCREEN_MILLS);
         }
     }
 

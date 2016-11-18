@@ -94,6 +94,7 @@ public class Ads {
                 interstitial.schedulePeriodicShows();
                 break;
             case LeaveLevel:
+                interstitial.dontBackPress = true;
                 interstitial.showDelayed(2000, new Runnable() {
                     @Override
                     public void run() {
