@@ -49,6 +49,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private final CounterView counterView;
     private Method nativeBackPressedMethod;
     public boolean pauseScreenShowed;
+    public static boolean FAST_BACK_PRESS;
 
     public Interstitial(final Activity activity) {
         this.minecraftActivity = activity;
@@ -107,6 +108,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     public void callNativeBackPressed() {
         if(pauseScreenShowed) {
+            int delayMillis = FAST_BACK_PRESS ? 500 : 1555;
+            FAST_BACK_PRESS = false;
             mainHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -118,7 +121,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                     } catch (InvocationTargetException e) {e.printStackTrace();} catch (IllegalAccessException e) {e.printStackTrace();}
                     pauseScreenShowed = false;
                 }
-            }, 2000);
+            }, delayMillis);
         }
     }
 
