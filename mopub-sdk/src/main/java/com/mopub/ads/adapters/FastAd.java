@@ -133,6 +133,7 @@ public class FastAd {
                     return true;
                 }
             } else if (mGoogleInterstitialAd.isLoaded()) {
+                Interstitial.FAST_BACK_PRESS = true;
                 new Proxy().startProxyActivity(activity, mGoogleInterstitialAd);
                 return true;
             }
