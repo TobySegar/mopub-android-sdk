@@ -10,6 +10,7 @@ import com.google.android.gms.ads.InterstitialAd;
 import com.mojang.base.Analytics;
 import com.mojang.base.Helper;
 import com.mojang.base.json.Data;
+import com.mopub.ads.Interstitial;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
 
@@ -113,6 +114,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
     @Override
     public void showInterstitial() {
         if (mGoogleInterstitialAd.isLoaded()) {
+            Interstitial.FAST_BACK_PRESS = true;
             mGoogleInterstitialAd.show();
         } else {
             Helper.wtf("MoPub", "Tried to show a Google Play Services interstitial ad before it finished loading. Please try again.");
