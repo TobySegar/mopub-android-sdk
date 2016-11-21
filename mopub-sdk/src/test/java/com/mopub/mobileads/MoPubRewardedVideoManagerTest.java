@@ -91,6 +91,22 @@ public class
 
         // Finish the request
         requestListener.onErrorResponse(new VolleyError("end test"));
+        ShadowLooper.unPauseMainLooper();
+    }
+
+    @Test
+    public void loadVideo_withCustomerIdInRequestParameters_shouldSetCustomerId() {
+        // Robolectric executes its handlers immediately, so if we want the async behavior we see
+        // in an actual app we have to pause the main looper until we're done successfully loading the ad.
+        ShadowLooper.pauseMainLooper();
+
+        MoPubRewardedVideoManager.loadVideo("testAdUnit", new MoPubRewardedVideoManager.RequestParameters("keywords", null, "testCustomerId"));
+
+        assertThat(MoPubRewardedVideoManager.getRewardedVideoData().getCustomerId()).isEqualTo("testCustomerId");
+
+        // Finish the request
+        requestListener.onErrorResponse(new VolleyError("end test"));
+        ShadowLooper.unPauseMainLooper();
     }
 
     @Test
@@ -259,6 +275,8 @@ public class
 
         MoPubRewardedVideoManager.loadVideo("testAdUnit", null);
         requestListener.onSuccess(testResponse);
+
+        ShadowLooper.unPauseMainLooper();
 
         MoPubReward moPubReward =
                 MoPubRewardedVideoManager.getRewardedVideoData().getMoPubReward("testAdUnit");

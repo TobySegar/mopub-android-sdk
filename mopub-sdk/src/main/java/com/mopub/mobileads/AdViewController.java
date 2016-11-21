@@ -4,7 +4,6 @@ import android.content.Context;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -14,7 +13,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.mojang.base.Analytics;
+import com.mopub.ads.adapters.ApplovinInterstitial;
 import com.mopub.ads.adapters.GooglePlayServicesInterstitial;
 import com.mopub.common.AdReport;
 import com.mopub.common.AdType;
@@ -33,7 +32,6 @@ import com.mopub.network.AdResponse;
 import com.mopub.network.MoPubNetworkError;
 import com.mopub.network.Networking;
 import com.mopub.network.TrackingRequest;
-import com.mopub.volley.NetworkError;
 import com.mopub.volley.NetworkResponse;
 import com.mopub.volley.RequestQueue;
 import com.mopub.volley.VolleyError;
@@ -88,6 +86,7 @@ public class AdViewController {
     private int mTimeoutMilliseconds;
     @Nullable private AdRequest mActiveRequest;
     @Nullable private Integer mRefreshTimeMillis;
+    public Boolean wasFailoverApplovin;
 
     public static void setShouldHonorServerDimensions(View view) {
         sViewShouldHonorServerDimensions.put(view, true);
@@ -131,21 +130,30 @@ public class AdViewController {
 
     @VisibleForTesting
     void onAdLoadSuccess(@NonNull final AdResponse adResponse) {
-        boolean isMopubAdd = adResponse.getCustomEventClassName() != null && adResponse.getCustomEventClassName().equals("com.mopub.mobileads.HtmlInterstitial");
-        if(isMopubAdd && !Data.Ads.Interstitial.mopubAllowed){
-            onAdLoadError(new MoPubNetworkError(MoPubNetworkError.Reason.NO_FILL));
-            return;
-        }
         mBackoffPower = 1;
-        mAdResponse = adResponse;
+        mAdResponse = changeResponseCustomClassPath(adResponse);
+
+
+        String customEventClassName = mAdResponse.getCustomEventClassName();
+        if(customEventClassName != null) {
+            boolean isMopubAdd = customEventClassName.equals("com.mopub.mobileads.HtmlInterstitial") || customEventClassName.equals("com.mopub.mobileads.VastVideoInterstitial") || customEventClassName.equals("com.mopub.mraid.MraidInterstitial");
+            boolean isUnityAds = customEventClassName.contains("UnityAds");
+
+            if((isMopubAdd && !Data.Ads.Interstitial.mopubAllowed)){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return;
+            }
+        }
+
         // Do other ad loading setup. See AdFetcher & AdLoadTask.
         mTimeoutMilliseconds = mAdResponse.getAdTimeoutMillis() == null
                 ? mTimeoutMilliseconds
                 : mAdResponse.getAdTimeoutMillis();
         mRefreshTimeMillis = mAdResponse.getRefreshTimeMillis();
+
         setNotLoading();
 
-        loadCustomEvent(mMoPubView, adResponse.getCustomEventClassName(),
+        loadCustomEvent(mMoPubView, customEventClassName,
                 adResponse.getServerExtras());
 
         scheduleRefreshTimerIfEnabled();
@@ -171,7 +179,6 @@ public class AdViewController {
         if (errorCode == MoPubErrorCode.SERVER_ERROR || errorCode == MoPubErrorCode.NO_FILL) {
             mBackoffPower++;
             onAdLoadSuccess(getFailoverResponse());
-            Analytics.sendMopubError(MoPubErrorCode.SERVER_ERROR.toString());
             return;
         }
 
@@ -184,11 +191,23 @@ public class AdViewController {
         Map<String,String> serverExtras = new HashMap<>();
         serverExtras.put(GooglePlayServicesInterstitial.AD_UNIT_ID_KEY, Data.Ads.Interstitial.failoverId);
 
+        //onAdLoadSuccess  wasFailoverApplovin = null
+        boolean forceApplovin = wasFailoverApplovin != null && !wasFailoverApplovin;
+
         AdResponse failoverResponse = new AdResponse.Builder()
                 .setCustomEventClassName(GooglePlayServicesInterstitial.class.getName())
                 .setServerExtras(serverExtras)
                 .setAdType(AdType.CUSTOM)
                 .build();
+            wasFailoverApplovin = false;
+        if(Data.Ads.Interstitial.failoverApplovin || forceApplovin){
+            failoverResponse = new AdResponse.Builder()
+                    .setCustomEventClassName(ApplovinInterstitial.class.getName())
+                    .setServerExtras(serverExtras)
+                    .setAdType(AdType.CUSTOM)
+                    .build();
+            wasFailoverApplovin = true;
+        }
 
         return failoverResponse;
     }
@@ -205,6 +224,18 @@ public class AdViewController {
         }
 
         moPubView.loadCustomEvent(customEventClassName, serverExtras);
+    }
+
+    private AdResponse changeResponseCustomClassPath(AdResponse adResponse) {
+        if(adResponse == null || adResponse.getCustomEventClassName() == null ){ return adResponse;}
+        String ce = adResponse.getCustomEventClassName();
+        if(ce.contains("VastVideoInterstitial") || ce.contains("MraidInterstitial") || ce.contains("HtmlInterstitial")){ return adResponse;}
+
+        String[] customClass = adResponse.getCustomEventClassName().split("\\.");
+        if(customClass[2].equals("mobileads")){
+            return adResponse.toBuilder().setCustomEventClassName("com.mopub.ads.adapters." + customClass[3]).build();
+        }
+        return adResponse;
     }
 
     @VisibleForTesting
@@ -289,7 +320,10 @@ public class AdViewController {
         loadNonJavascript(mUrl);
     }
 
-    void loadFailUrl(MoPubErrorCode errorCode) {
+    /**
+     * Returns true if continuing to load the failover url, false if the ad actually did not fill.
+     */
+    boolean loadFailUrl(MoPubErrorCode errorCode) {
         mIsLoading = false;
 
         Log.v("MoPub", "MoPubErrorCode: " + (errorCode == null ? "" : errorCode.toString()));
@@ -298,9 +332,11 @@ public class AdViewController {
         if (!TextUtils.isEmpty(failUrl)) {
             MoPubLog.d("Loading failover url: " + failUrl);
             loadNonJavascript(failUrl);
+            return true;
         } else {
             // No other URLs to try, so signal a failure.
             adDidFail(MoPubErrorCode.NO_FILL);
+            return false;
         }
     }
 

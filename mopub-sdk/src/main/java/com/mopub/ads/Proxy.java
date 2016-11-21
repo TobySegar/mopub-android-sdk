@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.firebase.crash.FirebaseCrash;
+import com.mojang.base.Helper;
 import com.mojang.base.events.AppEvent;
 import com.mopub.mobileads.CustomEventInterstitial;
 
@@ -20,22 +21,21 @@ public class Proxy extends Activity {
     private static InterstitialAd mGoogleInterstitialAd;
 
     public void startProxyActivity(Context context, CustomEventInterstitial customEventInterstitial) {
-        FirebaseCrash.log("Proxy start ");
+        Helper.wtf(proxy, "startProxyActivity - mopub");
         Proxy.customEventInterstitial = customEventInterstitial;
         Intent proxyIntent = new Intent(context, Proxy.class);
         context.startActivity(proxyIntent);
     }
 
     public void startProxyActivity(Context context, InterstitialAd mGoogleInterstitialAd) {
-        FirebaseCrash.log("Proxy start ");
+        Helper.wtf(proxy, "startProxyActivity - mGoogleInterstitialAd");
         Proxy.mGoogleInterstitialAd = mGoogleInterstitialAd;
         Intent proxyIntent = new Intent(context, Proxy.class);
         context.startActivity(proxyIntent);
     }
 
     public void Finish() {
-        Log.d(proxy, "Finish");
-        FirebaseCrash.log("Proxy finish ");
+        Helper.wtf(proxy, "Finish");
         EventBus.getDefault().post(new AppEvent(this, AppEvent.on.Stop));
         finish();
     }
@@ -43,8 +43,7 @@ public class Proxy extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(proxy, "create");
-        FirebaseCrash.log("Proxy create ");
+        Helper.wtf(proxy, "create");
 
         if (Proxy.customEventInterstitial != null) {
             Proxy.customEventInterstitial.showInterstitial();
@@ -57,7 +56,7 @@ public class Proxy extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.d(proxy, "destroy");
+        Helper.wtf(proxy, "destroy");
         Proxy.customEventInterstitial = null;
         Proxy.mGoogleInterstitialAd = null;
     }

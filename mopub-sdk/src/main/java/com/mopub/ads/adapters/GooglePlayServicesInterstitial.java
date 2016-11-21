@@ -1,15 +1,20 @@
 package com.mopub.ads.adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.util.Log;
+import android.content.SharedPreferences;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
+import com.mojang.base.Analytics;
 import com.mojang.base.Helper;
+import com.mojang.base.json.Data;
+import com.mopub.ads.Interstitial;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
 
+import java.util.Calendar;
 import java.util.Map;
 
 /*
@@ -24,16 +29,30 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
      */
     public static final String AD_UNIT_ID_KEY = "adUnitID";
     public static final String LOCATION_KEY = "location";
+    public static final String CLICKS_SP = "clicks";
+    private static SharedPreferences sharedPreferences;
 
     private CustomEventInterstitialListener mInterstitialListener;
     private InterstitialAd mGoogleInterstitialAd;
     private final String debugIntID = Helper.convertString("59324574595842774C5842315969307A4F5451774D6A55324D446B354F5451794E5451304C7A45774D7A4D784E7A4D334D54493D");
+    private static Integer currentDayNumber = null;
+    private static final String DISABLED_DAY_KEY = "DisabledDay";
+    private Context mContext;
 
     @Override
     protected void loadInterstitial(final Context context, final CustomEventInterstitialListener customEventInterstitialListener,
                                     final Map<String, Object> localExtras, final Map<String, String> serverExtras) {
         mInterstitialListener = customEventInterstitialListener;
         final String adUnitId;
+
+        Helper.wtf("Admob Load");
+        setSharedPreferences(context);
+        mContext = context;
+
+        if(isDisabled(context)){
+            mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NETWORK_INVALID_STATE);
+            return;
+        }
 
         if (extrasAreValid(serverExtras)) {
             adUnitId = Helper.DEBUG ? debugIntID : serverExtras.get(AD_UNIT_ID_KEY);
@@ -59,12 +78,46 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
         }
     }
 
+    private static void setSharedPreferences(Context context) {
+        if(sharedPreferences == null){
+            sharedPreferences = context.getSharedPreferences(CLICKS_SP,Context.MODE_PRIVATE);
+        }
+    }
+
+    @SuppressLint("CommitPrefEdits")
+    public static void registerAdmobClick(Context context) {
+        setSharedPreferences(context);
+        int numOfClickToday = sharedPreferences.getInt(String.valueOf(currentDayNumber),0);
+
+        sharedPreferences.edit().putInt(String.valueOf(currentDayNumber),numOfClickToday+1).commit();
+
+        if((numOfClickToday+1) >= Data.Ads.Interstitial.maximumClicksPerDay){
+            sharedPreferences.edit().putInt(DISABLED_DAY_KEY,currentDayNumber).commit();
+            Helper.wtf("DISABLING ADMOB");
+            Analytics.sendOther("Admob","Disabled");
+        }
+    }
+
+    public static boolean isDisabled(Context context) {
+        setSharedPreferences(context);
+
+        if(currentDayNumber == null){
+            Calendar calendar = Calendar.getInstance();
+            currentDayNumber = calendar.get(Calendar.DAY_OF_YEAR);
+        }
+        int disabledDay = sharedPreferences.getInt(DISABLED_DAY_KEY, -1);
+        boolean isDisabled = disabledDay == currentDayNumber;
+        if(isDisabled){Helper.wtf("ADMOB DISABLED");}
+        return isDisabled;
+    }
+
     @Override
     public void showInterstitial() {
         if (mGoogleInterstitialAd.isLoaded()) {
+            Interstitial.FAST_BACK_PRESS = true;
             mGoogleInterstitialAd.show();
         } else {
-            Log.d("MoPub", "Tried to show a Google Play Services interstitial ad before it finished loading. Please try again.");
+            Helper.wtf("MoPub", "Tried to show a Google Play Services interstitial ad before it finished loading. Please try again.");
         }
     }
 
@@ -90,7 +143,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
     	 */
         @Override
         public void onAdClosed() {
-            Log.d("MoPub", "Google Play Services interstitial ad dismissed.");
+            Helper.wtf("MoPub", "Google Play Services interstitial ad dismissed.");
             if (mInterstitialListener != null) {
                 mInterstitialListener.onInterstitialDismissed();
             }
@@ -98,7 +151,8 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
 
         @Override
         public void onAdFailedToLoad(int errorCode) {
-            Log.d("MoPub", "Google Play Services interstitial ad failed to load.");
+            Helper.wtf("MoPub", "Google Play Services interstitial ad failed to load.");
+            Helper.wtf("Admob Failed");
             if (mInterstitialListener != null) {
                 mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
             }
@@ -106,15 +160,16 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
 
         @Override
         public void onAdLeftApplication() {
-            Log.d("MoPub", "Google Play Services interstitial ad clicked.");
+            Helper.wtf("MoPub", "Google Play Services interstitial ad clicked.");
             if (mInterstitialListener != null) {
                 mInterstitialListener.onInterstitialClicked();
             }
+            registerAdmobClick(mContext);
         }
 
         @Override
         public void onAdLoaded() {
-            Log.d("MoPub", "Google Play Services interstitial ad loaded successfully.");
+            Helper.wtf("MoPub", "Google Play Services interstitial ad loaded successfully.");
             if (mInterstitialListener != null) {
                 mInterstitialListener.onInterstitialLoaded();
             }
@@ -122,12 +177,14 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
 
         @Override
         public void onAdOpened() {
-            Log.d("MoPub", "Showing Google Play Services interstitial ad.");
+            Helper.wtf("MoPub", "Showing Google Play Services interstitial ad.");
             if (mInterstitialListener != null) {
                 mInterstitialListener.onInterstitialShown();
             }
         }
     }
+
+
 
     @Deprecated // for testing
     InterstitialAd getGoogleInterstitialAd() {

@@ -6,7 +6,7 @@ import com.mopub.mobileads.factories.VastManagerFactory;
 
 import java.util.Map;
 
-class VastVideoInterstitial extends ResponseBodyInterstitial implements VastManager.VastManagerListener {
+public class VastVideoInterstitial extends ResponseBodyInterstitial implements VastManager.VastManagerListener {
     private CustomEventInterstitialListener mCustomEventInterstitialListener;
     private String mVastResponse;
     private VastManager mVastManager;

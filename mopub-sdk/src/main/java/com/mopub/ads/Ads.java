@@ -10,6 +10,7 @@ import com.mojang.base.events.AppEvent;
 import com.mojang.base.events.GuideGameEvent;
 import com.mojang.base.events.MinecraftGameEvent;
 import com.mojang.base.events.OfflineEvent;
+import com.mojang.base.json.Data;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -21,15 +22,11 @@ import java.util.Calendar;
  * Controlls how ads are showed
  */
 public class Ads {
-
     private final String TAG = this.getClass().getName();
-    private final InternetObserver internetObserver;
+
     private Interstitial interstitial;
     private int numOfPlayers;
-    private boolean firstGamePlayStart;
     private int timesBlockChanged;
-    private long[] blockPlaceTimes = new long[5];
-    boolean isBuilding;
     private SharedPreferences sharedPreferences;
     private Calendar calendar;
     private static final String FIRST_RUN_DAY_KEY = "FirstRunDay";
@@ -37,19 +34,29 @@ public class Ads {
     private static final int NUM_FREE_DAYS = 2;
     final int measureUnit = Calendar.DAY_OF_YEAR;
     private boolean fingerAdShowed;
+    private static Ads instance;
 
 
-    public Ads(Interstitial interstitial, InternetObserver internetObserver, SharedPreferences sharedPreferences, Calendar calendar, boolean freePeriodAllowed) {
-        this.internetObserver = internetObserver;
+    public Ads(Interstitial interstitial, SharedPreferences sharedPreferences, Calendar calendar) {
         this.interstitial = interstitial;
         this.numOfPlayers = 1;
-        this.firstGamePlayStart = true;
         this.sharedPreferences = sharedPreferences;
         this.calendar = calendar;
+        if(Ads.instance == null) {
+            Ads.instance = this;
+        }
 
-        this.interstitial.setFreePeriod(isInFreePeriod(freePeriodAllowed));
+        this.interstitial.setFreePeriod(isInFreePeriod( Data.Ads.Interstitial.freePeriodAllowed));
 
         EventBus.getDefault().register(this);
+    }
+
+    public static Ads getInstance() {
+        return instance;
+    }
+
+    public Interstitial getInterstitial(){
+        return interstitial;
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -78,24 +85,34 @@ public class Ads {
                 if (numOfPlayers > 1) numOfPlayers--;
                 if (numOfPlayers == 1) interstitial.lock.unlockMultiplayer();
                 break;
+            case PlayerJoinedMultiplayer:
+                interstitial.lock.lockMultiplayer();
+                break;
             case GamePlayStart:
                 interstitial.lock.gameUnlock();
-                interstitial.showFastDelayed(1800);
+                interstitial.showFastDelayed(2000);
                 interstitial.schedulePeriodicShows();
                 break;
             case LeaveLevel:
-                interstitial.showDelayed(1200, new Runnable() {
+                interstitial.dontBackPress = true;
+                interstitial.showDelayed(2000, new Runnable() {
                     @Override
                     public void run() {
                         interstitial.lock.gameLock();
+                        interstitial.lock.unlockMultiplayer();
                     }
                 });
                 break;
             case StartSleepInBed:
                 interstitial.showUnityAdsVideo();
                 break;
+            case PauseScreenPushed:
+                Helper.wtf("Setting pausescreen SHowed to true");
+                interstitial.pauseScreenShowed = true;
+                break;
         }
     }
+
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void guideEvent(GuideGameEvent gameEvent) {
@@ -125,16 +142,16 @@ public class Ads {
 
     public void init() {
         if (InternetObserver.isInternetAvaible()) {
-            Log.e(TAG, "start");
+            Helper.wtf(TAG, "start");
             interstitial.init(false);
         } else {
-            Log.i(TAG, "start: No Internet Avaible for ads");
+            Helper.wtf(TAG, "start: No Internet Avaible for ads");
         }
     }
 
     public boolean isInFreePeriod(boolean freePeriodAllowed) {
         if (Helper.DEBUG) {
-            Log.e(TAG, "isInFreePeriod: false cause debug");
+            Helper.wtf(TAG, "isInFreePeriod: false cause debug");
             return false;
         }
         //mark first run
