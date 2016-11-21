@@ -1,11 +1,14 @@
 apply from: '../shared-build.gradle'
 
 dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.mopub.volley:mopub-volley:1.1.0'
+    compile project(':base')
+    //compile project(':unity-ads')
 }
 
 project.description = 'MoPub Android SDK - Base'
 project.ext.displayName = 'MoPub Android SDK - Base'
 project.ext.projectName = 'mopub-sdk-base'
 project.ext.uploadName = 'mopub-android-sdk-base'
-apply from: '../publisher.gradle'
+//apply from: '../publisher.gradle'

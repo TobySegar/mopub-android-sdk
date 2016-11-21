@@ -1,12 +1,12 @@
 apply from: 'shared-build.gradle'
 
 dependencies {
-    compile project(':mopub-sdk:mopub-sdk-base')
-    compile project(':mopub-sdk:mopub-sdk-banner')
-    compile project(':mopub-sdk:mopub-sdk-interstitial')
-    compile project(':mopub-sdk:mopub-sdk-rewardedvideo')
-    compile project(':mopub-sdk:mopub-sdk-native-static')
-    compile project(':mopub-sdk:mopub-sdk-native-video')
+    //compile project(':mopub-sdk:mopub-sdk-base')
+    //compile project(':mopub-sdk:mopub-sdk-banner')
+    //compile project(':mopub-sdk:mopub-sdk-interstitial')
+    //compile project(':mopub-sdk:mopub-sdk-rewardedvideo')
+    //compile project(':mopub-sdk:mopub-sdk-native-static')
+    //compile project(':mopub-sdk:mopub-sdk-native-video')
 
     testCompile 'junit:junit:4.10'
     testCompile 'org.robolectric:robolectric:3.0'
@@ -24,4 +24,4 @@ project.description = 'MoPub Android SDK'
 project.ext.displayName = 'MoPub Android SDK'
 project.ext.projectName = 'mopub-sdk'
 project.ext.uploadName = 'mopub-android-sdk'
-apply from: 'publisher.gradle'
+//apply from: 'publisher.gradle'
