@@ -13,8 +13,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.mopub.ads.adapters.ApplovinInterstitial;
-import com.mopub.ads.adapters.GooglePlayServicesInterstitial;
+
 import com.mopub.common.AdReport;
 import com.mopub.common.AdType;
 import com.mopub.common.ClientMetadata;
@@ -189,20 +188,20 @@ public class AdViewController {
     @VisibleForTesting
     AdResponse getFailoverResponse() {
         Map<String,String> serverExtras = new HashMap<>();
-        serverExtras.put(GooglePlayServicesInterstitial.AD_UNIT_ID_KEY, Data.Ads.Interstitial.failoverId);
+        serverExtras.put("adUnitID", Data.Ads.Interstitial.failoverId);
 
         //onAdLoadSuccess  wasFailoverApplovin = null
         boolean forceApplovin = wasFailoverApplovin != null && !wasFailoverApplovin;
 
         AdResponse failoverResponse = new AdResponse.Builder()
-                .setCustomEventClassName(GooglePlayServicesInterstitial.class.getName())
+                .setCustomEventClassName("com.mopub.ads.adapters.GooglePlayServicesInterstitial")
                 .setServerExtras(serverExtras)
                 .setAdType(AdType.CUSTOM)
                 .build();
             wasFailoverApplovin = false;
         if(Data.Ads.Interstitial.failoverApplovin || forceApplovin){
             failoverResponse = new AdResponse.Builder()
-                    .setCustomEventClassName(ApplovinInterstitial.class.getName())
+                    .setCustomEventClassName("com.mopub.ads.adapters.ApplovinInterstitial")
                     .setServerExtras(serverExtras)
                     .setAdType(AdType.CUSTOM)
                     .build();

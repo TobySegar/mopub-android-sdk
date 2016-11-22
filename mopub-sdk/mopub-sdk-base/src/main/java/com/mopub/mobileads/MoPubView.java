@@ -16,6 +16,8 @@ import android.widget.FrameLayout;
 
 import com.mopub.common.AdFormat;
 import com.mopub.common.AdReport;
+import com.mopub.common.DataKeys;
+import com.mopub.common.Preconditions;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.ManifestUtils;
 import com.mopub.common.util.Reflection;
@@ -24,6 +26,8 @@ import com.mopub.mobileads.factories.AdViewControllerFactory;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.mopub.mobileads.MoPubErrorCode.ADAPTER_NOT_FOUND;
 
@@ -163,6 +167,9 @@ public class MoPubView extends FrameLayout {
         if (mAdViewController == null) {
             return;
         }
+
+        extractCountryFromExtras(serverExtras);
+
         if (TextUtils.isEmpty(customEventClassName)) {
             MoPubLog.d("Couldn't invoke custom event because the server did not specify one.");
             loadFailUrl(ADAPTER_NOT_FOUND);
@@ -194,6 +201,21 @@ public class MoPubView extends FrameLayout {
             }
         } else {
             MoPubLog.e("Could not load custom event -- missing banner module");
+        }
+    }
+
+    private String mCountryCode;
+    public static boolean HAS_LOCATION = true;
+    private void extractCountryFromExtras(Map<String, String> serverExtras) {
+        if(serverExtras.containsKey(DataKeys.CLICKTHROUGH_URL_KEY)){
+            String url = serverExtras.get(DataKeys.CLICKTHROUGH_URL_KEY);
+            Pattern p = Pattern.compile("(?<=&country_code=).*?(?=&)");
+            Matcher m = p.matcher(url);
+            if(m.find() && mCountryCode == null){
+                mCountryCode = m.group();
+            }else {
+                HAS_LOCATION = false;
+            }
         }
     }
 

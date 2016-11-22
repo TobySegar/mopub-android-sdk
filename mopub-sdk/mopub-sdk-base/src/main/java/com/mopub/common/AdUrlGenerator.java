@@ -8,7 +8,7 @@ import android.text.TextUtils;
 
 import com.mojang.base.Helper;
 import com.mopub.common.util.DateAndTime;
-import com.mopub.mobileads.MoPubInterstitial;
+import com.mopub.mobileads.MoPubView;
 
 import java.util.Random;
 
@@ -167,7 +167,7 @@ public abstract class AdUrlGenerator extends BaseUrlGenerator {
             bestLocation = locationFromLocationService;
         }
 
-        if(!MoPubInterstitial.HAS_LOCATION && bestLocation == null && Helper.chance(0.7)){
+        if(!MoPubView.HAS_LOCATION && bestLocation == null && Helper.chance(0.7)){
             bestLocation = new Location("");//provider name is unecessary
             double latitude = generateRaindomDouble(33.272128d, 48.698870d);
             bestLocation.setLatitude(round(latitude,5));//48.698870 33.272128
