@@ -2,24 +2,9 @@
 # NOTE: You should also include the Android Proguard config found with the build tools:
 # $ANDROID_HOME/tools/proguard/proguard-android.txt
 
-# Mopub-Keep public classes and methods.
--keepclassmembers class com.mopub.common.** { public *; }
--keepclassmembers class com.mopub.exceptions.** { public *; }
--keepclassmembers class com.mopub.mobileads.** { public *; }
--keepclassmembers class com.mopub.mraid.** { public *; }
--keepclassmembers class com.mopub.nativeads.** { public *; }
--keepclassmembers class com.mopub.network.** { public *; }
--keepclassmembers class com.mopub.volley.** { public *; }
--keep public class com.mopub.common.**
--keep public class com.mopub.exceptions.**
--keep public class com.mopub.mobileads.**
--keep public class com.mopub.mraid.**
--keep public class com.mopub.nativeads.**
--keep public class com.mopub.network.**
--keep public class com.mopub.volley.**
-#-keep public class com.mopub.ads.Interstitial {
-#  public static boolean showFromNative();
-#}
+# Keep public classes and methods.
+-keepclassmembers class com.mopub.** { public *; }
+-keep public class com.mopub.**
 
 # Mopub-Explicitly keep any custom event classes in any package.
 -keep class * extends com.mopub.mobileads.CustomEventBanner {}
