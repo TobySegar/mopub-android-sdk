@@ -63,7 +63,7 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
 
         if ( adToRender != null )
         {
-            Helper.wtf("Showing AppLovin interstitial ad..." );
+            Helper.wtf("Showing AppLovin interstitial ad..." ,true);
 
             parentActivity.runOnUiThread( new Runnable() {
                 public void run()

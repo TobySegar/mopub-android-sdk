@@ -142,10 +142,10 @@ public class Ads {
 
     public void init() {
         if (InternetObserver.isInternetAvaible()) {
-            Helper.wtf(TAG, "start");
+            Helper.wtf("start",true);
             interstitial.init(false);
         } else {
-            Helper.wtf(TAG, "start: No Internet Avaible for ads");
+            Helper.wtf("start: No Internet Avaible for ads",true);
         }
     }
 

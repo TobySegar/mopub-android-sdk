@@ -107,13 +107,16 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
         }
         int disabledDay = sharedPreferences.getInt(DISABLED_DAY_KEY, -1);
         boolean isDisabled = disabledDay == currentDayNumber;
-        if(isDisabled){Helper.wtf("ADMOB DISABLED");}
+        if(isDisabled){
+            Helper.wtf("ADMOB DISABLED",true);
+        }
         return isDisabled;
     }
 
     @Override
     public void showInterstitial() {
         if (mGoogleInterstitialAd.isLoaded()) {
+            Helper.wtf("Showing Admob",true);
             Interstitial.FAST_BACK_PRESS = true;
             mGoogleInterstitialAd.show();
         } else {

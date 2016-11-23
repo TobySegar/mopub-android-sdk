@@ -50,7 +50,7 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
     public void showInterstitial() {
         Helper.wtf("UnityAds Adapter called show");
         if(UnityAds.isReady() && UnityAds.isInitialized()) {
-            Helper.wtf("Should be showing");
+            Helper.wtf("Should be showing Unity Ads",true);
             UnityAds.show(activity);
         } else {
             Helper.wtf("Failed to show unity ads");

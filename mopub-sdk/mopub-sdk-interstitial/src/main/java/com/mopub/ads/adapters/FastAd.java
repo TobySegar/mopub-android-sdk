@@ -58,7 +58,7 @@ public class FastAd {
     }
 
     private void loadApplovin() {
-        Helper.wtf("loading Applovin fastad");
+        Helper.wtf("loading Applovin fastad",true);
         sdk = AppLovinSdk.getInstance(this.activity);
         sdk.getAdService().loadNextAd(AppLovinAdSize.INTERSTITIAL, new AppLovinAdLoadListener() {
             @Override
@@ -75,7 +75,7 @@ public class FastAd {
     }
 
     private void loadAdmob() {
-        Helper.wtf("loading Admob fastad");
+        Helper.wtf("loading Admob fastad",true);
         mGoogleInterstitialAd = new InterstitialAd(activity);
         mGoogleInterstitialAd.setAdUnitId(admobId);
         mGoogleInterstitialAd.setAdListener(new AdListener() {

@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.Nullable;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.View;
@@ -18,8 +19,11 @@ import com.mojang.base.Helper;
 import com.mojang.base.Screen;
 import com.mojang.base.json.Data;
 import com.mopub.ads.adapters.FastAd;
+import com.mopub.common.ClientMetadata;
+import com.mopub.mobileads.AdViewController;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.mobileads.MoPubInterstitial;
+import com.mopub.mobileads.MoPubView;
 import com.unity3d.ads.UnityAds;
 
 import java.io.File;
@@ -99,7 +103,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             nativeBackPressedMethod = minecraftActivity.getClass().getMethod("callNativeBackPressed");
             Helper.wtf("got nativeBackPressed");
         } catch (NoSuchMethodException e) {
-            Helper.wtf("----NATIVE BACK PRESS MISSING----");
+            Helper.wtf("----NATIVE BACK PRESS MISSING----",true);
         }
     }
 
@@ -134,7 +138,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         Helper.wtf("Curent visibility " + currentVis + " hiddenVisibility " + hidenVisibility);
-        Helper.wtf("HIDING NAVBAR");
+        Helper.wtf("HIDING NAVBAR",true);
 
         decorView.setSystemUiVisibility(hidenVisibility);
     }
@@ -166,7 +170,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     @Override
     public void onInterstitialDismissed(MoPubInterstitial interstitial) {
-        Helper.wtf("onInterstitialDismissed");
+        Helper.wtf("onInterstitialDismissed",true);
         gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
         loadAfterDelay(3000);
 
@@ -176,9 +180,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     @Override
     public void onInterstitialLoaded(MoPubInterstitial interstitial) {
-        Helper.wtf("onInterstitialLoaded");
-        String country = interstitial.getCountryCode();
+        Helper.wtf("onInterstitialLoaded",true);
 
+        String country = getCountryCode();
         if (!onLoadedOnce && country != null && !country.isEmpty()) {
             setPeriodicMillsAndFingerChance(country);
             lockOutSE(country);
@@ -186,7 +190,24 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         }
     }
 
-    public void setFreePeriod(boolean freePeriod) {
+
+    /**
+     * @return country code like SK,US http://www.mcc-mnc.com/
+     */
+    @Nullable
+    private String getCountryCode() {
+        try {
+            String c1 = AdViewController.getCountryCodeFromMopubResponse();
+            if (c1 != null) return c1.toUpperCase();
+            String c2 = ClientMetadata.getInstance().getIsoCountryCode();
+            if (c2 != null) return c2.toUpperCase();
+            return ClientMetadata.getInstance().getSimIsoCountryCode().toUpperCase();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    void setFreePeriod(boolean freePeriod) {
         this.freePeriod = freePeriod;
     }
 
@@ -200,19 +221,17 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             final long reloadTime = time * (long) Math.pow(BACKOFF_FACTOR, backOffPower);
             backOffPower++;
             loadAfterDelay(reloadTime);
-
-            //Analytics.sendMopubError(MoPubErrorCode.NO_FILL.toString() + " " + interstitial.getCountryCode());
         }
     }
 
     @Override
     public void onInterstitialShown(MoPubInterstitial interstitial) {
-        Helper.wtf("onInterstitialShown");
+        Helper.wtf("onInterstitialShown",true);
     }
 
     @Override
     public void onInterstitialClicked(MoPubInterstitial interstitial) {
-        Helper.wtf("onInterstitialClicked");
+        Helper.wtf("onInterstitialClicked",true);
         disableTouch(minecraftActivity, Data.Ads.Interstitial.disableTouchChance);
     }
 
@@ -225,8 +244,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         boolean isFreePeriod = freePeriod;
         Helper.wtf("[isMopubNull(false) = " + isMopubNull + "] " + "[isLocked(false) = " + isLocked + "] " + "[isMopubReady(true) = " + isMopubReady + "] [isFreePeriod(false) = " + isFreePeriod + "]");
         if (!isMopubNull && !isLocked && isMopubReady && !isFreePeriod) {
+            Helper.wtf("Showing mopubInterstitial",true);
             showSuccesful = mopubInterstitial.show();
-            Helper.wtf("Called mopub show with result = " + showSuccesful);
         }
         return showSuccesful;
     }
@@ -239,7 +258,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         mainHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if(!show()){
+                if (!show()) {
                     Helper.wtf("We failed to show turning on backpressing");
                     dontBackPress = false;
                 }
