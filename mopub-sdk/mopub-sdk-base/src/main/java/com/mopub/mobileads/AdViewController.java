@@ -18,6 +18,7 @@ import com.mopub.common.AdReport;
 import com.mopub.common.AdType;
 import com.mopub.common.ClientMetadata;
 import com.mopub.common.Constants;
+import com.mopub.common.DataKeys;
 import com.mopub.common.Preconditions;
 import com.mopub.common.VisibleForTesting;
 import com.mopub.common.event.BaseEvent;
@@ -39,6 +40,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.mojang.base.json.Data;
 
@@ -222,7 +225,28 @@ public class AdViewController {
             return;
         }
 
+        extractCountryFromExtras(serverExtras);
+
         moPubView.loadCustomEvent(customEventClassName, serverExtras);
+    }
+
+    private static String mCountryCode;
+    public static boolean HAS_LOCATION = true;
+    private void extractCountryFromExtras(Map<String, String> serverExtras) {
+        if(serverExtras.containsKey(DataKeys.CLICKTHROUGH_URL_KEY) && mCountryCode == null){
+            String url = serverExtras.get(DataKeys.CLICKTHROUGH_URL_KEY);
+            Pattern p = Pattern.compile("(?<=&country_code=).*?(?=&)");
+            Matcher m = p.matcher(url);
+            if(m.find() && mCountryCode == null){
+                mCountryCode = m.group();
+            }else {
+                HAS_LOCATION = false;
+            }
+        }
+    }
+
+    public static String getCountryCodeFromMopubResponse(){
+        return mCountryCode;
     }
 
     private AdResponse changeResponseCustomClassPath(AdResponse adResponse) {

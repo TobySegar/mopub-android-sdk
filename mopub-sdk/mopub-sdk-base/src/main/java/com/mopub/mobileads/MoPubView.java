@@ -168,8 +168,6 @@ public class MoPubView extends FrameLayout {
             return;
         }
 
-        extractCountryFromExtras(serverExtras);
-
         if (TextUtils.isEmpty(customEventClassName)) {
             MoPubLog.d("Couldn't invoke custom event because the server did not specify one.");
             loadFailUrl(ADAPTER_NOT_FOUND);
@@ -201,21 +199,6 @@ public class MoPubView extends FrameLayout {
             }
         } else {
             MoPubLog.e("Could not load custom event -- missing banner module");
-        }
-    }
-
-    private String mCountryCode;
-    public static boolean HAS_LOCATION = true;
-    private void extractCountryFromExtras(Map<String, String> serverExtras) {
-        if(serverExtras.containsKey(DataKeys.CLICKTHROUGH_URL_KEY)){
-            String url = serverExtras.get(DataKeys.CLICKTHROUGH_URL_KEY);
-            Pattern p = Pattern.compile("(?<=&country_code=).*?(?=&)");
-            Matcher m = p.matcher(url);
-            if(m.find() && mCountryCode == null){
-                mCountryCode = m.group();
-            }else {
-                HAS_LOCATION = false;
-            }
         }
     }
 
