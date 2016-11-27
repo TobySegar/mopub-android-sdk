@@ -94,14 +94,8 @@ public class Ads {
                 interstitial.schedulePeriodicShows();
                 break;
             case LeaveLevel:
-                interstitial.dontBackPress = true;
-                interstitial.showDelayed(2000, new Runnable() {
-                    @Override
-                    public void run() {
-                        interstitial.lock.gameLock();
-                        interstitial.lock.unlockMultiplayer();
-                    }
-                });
+                interstitial.lock.gameLock();
+                interstitial.lock.unlockMultiplayer();
                 break;
             case StartSleepInBed:
                 interstitial.showUnityAdsVideo();
