@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewConfiguration;
 
 import com.mojang.base.Analytics;
+import com.mojang.base.CounterView;
 import com.mojang.base.Helper;
 import com.mojang.base.Screen;
 import com.mojang.base.json.Data;
@@ -23,7 +24,6 @@ import com.mopub.common.ClientMetadata;
 import com.mopub.mobileads.AdViewController;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.mobileads.MoPubInterstitial;
-import com.mopub.mobileads.MoPubView;
 import com.unity3d.ads.UnityAds;
 
 import java.io.File;
@@ -53,6 +53,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private boolean onLoadedOnce;
     private boolean periodicScheduled;
     public final Lock lock;
+    private final CounterView counterView;
     private Method nativeBackPressedMethod;
     public boolean pauseScreenShowed;
     public static boolean FAST_BACK_PRESS;
@@ -63,6 +64,12 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.periodicMills = Helper.FasterAds() ? 25000 : Data.Ads.Interstitial.periodicShowMillsLow;
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.lock = new Lock();
+        this.counterView = new CounterView(activity, new Runnable() {
+            @Override
+            public void run() {
+                show();
+            }
+        }, Screen.instance);
 
         this.reloadRunnable = new Runnable() {
             @Override
@@ -82,7 +89,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             public void run() {
                 Helper.wtf(TAG, "run: ShowRun");
                 if (!lock.isLocked()) {
-                    show();
+                    counterView.show(minecraftActivity);
                 }
             }
         };
@@ -356,9 +363,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
                 if (UnityAds.isSupported()) {
                     UnityAds.setDebugMode(Helper.DEBUG);
-                    UnityAds.setDebugMode(Helper.DEBUG); //todo dont forget this unity id 69633 crafting g4
+                    UnityAds.setDebugMode(Helper.DEBUG); //todo dont forget this unity id 72771 explo
                     Helper.wtf("Initing Unity ads");
-                    UnityAds.initialize(minecraftActivity, Helper.convertString("4E6A6B324D7A4D3D"), null);
+                    UnityAds.initialize(minecraftActivity, Helper.convertString("4E7A49334E7A453D"), null);
                 }
             }
         }, 4000);
