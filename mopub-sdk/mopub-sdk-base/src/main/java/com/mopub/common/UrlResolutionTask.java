@@ -107,9 +107,6 @@ public class UrlResolutionTask extends AsyncTask<String, Void, String> {
                 // otherwise, resolve() will return the redirectUrl
                 result =  baseUri.resolve(redirectUrl).toString();
             } catch (IllegalArgumentException e) {
-                Log.e("MoPub", "resolveRedirectLocation: ", e);
-                Analytics.sendMopubError("AdRedirectionError");
-                Analytics.sendException(e);
                 // Ensure the request is cancelled instead of resolving an intermediary URL
                 throw new URISyntaxException(redirectUrl, "Unable to parse invalid URL");
             }
