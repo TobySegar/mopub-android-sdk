@@ -111,7 +111,7 @@ public class FastAd {
     public boolean show() {
         Helper.wtf("FastAd", "show() called with: FastAd");
         showed = true;
-        if (!AppEvent.isActivityRunning) {
+        if (AppEvent.isActivityRunning) {
             if (useApplovin) {
                 if (AppLovinInterstitialAd.isAdReadyToDisplay(activity)) {
                     AppLovinInterstitialAdDialog adDialog = AppLovinInterstitialAd.create(sdk, this.activity);
