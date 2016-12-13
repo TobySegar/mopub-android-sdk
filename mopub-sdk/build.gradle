@@ -9,7 +9,7 @@ dependencies {
     //compile project(':mopub-sdk:mopub-sdk-native-video')
 
     testCompile 'junit:junit:4.10'
-    testCompile 'org.robolectric:robolectric:3.0'
+    testCompile 'org.robolectric:robolectric:3.1.4'
     testCompile 'org.robolectric:shadows-support-v4:3.0'
     testCompile 'org.robolectric:shadows-httpclient:3.0'
     testCompile 'com.squareup:fest-android:1.0.7'
