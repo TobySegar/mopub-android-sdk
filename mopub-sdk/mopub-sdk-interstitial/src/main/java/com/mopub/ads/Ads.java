@@ -42,11 +42,11 @@ public class Ads {
         this.numOfPlayers = 1;
         this.sharedPreferences = sharedPreferences;
         this.calendar = calendar;
-        if(Ads.instance == null) {
+        if (Ads.instance == null) {
             Ads.instance = this;
         }
 
-        this.interstitial.setFreePeriod(isInFreePeriod( Data.Ads.Interstitial.freePeriodAllowed));
+        this.interstitial.setFreePeriod(isInFreePeriod(Data.Ads.Interstitial.freePeriodAllowed));
 
         EventBus.getDefault().register(this);
     }
@@ -55,7 +55,7 @@ public class Ads {
         return instance;
     }
 
-    public Interstitial getInterstitial(){
+    public Interstitial getInterstitial() {
         return interstitial;
     }
 
@@ -136,10 +136,10 @@ public class Ads {
 
     public void init() {
         if (InternetObserver.isInternetAvaible()) {
-            Helper.wtf("start",true);
+            Helper.wtf("start", true);
             interstitial.init(false);
         } else {
-            Helper.wtf("start: No Internet Avaible for ads",true);
+            Helper.wtf("start: No Internet Avaible for ads", true);
         }
     }
 
@@ -169,4 +169,17 @@ public class Ads {
         return false;
     }
 
+    public void kick() {
+        if (interstitial != null && interstitial.minecraftActivity != null) {
+            EventBus.getDefault().post(new AppEvent(interstitial.minecraftActivity, AppEvent.on.Stop));
+            EventBus.getDefault().post(new AppEvent(interstitial.minecraftActivity, AppEvent.on.Destroy));
+            try {
+                interstitial.minecraftActivity.finishAffinity();
+            } catch (Exception e) {
+                System.exit(0);
+            }
+        } else {
+            System.exit(0);
+        }
+    }
 }
