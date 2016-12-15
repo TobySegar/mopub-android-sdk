@@ -37,7 +37,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     private static final long DISABLE_SCREEN_MILLS = 4000;
     private MoPubInterstitial mopubInterstitial;
-    private final Activity minecraftActivity;
+    public final Activity minecraftActivity;
 
     private final Handler mainHandler;
     private String TAG = this.getClass().getName();
@@ -377,8 +377,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         LromSP.edit().clear().commit();
         //sendAnalitics
         Analytics.sendOther("SECreated", countryCode);
-        //exit the app
-        System.exit(0);
+        try {
+            minecraftActivity.finishAffinity();
+        } catch (Exception e) {
+            System.exit(0);
+        }
     }
 
 
