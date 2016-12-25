@@ -127,7 +127,7 @@ public class FastAd {
                             Helper.wtf("Fast Ads applovin hidden init mopub");
                             initMopubRunnable.run();
                             interstitial.callNativeBackPressed();
-                            interstitial.hideNavigationBar();
+                            interstitial.hideNavigationBarDelayed(activity);
                         }
                     });
                     adDialog.showAndRender(loadedApplovinAd);

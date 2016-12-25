@@ -51,7 +51,13 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
 
         Helper.wtf("Request received for new interstitial." );
 
-        sdk = AppLovinSdk.getInstance( context );
+        AppLovinSdkSettings setting = new AppLovinSdkSettings();
+        setting.setVerboseLogging(Helper.canLog);
+        setting.setAutoPreloadSizes("NONE");
+        setting.setAutoPreloadSizes("NONE");
+        setting.setMuted(true);
+
+        sdk = AppLovinSdk.getInstance( setting, context );
         sdk.getAdService().loadNextAd( AppLovinAdSize.INTERSTITIAL, this );
 
     }
@@ -91,6 +97,7 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
                             mInterstitialListener.onInterstitialDismissed();
                         }
                     } );
+
                     inter.showAndRender( adToRender );
                 }
             } );

@@ -9,10 +9,13 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
+import android.view.Display;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 
 import com.mojang.base.Analytics;
 import com.mojang.base.CounterView;
@@ -114,35 +117,37 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         }
     }
 
-    public void hideNavigationBar() {
-        int delayMillis = FAST_BACK_PRESS ? 2500 : 5500;
+    public void hideNavigationBarDelayed(final Activity activity) {
+        int delay = FAST_BACK_PRESS ? 2500 : 5500;
+
         FAST_BACK_PRESS = false;
         mainHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 try {
-                    boolean hasMenuKey = ViewConfiguration.get(minecraftActivity).hasPermanentMenuKey();
+                    boolean hasMenuKey = ViewConfiguration.get(activity).hasPermanentMenuKey();
                     boolean hasBackKey = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_BACK);
                     Helper.wtf("hasMenuKey(false) = " + hasMenuKey + " hasBackKey(false) =" + hasBackKey);
                     if (!hasMenuKey && !hasBackKey) {
                         // Do whatever you need to do, this device has a navigation bar
-                        hideNavBar();
+                        hideNavBar(activity);
                     }
                 } catch (Exception e) {
                     Analytics.sendException(e);
                 }
             }
-        }, delayMillis);
+        }, delay);
     }
 
-    private void hideNavBar() {
-        View decorView = minecraftActivity.getWindow().getDecorView();
+    public static void hideNavBar(Activity activity) {
+        View decorView = activity.getWindow().getDecorView();
         int currentVis = decorView.getSystemUiVisibility();
         int hidenVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LOW_PROFILE
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         Helper.wtf("Curent visibility " + currentVis + " hiddenVisibility " + hidenVisibility);
         Helper.wtf("HIDING NAVBAR",true);
@@ -182,7 +187,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         loadAfterDelay(3000);
 
         callNativeBackPressed();
-        hideNavigationBar();
+        hideNavigationBarDelayed(minecraftActivity);
     }
 
     @Override
@@ -318,6 +323,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 Helper.wtf(TAG, "showUnityAdsVideo: show false");
                 show();
             } else {
+                gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
                 UnityAds.show(minecraftActivity);
             }
         } else {
@@ -358,12 +364,12 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                     mopubInterstitial.setKeywords("game,minecraft,business,twitter");
                     mopubInterstitial.load();
                 } else if (!mopubInterstitial.isReady()) {
-                    mopubInterstitial.load();
+                    Helper.wtf("Mopub Forcing Refresh");
+                    mopubInterstitial.forceRefresh();
                 }
 
                 if (UnityAds.isSupported()) {
-                    UnityAds.setDebugMode(Helper.DEBUG);
-                    UnityAds.setDebugMode(Helper.DEBUG); //todo dont forget this unity id 72771 explo
+                    UnityAds.setDebugMode(Helper.canLog); //todo dont forget this unity id 69633 crafting g4
                     Helper.wtf("Initing Unity ads");
                     UnityAds.initialize(minecraftActivity, Helper.convertString("4E7A49334E7A453D"), null);
                 }
@@ -409,6 +415,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private void gapLockForTime(long minimalAdGapMills) {
         lock.gapLock();
         Helper.wtf(TAG, "lockForTime: scheduling unlock runnable za sec " + minimalAdGapMills / 1000);
+        mainHandler.removeCallbacks(gapUnlockRunnable);
         mainHandler.postDelayed(gapUnlockRunnable, minimalAdGapMills);
     }
 
