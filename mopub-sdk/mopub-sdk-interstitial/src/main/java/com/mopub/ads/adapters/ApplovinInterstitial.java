@@ -28,7 +28,6 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
     private AppLovinSdk                                             sdk;
     private AppLovinAd                                              lastReceived;
 
-    private static final String TAG = "AppLovinAdapter";
 
     /*
      * Abstract methods from CustomEventInterstitial
@@ -53,7 +52,6 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
 
         AppLovinSdkSettings setting = new AppLovinSdkSettings();
         setting.setVerboseLogging(Helper.canLog);
-        setting.setAutoPreloadSizes("NONE");
         setting.setAutoPreloadSizes("NONE");
         setting.setMuted(true);
 
