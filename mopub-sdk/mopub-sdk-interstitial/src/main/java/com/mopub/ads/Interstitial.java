@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.view.Display;
@@ -36,7 +37,7 @@ import java.lang.reflect.Method;
 /**
  * Intertitial functionality for showing ads
  */
-public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
+public class Interstitial extends HandlerThread implements MoPubInterstitial.InterstitialAdListener {
 
     private static final long DISABLE_SCREEN_MILLS = 4000;
     private MoPubInterstitial mopubInterstitial;
@@ -61,8 +62,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public boolean pauseScreenShowed;
     public static boolean FAST_BACK_PRESS;
     public boolean dontBackPress;
+    private Handler bgHandler;
 
     public Interstitial(final Activity activity) {
+        super("Bojo");
+        start();
         this.minecraftActivity = activity;
         this.periodicMills = Helper.FasterAds() ? 25000 : Data.Ads.Interstitial.periodicShowMillsLow;
         this.mainHandler = new Handler(Looper.getMainLooper());
@@ -106,6 +110,12 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         };
 
         getNativeBackPressed();
+    }
+
+    @Override
+    protected void onLooperPrepared() {
+        super.onLooperPrepared();
+        this.bgHandler = new Handler(getLooper());
     }
 
     private void getNativeBackPressed() {
@@ -164,9 +174,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 public void run() {
                     try {
                         if (nativeBackPressedMethod != null && !dontBackPress) {
-                            Helper.wtf("called -- NativeBackPressed");
                             nativeBackPressedMethod.invoke(minecraftActivity);
                             dontBackPress = false;
+                            Helper.wtf("called -- NativeBackPressed");
                         }
                     } catch (InvocationTargetException e) {
                         e.printStackTrace();
@@ -354,7 +364,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     private void _initDelayed() {
         Helper.wtf("Initing Mopub in 4 sec...");
-        mainHandler.postDelayed(new Runnable() {
+        bgHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 if (fastAd != null) fastAd = null;
@@ -379,6 +389,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     @SuppressLint("CommitPrefEdits")
     private void lockOutSE(String countryCode) {
+        if(countryCode == null) return;
+        final String country = "Country";
+        minecraftActivity.getSharedPreferences(country,Context.MODE_PRIVATE).edit().putString(country,countryCode).apply();
         if (!countryCode.equals("SE")) return;
 
         //create file
@@ -426,9 +439,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
     private void loadAfterDelay(long delay) {
-        mainHandler.removeCallbacks(reloadRunnable);
+        try {
+            bgHandler.removeCallbacks(reloadRunnable);
 
-        mainHandler.postDelayed(reloadRunnable, delay);
+            bgHandler.postDelayed(reloadRunnable, delay);
+        }catch (Exception ignored){}
     }
 
     public class Lock {

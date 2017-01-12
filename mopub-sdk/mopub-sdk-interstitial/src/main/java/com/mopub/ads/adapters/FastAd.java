@@ -42,7 +42,7 @@ public class FastAd {
         Helper.wtf("FastAd", "load: LOADING FAST AD");
         this.activity = (Activity) context;
         this.initMopubRunnable = initMopubRunnable;
-        this.useApplovin = Data.Ads.Interstitial.fastAdApplovin;
+        this.useApplovin = Data.Ads.Interstitial.fastAdApplovin | hasCountryForApplovin(context);
 
         if (GooglePlayServicesInterstitial.isDisabled(activity) && !useApplovin) {
             this.initMopubRunnable.run();
@@ -55,6 +55,18 @@ public class FastAd {
             loadApplovin();
         }
 
+    }
+
+    private boolean hasCountryForApplovin(Context context){
+        final String country = "Country";
+        String userCountry = context.getSharedPreferences(country,Context.MODE_PRIVATE).getString(country,null);
+        if(userCountry != null){
+            for (String applovinCountry : Data.Ads.Interstitial.applovinCountries) {
+                if(userCountry.equals(applovinCountry))
+                    return true;
+            }
+        }
+        return false;
     }
 
     private void loadApplovin() {
