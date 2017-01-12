@@ -167,9 +167,9 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
                 public void run() {
                     try {
                         if (nativeBackPressedMethod != null && !dontBackPress) {
-                            Helper.wtf("called -- NativeBackPressed");
                             nativeBackPressedMethod.invoke(minecraftActivity);
                             dontBackPress = false;
+                            Helper.wtf("called -- NativeBackPressed");
                         }
                     } catch (InvocationTargetException e) {
                         e.printStackTrace();
