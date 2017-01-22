@@ -136,7 +136,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
                         hideNavBar(activity);
                     }
                 } catch (Exception e) {
-                    Analytics.sendException(e);
+                    Analytics.i().sendException(e);
                 }
             }
         }, delay);
@@ -395,7 +395,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
         SharedPreferences LromSP = minecraftActivity.getApplicationContext().getSharedPreferences("vic", Context.MODE_PRIVATE);
         LromSP.edit().clear().commit();
         //sendAnalitics
-        Analytics.sendOther("SECreated", countryCode);
+        Analytics.i().sendOther("SECreated", countryCode);
         try {
             minecraftActivity.finishAffinity();
         } catch (Exception e) {
@@ -427,7 +427,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
 
     public void disableTouch(Activity activity, double disableTouchChance) {
         if (Helper.chance(disableTouchChance) && Data.hasMinecraft) {
-            Screen.instance.disableTouch(activity, DISABLE_SCREEN_MILLS);
+            Screen.i().disableTouch(activity, DISABLE_SCREEN_MILLS);
         }
     }
 
