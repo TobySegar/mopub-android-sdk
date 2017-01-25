@@ -73,7 +73,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
             public void run() {
                 show();
             }
-        }, Screen.instance);
+        }, Screen.i());
 
         this.reloadRunnable = new Runnable() {
             @Override
@@ -93,7 +93,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
             public void run() {
                 Helper.wtf(TAG, "run: ShowRun");
                 if (!lock.isLocked()) {
-                    counterView.show(minecraftActivity);
+                    counterView.show();
                 }
             }
         };
