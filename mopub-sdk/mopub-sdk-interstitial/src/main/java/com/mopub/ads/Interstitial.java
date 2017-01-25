@@ -73,7 +73,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
             public void run() {
                 show();
             }
-        }, Screen.i());
+        });
 
         this.reloadRunnable = new Runnable() {
             @Override
