@@ -2,14 +2,11 @@ package com.mopub.ads;
 
 
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import com.mojang.base.Helper;
 import com.mojang.base.InternetObserver;
 import com.mojang.base.events.AppEvent;
-import com.mojang.base.events.GuideGameEvent;
-import com.mojang.base.events.MinecraftGameEvent;
-import com.mojang.base.events.OfflineEvent;
+import com.mojang.base.events.GameEvent;
 import com.mojang.base.json.Data;
 
 import org.greenrobot.eventbus.EventBus;
@@ -17,6 +14,20 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.Calendar;
+
+import static com.mojang.base.events.AppEvent.Destroy;
+import static com.mojang.base.events.AppEvent.OfflineAccepted;
+import static com.mojang.base.events.AppEvent.OnlineAccepted;
+import static com.mojang.base.events.AppEvent.Resume;
+import static com.mojang.base.events.AppEvent.Stop;
+import static com.mojang.base.events.GameEvent.BlockChanged;
+import static com.mojang.base.events.GameEvent.GamePlayStart;
+import static com.mojang.base.events.GameEvent.LeaveLevel;
+import static com.mojang.base.events.GameEvent.PauseScreenPushed;
+import static com.mojang.base.events.GameEvent.PlayerConnected;
+import static com.mojang.base.events.GameEvent.PlayerDisconnected;
+import static com.mojang.base.events.GameEvent.PlayerJoinedMultiplayer;
+import static com.mojang.base.events.GameEvent.StartSleepInBed;
 
 /**
  * Controlls how ads are showed
@@ -61,7 +72,7 @@ public class Ads {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onAppEvent(AppEvent appEvent) {
-        switch (appEvent.lifeCycle) {
+        switch (appEvent.event) {
             case Destroy:
                 interstitial.destroy();
                 break;
@@ -71,11 +82,26 @@ public class Ads {
             case Resume:
                 interstitial.lock.unlockStop();
                 break;
+            case OfflineAccepted:
+                if(!InternetObserver.isInternetAvaible()){
+                    interstitial.lock.internetLock();
+                }
+                break;
+            case OnlineAccepted:
+                if(InternetObserver.isInternetAvaible()){
+                    if (numOfPlayers != 1) {
+                        throw new RuntimeException("numOfPlayer > 1 this should never happen");
+                    }
+                    interstitial.lock.internetUnlock();
+                    interstitial.init(true);
+                }
+                break;
+
         }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onGameEvent(MinecraftGameEvent gameEvent) {
+    public void onGameEvent(GameEvent gameEvent) {
         switch (gameEvent.event) {
             case PlayerConnected:
                 numOfPlayers++;
@@ -104,13 +130,6 @@ public class Ads {
                 Helper.wtf("Setting pausescreen SHowed to true");
                 interstitial.pauseScreenShowed = true;
                 break;
-        }
-    }
-
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void guideEvent(GuideGameEvent gameEvent) {
-        switch (gameEvent.event) {
             case BlockChanged:
                 timesBlockChanged++;
                 if (timesBlockChanged == 3) {
@@ -121,18 +140,6 @@ public class Ads {
         }
     }
 
-    @Subscribe
-    public void onViewEvent(OfflineEvent viewEvent) {
-        if (viewEvent.getPlayOffline_Accepted() && !InternetObserver.isInternetAvaible()) {
-            interstitial.lock.internetLock();
-        } else if (viewEvent.getPlayOnline_Accepted() && InternetObserver.isInternetAvaible()) {
-            if (numOfPlayers != 1) {
-                throw new RuntimeException("numOfPlayer > 1 this should never happen");
-            }
-            interstitial.lock.internetUnlock();
-            interstitial.init(true);
-        }
-    }
 
     public void init() {
         if (InternetObserver.isInternetAvaible()) {
@@ -171,8 +178,8 @@ public class Ads {
 
     public void kick() {
         if (interstitial != null && interstitial.minecraftActivity != null) {
-            EventBus.getDefault().post(new AppEvent(interstitial.minecraftActivity, AppEvent.on.Stop));
-            EventBus.getDefault().post(new AppEvent(interstitial.minecraftActivity, AppEvent.on.Destroy));
+            EventBus.getDefault().post(new AppEvent(Stop));
+            EventBus.getDefault().post(new AppEvent(Destroy));
             try {
                 interstitial.minecraftActivity.finishAffinity();
             } catch (Exception e) {

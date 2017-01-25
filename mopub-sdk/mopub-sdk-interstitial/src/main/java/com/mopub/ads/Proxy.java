@@ -14,6 +14,8 @@ import com.mopub.mobileads.CustomEventInterstitial;
 
 import org.greenrobot.eventbus.EventBus;
 
+import static com.mojang.base.events.AppEvent.Stop;
+
 
 public class Proxy extends Activity {
     private static CustomEventInterstitial customEventInterstitial;
@@ -36,7 +38,7 @@ public class Proxy extends Activity {
 
     public void Finish() {
         Helper.wtf(proxy, "Finish");
-        EventBus.getDefault().post(new AppEvent(this, AppEvent.on.Stop));
+        EventBus.getDefault().post(new AppEvent(Stop));
         finish();
     }
 
