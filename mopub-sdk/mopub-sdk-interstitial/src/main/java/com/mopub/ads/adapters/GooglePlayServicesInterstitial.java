@@ -94,7 +94,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
         if((numOfClickToday+1) >= Data.Ads.Interstitial.maximumClicksPerDay){
             sharedPreferences.edit().putInt(DISABLED_DAY_KEY,currentDayNumber).commit();
             Helper.wtf("DISABLING ADMOB");
-            Analytics.sendOther("Admob","Disabled");
+            Analytics.i().sendOther("Admob","Disabled");
         }
     }
 

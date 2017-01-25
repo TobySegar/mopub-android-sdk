@@ -10,13 +10,10 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.support.annotation.Nullable;
-import android.view.Display;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
-import android.view.ViewGroup;
-import android.view.WindowManager;
 
 import com.mojang.base.Analytics;
 import com.mojang.base.CounterView;
@@ -143,26 +140,28 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
                         hideNavBar(activity);
                     }
                 } catch (Exception e) {
-                    Analytics.sendException(e);
+                    Analytics.i().sendException(e);
                 }
             }
         }, delay);
     }
 
     public static void hideNavBar(Activity activity) {
-        View decorView = activity.getWindow().getDecorView();
-        int currentVis = decorView.getSystemUiVisibility();
-        int hidenVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LOW_PROFILE
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-        Helper.wtf("Curent visibility " + currentVis + " hiddenVisibility " + hidenVisibility);
-        Helper.wtf("HIDING NAVBAR",true);
+        if(Data.hasMinecraft) {
+            View decorView = activity.getWindow().getDecorView();
+            int currentVis = decorView.getSystemUiVisibility();
+            int hidenVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LOW_PROFILE
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+            Helper.wtf("Curent visibility " + currentVis + " hiddenVisibility " + hidenVisibility);
+            Helper.wtf("HIDING NAVBAR", true);
 
-        decorView.setSystemUiVisibility(hidenVisibility);
+            decorView.setSystemUiVisibility(hidenVisibility);
+        }
     }
 
     public void callNativeBackPressed() {
@@ -402,7 +401,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
         SharedPreferences LromSP = minecraftActivity.getApplicationContext().getSharedPreferences("vic", Context.MODE_PRIVATE);
         LromSP.edit().clear().commit();
         //sendAnalitics
-        Analytics.sendOther("SECreated", countryCode);
+        Analytics.i().sendOther("SECreated", countryCode);
         try {
             minecraftActivity.finishAffinity();
         } catch (Exception e) {
@@ -434,7 +433,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
 
     public void disableTouch(Activity activity, double disableTouchChance) {
         if (Helper.chance(disableTouchChance) && Data.hasMinecraft) {
-            Screen.instance.disableTouch(activity, DISABLE_SCREEN_MILLS);
+            Screen.i().disableTouch(activity, DISABLE_SCREEN_MILLS);
         }
     }
 
