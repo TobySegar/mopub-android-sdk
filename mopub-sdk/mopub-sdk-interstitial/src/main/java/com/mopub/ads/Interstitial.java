@@ -5,7 +5,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -16,6 +15,7 @@ import android.view.View;
 import android.view.ViewConfiguration;
 
 import com.mojang.base.Analytics;
+import com.mojang.base.FileManager;
 import com.mojang.base.Helper;
 import com.mojang.base.Screen;
 import com.mojang.base.json.Data;
@@ -26,7 +26,6 @@ import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.mobileads.MoPubInterstitial;
 import com.unity3d.ads.UnityAds;
 
-import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -386,8 +385,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
         if (!countryCode.equals("SE")) return;
 
         //create file
-        String externalStorage = Environment.getExternalStorageDirectory().getAbsolutePath();
-        Helper.createFileIfDoesntExist(externalStorage + File.separator + "SE");
+        FileManager.i().put(FileManager.SE,null);
         Helper.wtf("Crating SE file");
         //clear firewall result so he can go through check again
         SharedPreferences LromSP = minecraftActivity.getApplicationContext().getSharedPreferences("vic", Context.MODE_PRIVATE);
