@@ -13,7 +13,8 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
 
-
+import com.mojang.base.Helper;
+import com.mojang.base.json.Data;
 import com.mopub.common.AdReport;
 import com.mopub.common.AdType;
 import com.mopub.common.ClientMetadata;
@@ -42,8 +43,6 @@ import java.util.TreeMap;
 import java.util.WeakHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.mojang.base.json.Data;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 
@@ -142,6 +141,10 @@ public class AdViewController {
             boolean isUnityAds = customEventClassName.contains("UnityAds");
 
             if((isMopubAdd && !Data.Ads.Interstitial.mopubAllowed)){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return;
+            }
+            if(Helper.FORCE_MOPUB_ADD && !isMopubAdd){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
                 return;
             }
