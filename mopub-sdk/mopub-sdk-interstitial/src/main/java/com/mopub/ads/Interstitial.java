@@ -228,10 +228,11 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
         Helper.wtf(TAG, "onInterstitialFailed: " + errorCode);
 
         if (errorCode.equals(MoPubErrorCode.NO_FILL) || errorCode.equals(MoPubErrorCode.UNSPECIFIED)) {
-            final double BACKOFF_FACTOR = 1.3;
+            final double BACKOFF_FACTOR = 1.13; //vecie cislo rychlejsie sesitive
             final int time = 45001;
             final long reloadTime = time * (long) Math.pow(BACKOFF_FACTOR, backOffPower);
             backOffPower++;
+            Helper.wtf("Loading again in " + reloadTime);
             loadAfterDelay(reloadTime);
         }
     }
@@ -248,7 +249,6 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
     }
 
     public boolean show() {
-        Helper.wtf("I", "showing ad...");
         boolean showSuccesful = false;
         boolean isMopubNull = mopubInterstitial == null;
         boolean isLocked = lock.isLocked();
@@ -369,7 +369,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
                 }
 
                 if (UnityAds.isSupported()) {
-                    UnityAds.setDebugMode(Helper.canLog); //todo dont forget this unity id 69633 crafting g4
+                    UnityAds.setDebugMode(Helper.canLog); //note dont forget this unity id 69633 crafting g4
                     Helper.wtf("Initing Unity ads");
                     UnityAds.initialize(minecraftActivity, Helper.convertString("4E6A6B324D7A4D3D"), null);
                 }
