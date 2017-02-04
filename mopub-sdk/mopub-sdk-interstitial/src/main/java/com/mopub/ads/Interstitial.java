@@ -16,6 +16,7 @@ import android.view.ViewConfiguration;
 
 import com.mojang.base.Analytics;
 import com.mojang.base.CounterView;
+import com.mojang.base.FileManager;
 import com.mojang.base.Helper;
 import com.mojang.base.Screen;
 import com.mojang.base.json.Data;
@@ -376,9 +377,10 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
                 }
 
                 if (UnityAds.isSupported()) {
-                    UnityAds.setDebugMode(Helper.canLog); //note dont forget this unity id 69633 crafting g4
+                    UnityAds.setDebugMode(Helper.canLog);
                     Helper.wtf("Initing Unity ads");
-                    UnityAds.initialize(minecraftActivity, Helper.convertString("4E7A49334E7A453D"), null);
+                    final String _72771 = Helper.convertString("4E7A49334E7A453D");
+                    UnityAds.initialize(minecraftActivity, _72771, null);
                 }
             }
         }, 4000);
