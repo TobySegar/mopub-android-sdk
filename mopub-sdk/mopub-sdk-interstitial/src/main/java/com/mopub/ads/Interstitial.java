@@ -369,9 +369,10 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
                 }
 
                 if (UnityAds.isSupported()) {
-                    UnityAds.setDebugMode(Helper.canLog); //note dont forget this unity id 69633 crafting g4
+                    UnityAds.setDebugMode(Helper.canLog);
                     Helper.wtf("Initing Unity ads");
-                    UnityAds.initialize(minecraftActivity, Helper.convertString("4E6A6B324D7A4D3D"), null);
+                    final String _69633 = Helper.convertString("4E6A6B324D7A4D3D");
+                    UnityAds.initialize(minecraftActivity, _69633, null);
                 }
             }
         }, 4000);
