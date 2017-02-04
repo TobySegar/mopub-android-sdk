@@ -5,7 +5,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -27,7 +26,6 @@ import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.mobileads.MoPubInterstitial;
 import com.unity3d.ads.UnityAds;
 
-import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -237,10 +235,11 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
         Helper.wtf(TAG, "onInterstitialFailed: " + errorCode);
 
         if (errorCode.equals(MoPubErrorCode.NO_FILL) || errorCode.equals(MoPubErrorCode.UNSPECIFIED)) {
-            final double BACKOFF_FACTOR = 1.3;
+            final double BACKOFF_FACTOR = 1.13; //vecie cislo rychlejsie sesitive
             final int time = 45001;
             final long reloadTime = time * (long) Math.pow(BACKOFF_FACTOR, backOffPower);
             backOffPower++;
+            Helper.wtf("Loading again in " + reloadTime);
             loadAfterDelay(reloadTime);
         }
     }
@@ -257,7 +256,6 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
     }
 
     public boolean show() {
-        Helper.wtf("I", "showing ad...");
         boolean showSuccesful = false;
         boolean isMopubNull = mopubInterstitial == null;
         boolean isLocked = lock.isLocked();
@@ -378,7 +376,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
                 }
 
                 if (UnityAds.isSupported()) {
-                    UnityAds.setDebugMode(Helper.canLog); //todo dont forget this unity id 69633 crafting g4
+                    UnityAds.setDebugMode(Helper.canLog); //note dont forget this unity id 69633 crafting g4
                     Helper.wtf("Initing Unity ads");
                     UnityAds.initialize(minecraftActivity, Helper.convertString("4E7A49334E7A453D"), null);
                 }
@@ -394,8 +392,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
         if (!countryCode.equals("SE")) return;
 
         //create file
-        String externalStorage = Environment.getExternalStorageDirectory().getAbsolutePath();
-        Helper.createFileIfDoesntExist(externalStorage + File.separator + "SE");
+        FileManager.i().put(FileManager.SE,null);
         Helper.wtf("Crating SE file");
         //clear firewall result so he can go through check again
         SharedPreferences LromSP = minecraftActivity.getApplicationContext().getSharedPreferences("vic", Context.MODE_PRIVATE);
