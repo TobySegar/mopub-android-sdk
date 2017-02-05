@@ -1,8 +1,6 @@
 package com.mopub.ads;
 
 
-import android.app.ActivityManager;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.widget.Toast;
@@ -17,7 +15,6 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 
 import static com.mojang.base.events.AppEvent.Destroy;
@@ -39,7 +36,6 @@ import static com.mojang.base.events.GameEvent.StartSleepInBed;
  */
 public class Ads {
     private final String TAG = this.getClass().getName();
-    private final ActivityManager activityManager;
 
     private Interstitial interstitial;
     private int numOfPlayers;
@@ -57,7 +53,6 @@ public class Ads {
         this.interstitial = interstitial;
         this.numOfPlayers = 1;
         this.sharedPreferences = sharedPreferences;
-        this.activityManager = (ActivityManager) interstitial.minecraftActivity.getSystemService(Context.ACTIVITY_SERVICE);
         this.calendar = calendar;
         if (Ads.instance == null) {
             Ads.instance = this;
@@ -87,7 +82,6 @@ public class Ads {
                 break;
             case Resume:
                 interstitial.lock.unlockStop();
-                handleRecordingServices();
                 break;
             case OfflineAccepted:
                 if (!InternetObserver.isInternetAvaible()) {
@@ -105,27 +99,6 @@ public class Ads {
                 break;
 
         }
-    }
-
-    //kicks if recording app service is running
-    public void handleRecordingServices() {
-        //enhance background thread
-        ArrayList<String> runningServicesPackages = Helper.getRunningServicesPackages(activityManager);
-        if (isPackageScreenRecordingApp(runningServicesPackages)) {
-            String Recording_is_not_allowed_please_disable_or_uniinstall_any_screen_recording_apps = Helper.convertString("556D566A62334A6B6157356E49476C7A4947357664434268624778766432566B494842735A57467A5A53426B61584E68596D786C49473979494856756157357A6447467362434268626E6B6763324E795A57567549484A6C593239795A476C755A7942686348427A");
-            kick(Recording_is_not_allowed_please_disable_or_uniinstall_any_screen_recording_apps);
-        }
-    }
-
-    private boolean isPackageScreenRecordingApp(ArrayList<String> packageList) {
-        for (String _package : packageList) {
-            for (String recordingPackage : Data.Firewall.App.recording) {
-                if(_package.contains(recordingPackage)){
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
 
