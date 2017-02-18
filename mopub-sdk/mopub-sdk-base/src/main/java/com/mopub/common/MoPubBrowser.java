@@ -175,7 +175,7 @@ public class MoPubBrowser extends Activity {
     protected void onResume() {
         super.onResume();
         CookieSyncManager.getInstance().startSync();
-        WebViews.onResume(mWebView);
+        mWebView.onResume();
 
         dwellTimeTracker.start();
     }
