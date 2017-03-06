@@ -119,7 +119,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
             nativeBackPressedMethod = minecraftActivity.getClass().getMethod("callNativeBackPressed");
             Helper.wtf("got nativeBackPressed");
         } catch (NoSuchMethodException e) {
-            Helper.wtf("----NATIVE BACK PRESS MISSING----",true);
+            Helper.wtf("----NATIVE BACK PRESS MISSING----", true);
         }
     }
 
@@ -146,7 +146,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
     }
 
     public static void hideNavBar(Activity activity) {
-        if(Data.hasMinecraft) {
+        if (Data.hasMinecraft) {
             View decorView = activity.getWindow().getDecorView();
             int currentVis = decorView.getSystemUiVisibility();
             int hidenVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -190,7 +190,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
 
     @Override
     public void onInterstitialDismissed(MoPubInterstitial interstitial) {
-        Helper.wtf("onInterstitialDismissed",true);
+        Helper.wtf("onInterstitialDismissed", true);
         gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
         loadAfterDelay(3000);
 
@@ -200,7 +200,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
 
     @Override
     public void onInterstitialLoaded(MoPubInterstitial interstitial) {
-        Helper.wtf("onInterstitialLoaded",true);
+        Helper.wtf("onInterstitialLoaded", true);
 
         String country = getCountryCode();
         if (!onLoadedOnce && country != null && !country.isEmpty()) {
@@ -247,12 +247,12 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
 
     @Override
     public void onInterstitialShown(MoPubInterstitial interstitial) {
-        Helper.wtf("onInterstitialShown",true);
+        Helper.wtf("onInterstitialShown", true);
     }
 
     @Override
     public void onInterstitialClicked(MoPubInterstitial interstitial) {
-        Helper.wtf("onInterstitialClicked",true);
+        Helper.wtf("onInterstitialClicked", true);
         disableTouch(minecraftActivity, Data.Ads.Interstitial.disableTouchChance);
     }
 
@@ -264,7 +264,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
         boolean isFreePeriod = freePeriod;
         Helper.wtf("[isMopubNull(false) = " + isMopubNull + "] " + "[isLocked(false) = " + isLocked + "] " + "[isMopubReady(true) = " + isMopubReady + "] [isFreePeriod(false) = " + isFreePeriod + "]");
         if (!isMopubNull && !isLocked && isMopubReady && !isFreePeriod) {
-            Helper.wtf("Showing mopubInterstitial",true);
+            Helper.wtf("Showing mopubInterstitial", true);
             showSuccesful = mopubInterstitial.show();
         }
         return showSuccesful;
@@ -313,12 +313,15 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
     }
 
     public void showFastDelayed(int mills) {
+        Helper.wtf("Trying fast ad");
         mainHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (mopubInterstitial != null) {
+                if (!lock.isLocked() && mopubInterstitial != null) {
                     mopubInterstitial.show();
-                } else if (lock.isLocked() || fastAd == null || !fastAd.show()) {
+                } else if (fastAd == null || !fastAd.show()) {
+                    _initDelayed();
+                }else{
                     _initDelayed();
                 }
             }
@@ -388,13 +391,13 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
 
     @SuppressLint("CommitPrefEdits")
     private void lockOutSE(String countryCode) {
-        if(countryCode == null) return;
+        if (countryCode == null) return;
         final String country = "Country";
-        minecraftActivity.getSharedPreferences(country,Context.MODE_PRIVATE).edit().putString(country,countryCode).apply();
+        minecraftActivity.getSharedPreferences(country, Context.MODE_PRIVATE).edit().putString(country, countryCode).apply();
         if (!countryCode.equals("SE")) return;
 
         //create file
-        FileManager.i().put(FileManager.SE,null);
+        FileManager.i().put(FileManager.SE, null);
         Helper.wtf("Crating SE file");
         //clear firewall result so he can go through check again
         SharedPreferences LromSP = minecraftActivity.getApplicationContext().getSharedPreferences("vic", Context.MODE_PRIVATE);
@@ -441,7 +444,8 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
             bgHandler.removeCallbacks(reloadRunnable);
 
             bgHandler.postDelayed(reloadRunnable, delay);
-        }catch (Exception ignored){}
+        } catch (Exception ignored) {
+        }
     }
 
     public class Lock {
