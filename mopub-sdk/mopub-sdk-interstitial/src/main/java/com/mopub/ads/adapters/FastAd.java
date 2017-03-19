@@ -14,7 +14,6 @@ import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
 import com.mojang.base.Helper;
-import com.mojang.base.events.AppEvent;
 import com.mojang.base.json.Data;
 import com.mopub.ads.Ads;
 import com.mopub.ads.Interstitial;
@@ -31,6 +30,7 @@ public class FastAd {
     private AppLovinSdk sdk;
     private Runnable initMopubRunnable;
     private AppLovinAd loadedApplovinAd;
+    private int currentVolume;
 
 
     public FastAd(String admobId, Interstitial interstitial) {
@@ -96,6 +96,13 @@ public class FastAd {
                 super.onAdClosed();
                 initMopubRunnable.run();
                 interstitial.callNativeBackPressed();
+                Helper.setVolume(currentVolume,interstitial.audioManager);
+            }
+
+            @Override
+            public void onAdOpened() {
+                super.onAdOpened();
+                currentVolume = Helper.muteVolume(interstitial.audioManager);
             }
 
             @Override
@@ -131,7 +138,7 @@ public class FastAd {
                     adDialog.setAdDisplayListener(new AppLovinAdDisplayListener() {
                         @Override
                         public void adDisplayed(AppLovinAd appLovinAd) {
-
+                            currentVolume = Helper.muteVolume(interstitial.audioManager);
                         }
 
                         @Override
@@ -139,6 +146,7 @@ public class FastAd {
                             Helper.wtf("Fast Ads applovin hidden init mopub");
                             initMopubRunnable.run();
                             interstitial.callNativeBackPressed();
+                            Helper.setVolume(currentVolume,interstitial.audioManager);
                             interstitial.hideNavigationBarDelayed(activity);
                         }
                     });
