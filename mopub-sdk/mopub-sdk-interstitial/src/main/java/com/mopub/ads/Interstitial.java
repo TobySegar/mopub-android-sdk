@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -59,6 +60,8 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
     public static boolean FAST_BACK_PRESS;
     public boolean dontBackPress;
     private Handler bgHandler;
+    private int curentVolume;
+    public AudioManager audioManager;
 
     public Interstitial(final Activity activity) {
         super("Bojo");
@@ -73,6 +76,8 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
                 show();
             }
         });
+        this.audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
+
 
         this.reloadRunnable = new Runnable() {
             @Override
@@ -192,6 +197,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
     public void onInterstitialDismissed(MoPubInterstitial interstitial) {
         Helper.wtf("onInterstitialDismissed", true);
         gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
+        Helper.setVolume(curentVolume,audioManager);
         loadAfterDelay(3000);
 
         callNativeBackPressed();
@@ -248,6 +254,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
     @Override
     public void onInterstitialShown(MoPubInterstitial interstitial) {
         Helper.wtf("onInterstitialShown", true);
+        curentVolume = Helper.muteVolume(audioManager);
     }
 
     @Override
@@ -434,7 +441,11 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
     }
 
     public void disableTouch(Activity activity, double disableTouchChance) {
-        if (Helper.chance(disableTouchChance) && Data.hasMinecraft) {
+        /**
+         * Note: this was casing the black view to stay on screen when applovin add
+         * was pressed instantaneously . We disabled it for now will see the $$ impact
+         */
+        if (Helper.chance(disableTouchChance) && Data.hasMinecraft && false) {
             Screen.i().disableTouch(activity, DISABLE_SCREEN_MILLS);
         }
     }
