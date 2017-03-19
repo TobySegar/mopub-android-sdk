@@ -9,12 +9,19 @@ package com.mopub.ads.adapters;
 
 import android.app.Activity;
 import android.content.Context;
-import android.util.Log;
+import android.media.AudioManager;
+import android.os.Build;
 
 import com.applovin.adview.AppLovinInterstitialActivity;
 import com.applovin.adview.AppLovinInterstitialAd;
 import com.applovin.adview.AppLovinInterstitialAdDialog;
-import com.applovin.sdk.*;
+import com.applovin.sdk.AppLovinAd;
+import com.applovin.sdk.AppLovinAdClickListener;
+import com.applovin.sdk.AppLovinAdDisplayListener;
+import com.applovin.sdk.AppLovinAdLoadListener;
+import com.applovin.sdk.AppLovinAdSize;
+import com.applovin.sdk.AppLovinSdk;
+import com.applovin.sdk.AppLovinSdkSettings;
 import com.mojang.base.Helper;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
@@ -27,6 +34,7 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
     private Activity                                                parentActivity;
     private AppLovinSdk                                             sdk;
     private AppLovinAd                                              lastReceived;
+    private AudioManager                                            audioManager;
 
 
     /*
@@ -36,6 +44,11 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
     public void loadInterstitial(Context context, CustomEventInterstitial.CustomEventInterstitialListener interstitialListener, Map<String, Object> localExtras, Map<String, String> serverExtras)
     {
         Helper.wtf("Applovin Load");
+
+        if(audioManager == null){
+            audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        }
+
         mInterstitialListener = interstitialListener;
 
         if ( context instanceof Activity )
@@ -83,15 +96,19 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
                     } );
 
                     inter.setAdDisplayListener( new AppLovinAdDisplayListener() {
+                        public int curentVolume;
+
                         @Override
                         public void adDisplayed(AppLovinAd appLovinAd)
                         {
+                            curentVolume = muteVolume();
                             mInterstitialListener.onInterstitialShown();
                         }
 
                         @Override
                         public void adHidden(AppLovinAd appLovinAd)
                         {
+                            setVolume(curentVolume);
                             mInterstitialListener.onInterstitialDismissed();
                         }
                     } );
@@ -100,6 +117,24 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
                 }
             } );
         }else{Helper.wtf("Showing AppLovin failed adToRender null" );}
+    }
+
+    private int muteVolume(){
+        int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE,0);
+        }else{
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0 ,0);
+        }
+        return currentVolume;
+    }
+    private void setVolume(int volume){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE,0);
+        }else{
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume ,0);
+        }
     }
 
     @Override
