@@ -79,6 +79,9 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
         this.audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
 
 
+        this.audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
+
+
         this.reloadRunnable = new Runnable() {
             @Override
             public void run() {
