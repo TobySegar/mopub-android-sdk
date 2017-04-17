@@ -117,9 +117,8 @@ public class Ads {
                 interstitial.lock.lockMultiplayer();
                 break;
             case GamePlayStart:
-                //todo Zobrazuje sa ad ked sa pripojis na online server vymaz
                 interstitial.lock.gameUnlock();
-                interstitial.showFastDelayed(2000);
+                interstitial.showFastDelayed(5000);
                 interstitial.schedulePeriodicShows();
                 break;
             case LeaveLevel:
