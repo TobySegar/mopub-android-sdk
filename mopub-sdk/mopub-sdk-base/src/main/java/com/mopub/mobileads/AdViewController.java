@@ -202,7 +202,6 @@ public class AdViewController {
         Map<String,String> serverExtras = new HashMap<>();
         serverExtras.put("adUnitID", Data.Ads.Interstitial.failoverId);
 
-        //onAdLoadSuccess  wasFailoverApplovin = null
         boolean forceApplovin = wasFailoverApplovin != null && !wasFailoverApplovin;
 
         AdResponse failoverResponse = new AdResponse.Builder()

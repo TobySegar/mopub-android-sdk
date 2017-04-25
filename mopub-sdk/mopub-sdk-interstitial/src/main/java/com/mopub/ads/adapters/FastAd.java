@@ -102,7 +102,7 @@ public class FastAd {
             @Override
             public void onAdOpened() {
                 super.onAdOpened();
-                currentVolume = Helper.muteVolume(interstitial.audioManager);
+                currentVolume = Helper.setQuietVolume(interstitial.audioManager);
             }
 
             @Override
@@ -115,7 +115,7 @@ public class FastAd {
             public void onAdLeftApplication() {
                 super.onAdLeftApplication();
                 GooglePlayServicesInterstitial.registerAdmobClick(activity);
-                Ads.getInstance().getInterstitial().disableTouch(activity,Data.Ads.Interstitial.disableTouchChance);
+                Ads.getInstance().getInterstitial().showBlackScreen(activity,Data.Ads.Interstitial.disableTouchChance);
             }
         });
 
@@ -138,7 +138,7 @@ public class FastAd {
                     adDialog.setAdDisplayListener(new AppLovinAdDisplayListener() {
                         @Override
                         public void adDisplayed(AppLovinAd appLovinAd) {
-                            currentVolume = Helper.muteVolume(interstitial.audioManager);
+                            currentVolume = Helper.setQuietVolume(interstitial.audioManager);
                         }
 
                         @Override
