@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.mojang.base.Helper;
 import com.mopub.common.AdFormat;
 import com.mopub.common.Preconditions;
 import com.mopub.common.VisibleForTesting;
@@ -16,11 +17,11 @@ import com.mopub.mobileads.factories.CustomEventInterstitialAdapterFactory;
 import java.util.Map;
 
 import static com.mopub.mobileads.MoPubErrorCode.ADAPTER_NOT_FOUND;
+import static com.mopub.mobileads.MoPubInterstitial.InterstitialState.DESTROYED;
 import static com.mopub.mobileads.MoPubInterstitial.InterstitialState.IDLE;
 import static com.mopub.mobileads.MoPubInterstitial.InterstitialState.LOADING;
 import static com.mopub.mobileads.MoPubInterstitial.InterstitialState.READY;
 import static com.mopub.mobileads.MoPubInterstitial.InterstitialState.SHOWING;
-import static com.mopub.mobileads.MoPubInterstitial.InterstitialState.DESTROYED;
 
 public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomEventInterstitialAdapterListener {
     @VisibleForTesting
@@ -51,17 +52,70 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
         DESTROYED
     }
 
+    /**
+     * Bojo vytvorene na trakovanie aka intertitial response prisla from mopub server
+     */
+    public enum AdType {
+        UNKNOWN,
+        ADMOB,
+        FACEBOOK,
+        MOPUB_HTML,
+        MOPUB_VID,
+        MOPUB_INTER,
+        UNITY,
+        APPLOVIN
+    }
+
     @NonNull private MoPubInterstitialView mInterstitialView;
     @Nullable private CustomEventInterstitialAdapter mCustomEventInterstitialAdapter;
     @Nullable private InterstitialAdListener mInterstitialAdListener;
     @NonNull private Activity mActivity;
     @NonNull private volatile InterstitialState mCurrentInterstitialState;
+    @NonNull private AdType mAdType = AdType.UNKNOWN;
+
+    public AdType getAdType() {
+        return mAdType;
+    }
+
+    private void setAdType(String className) {
+        switch (className) {
+            case ("com.mopub.mobileads.HtmlInterstitial"):
+                mAdType = AdType.MOPUB_HTML;
+                break;
+            case ("com.mopub.mobileads.VastVideoInterstitial"):
+                mAdType = AdType.MOPUB_VID;
+                break;
+            case ("com.mopub.mraid.MraidInterstitial"):
+                mAdType = AdType.MOPUB_INTER;
+                break;
+            case ("com.mopub.ads.adapters.UnityAdsMopubEvents"):
+                mAdType = AdType.UNITY;
+                break;
+            case ("com.mopub.ads.adapters.ApplovinInterstitial"):
+                mAdType = AdType.APPLOVIN;
+                break;
+            case ("com.mopub.ads.adapters.GooglePlayServicesInterstitial"):
+                mAdType = AdType.ADMOB;
+                break;
+            case ("com.mopub.ads.adapters.FacebookInterstitial"):
+                mAdType = AdType.FACEBOOK;
+                break;
+            default:
+                mAdType = AdType.UNKNOWN;
+                break;
+        }
+        Helper.wtf("adType set to: " + className);
+    }
 
     public interface InterstitialAdListener {
         void onInterstitialLoaded(MoPubInterstitial interstitial);
+
         void onInterstitialFailed(MoPubInterstitial interstitial, MoPubErrorCode errorCode);
+
         void onInterstitialShown(MoPubInterstitial interstitial);
+
         void onInterstitialClicked(MoPubInterstitial interstitial);
+
         void onInterstitialDismissed(MoPubInterstitial interstitial);
     }
 
@@ -90,7 +144,7 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
      */
     @VisibleForTesting
     synchronized boolean attemptStateTransition(@NonNull final InterstitialState endState,
-            boolean forceRefresh) {
+                                                boolean forceRefresh) {
         Preconditions.checkNotNull(endState);
 
         final InterstitialState startState = mCurrentInterstitialState;
@@ -105,7 +159,7 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
          */
         switch (startState) {
             case IDLE:
-                switch(endState) {
+                switch (endState) {
                     case LOADING:
                         // Going from IDLE to LOADING is the usual load case
                         invalidateInterstitialAdapter();
@@ -185,7 +239,7 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
                         return false;
                 }
             case SHOWING:
-                switch(endState) {
+                switch (endState) {
                     case IDLE:
                         if (forceRefresh) {
                             MoPubLog.d("Cannot force refresh while showing an interstitial.");
@@ -356,7 +410,6 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
         if (isDestroyed()) {
             return;
         }
-
         mInterstitialView.trackImpression();
 
         if (mInterstitialAdListener != null) {
@@ -388,6 +441,8 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
         if (mInterstitialAdListener != null) {
             mInterstitialAdListener.onInterstitialDismissed(this);
         }
+
+        setAdType("unknown");
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -429,6 +484,8 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
                     mAdViewController.getAdReport());
             mCustomEventInterstitialAdapter.setAdapterListener(MoPubInterstitial.this);
             mCustomEventInterstitialAdapter.loadInterstitial();
+
+            setAdType(customEventClassName);
         }
 
         protected void trackImpression() {
@@ -467,7 +524,7 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
     @VisibleForTesting
     @Deprecated
     void setCustomEventInterstitialAdapter(@NonNull final CustomEventInterstitialAdapter
-            customEventInterstitialAdapter) {
+                                                   customEventInterstitialAdapter) {
         mCustomEventInterstitialAdapter = customEventInterstitialAdapter;
     }
 }

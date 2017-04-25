@@ -5,7 +5,6 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.mojang.base.Analytics;
 import com.mopub.ads.Proxy;
 import com.mopub.common.AdReport;
 import com.mopub.common.Constants;

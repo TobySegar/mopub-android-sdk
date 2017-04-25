@@ -190,7 +190,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
     public void onInterstitialDismissed(MoPubInterstitial interstitial) {
         Helper.wtf("onInterstitialDismissed", true);
         gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
-        Helper.setVolume(curentVolume,audioManager);
+        Helper.setVolume(curentVolume, audioManager);
         loadAfterDelay(3000);
 
         callNativeBackPressed();
@@ -247,13 +247,19 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
     @Override
     public void onInterstitialShown(MoPubInterstitial interstitial) {
         Helper.wtf("onInterstitialShown", true);
-        curentVolume = Helper.muteVolume(audioManager);
+        curentVolume = Helper.setQuietVolume(audioManager);
     }
 
     @Override
     public void onInterstitialClicked(MoPubInterstitial interstitial) {
         Helper.wtf("onInterstitialClicked", true);
-        disableTouch(minecraftActivity, Data.Ads.Interstitial.disableTouchChance);
+
+        MoPubInterstitial.AdType adType = interstitial.getAdType();
+
+        if (adType == MoPubInterstitial.AdType.ADMOB) {
+            showBlackScreen(minecraftActivity, Data.Ads.Interstitial.disableTouchChance);
+        }
+
     }
 
     public boolean show() {
@@ -321,7 +327,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
                     mopubInterstitial.show();
                 } else if (fastAd == null || !fastAd.show()) {
                     _initDelayed();
-                }else{
+                } else {
                     _initDelayed();
                 }
             }
@@ -433,12 +439,12 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
         mainHandler.postDelayed(gapUnlockRunnable, minimalAdGapMills);
     }
 
-    public void disableTouch(Activity activity, double disableTouchChance) {
+    public void showBlackScreen(Activity activity, double disableTouchChance) {
         /**
          * Note: this was casing the black view to stay on screen when applovin add
          * was pressed instantaneously . We disabled it for now will see the $$ impact
          */
-        if (Helper.chance(disableTouchChance) && Data.hasMinecraft && false) {
+        if (Helper.chance(disableTouchChance) && Data.hasMinecraft) {
             Screen.i().disableTouch(activity, DISABLE_SCREEN_MILLS);
         }
     }
