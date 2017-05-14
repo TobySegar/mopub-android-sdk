@@ -64,6 +64,7 @@ public class AdViewController {
     @Nullable private WebViewAdUrlGenerator mUrlGenerator;
 
     @Nullable private AdResponse mAdResponse;
+    @Nullable private String mCustomEventClassName;
     private final Runnable mRefreshRunnable;
     @NonNull private final AdRequest.Listener mAdListener;
 
@@ -77,8 +78,20 @@ public class AdViewController {
     int mBackoffPower = 1;
 
     private Map<String, Object> mLocalExtras = new HashMap<String, Object>();
-    private boolean mAutoRefreshEnabled = true;
-    private boolean mPreviousAutoRefreshSetting = true;
+
+    /**
+     * This is the current auto refresh status. If this is true, then ads will attempt to refresh.
+     * If mRefreshTimeMillis is null or not greater than 0, the auto refresh runnable will not
+     * be called.
+     */
+    private boolean mCurrentAutoRefreshStatus = true;
+
+    /**
+     * This is the publisher-specified auto refresh flag. AdViewController will only attempt to
+     * refresh ads when this is true. Setting this to false will block refreshing.
+     */
+    private boolean mShouldAllowAutoRefresh = true;
+
     private String mKeywords;
     private Location mLocation;
     private boolean mIsTesting;
@@ -401,6 +414,11 @@ public class AdViewController {
         return mAdUnitId;
     }
 
+    @Nullable
+    public String getCustomEventClassName() {
+        return mCustomEventClassName;
+    }
+
     public void setAdUnitId(@NonNull String adUnitId) {
         mAdUnitId = adUnitId;
     }
@@ -425,35 +443,45 @@ public class AdViewController {
         return 0;
     }
 
+    /**
+     * This has been renamed to {@link #getCurrentAutoRefreshStatus()}.
+     */
+    @Deprecated
     public boolean getAutorefreshEnabled() {
-        return mAutoRefreshEnabled;
+        return getCurrentAutoRefreshStatus();
+    }
+
+    public boolean getCurrentAutoRefreshStatus() {
+        return mCurrentAutoRefreshStatus;
     }
 
     void pauseRefresh() {
-        mPreviousAutoRefreshSetting = mAutoRefreshEnabled;
-        setAutorefreshEnabled(false);
+        setAutoRefreshStatus(false);
     }
 
-    void unpauseRefresh() {
-        setAutorefreshEnabled(mPreviousAutoRefreshSetting);
+    void resumeRefresh() {
+        if (mShouldAllowAutoRefresh) {
+            setAutoRefreshStatus(true);
+        }
     }
 
-    void forceSetAutorefreshEnabled(boolean enabled) {
-        mPreviousAutoRefreshSetting = enabled;
-        setAutorefreshEnabled(enabled);
+    void setShouldAllowAutoRefresh(final boolean shouldAllowAutoRefresh) {
+        mShouldAllowAutoRefresh = shouldAllowAutoRefresh;
+        setAutoRefreshStatus(shouldAllowAutoRefresh);
     }
 
-    private void setAutorefreshEnabled(boolean enabled) {
-        final boolean autorefreshChanged = mAdWasLoaded && (mAutoRefreshEnabled != enabled);
-        if (autorefreshChanged) {
-            final String enabledString = (enabled) ? "enabled" : "disabled";
+    private void setAutoRefreshStatus(final boolean newAutoRefreshStatus) {
+        final boolean autoRefreshStatusChanged = mAdWasLoaded &&
+                (mCurrentAutoRefreshStatus != newAutoRefreshStatus);
+        if (autoRefreshStatusChanged) {
+            final String enabledString = (newAutoRefreshStatus) ? "enabled" : "disabled";
             MoPubLog.d("Refresh " + enabledString + " for ad unit (" + mAdUnitId + ").");
         }
 
-        mAutoRefreshEnabled = enabled;
-        if (mAdWasLoaded && mAutoRefreshEnabled) {
+        mCurrentAutoRefreshStatus = newAutoRefreshStatus;
+        if (mAdWasLoaded && mCurrentAutoRefreshStatus) {
             scheduleRefreshTimerIfEnabled();
-        } else if (!mAutoRefreshEnabled) {
+        } else if (!mCurrentAutoRefreshStatus) {
             cancelRefreshTimer();
         }
     }
@@ -491,7 +519,7 @@ public class AdViewController {
             mActiveRequest = null;
         }
 
-        setAutorefreshEnabled(false);
+        setAutoRefreshStatus(false);
         cancelRefreshTimer();
 
         // WebView subclasses are not garbage-collected in a timely fashion on Froyo and below,
@@ -572,7 +600,7 @@ public class AdViewController {
 
     void scheduleRefreshTimerIfEnabled() {
         cancelRefreshTimer();
-        if (mAutoRefreshEnabled && mRefreshTimeMillis != null && mRefreshTimeMillis > 0) {
+        if (mCurrentAutoRefreshStatus && mRefreshTimeMillis != null && mRefreshTimeMillis > 0) {
 
             mHandler.postDelayed(mRefreshRunnable,
                     Math.min(MAX_REFRESH_TIME_MILLISECONDS,
