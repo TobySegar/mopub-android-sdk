@@ -51,7 +51,7 @@ public class Ads {
 
     public Ads(Interstitial interstitial, SharedPreferences sharedPreferences, Calendar calendar) {
         this.interstitial = interstitial;
-        this.numOfPlayers = 1;
+        this.numOfPlayers = 0;
         this.sharedPreferences = sharedPreferences;
         this.calendar = calendar;
         if (Ads.instance == null) {
@@ -90,9 +90,6 @@ public class Ads {
                 break;
             case OnlineAccepted:
                 if (InternetObserver.isInternetAvaible()) {
-                    if (numOfPlayers != 1) {
-                        throw new RuntimeException("numOfPlayer > 1 this should never happen");
-                    }
                     interstitial.lock.internetUnlock();
                     interstitial.init(true);
                 }
@@ -107,10 +104,10 @@ public class Ads {
         switch (gameEvent.event) {
             case PlayerConnected:
                 numOfPlayers++;
-                interstitial.lock.lockMultiplayer();
+                if (numOfPlayers > 1) interstitial.lock.lockMultiplayer();
                 break;
             case PlayerDisconnected:
-                if (numOfPlayers > 1) numOfPlayers--;
+                if (numOfPlayers > 0) numOfPlayers--;
                 if (numOfPlayers == 1) interstitial.lock.unlockMultiplayer();
                 break;
             case PlayerJoinedMultiplayer:
