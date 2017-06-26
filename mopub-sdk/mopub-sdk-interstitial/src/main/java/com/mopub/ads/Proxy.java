@@ -4,10 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.google.android.gms.ads.InterstitialAd;
-import com.google.firebase.crash.FirebaseCrash;
 import com.mojang.base.Helper;
 import com.mojang.base.events.AppEvent;
 import com.mopub.mobileads.CustomEventInterstitial;
@@ -37,7 +35,7 @@ public class Proxy extends Activity {
     }
 
     public void Finish() {
-        Helper.wtf(proxy, "Finish");
+        Helper.wtf(proxy, "Finish -- posting fake stop");
         EventBus.getDefault().post(new AppEvent(Stop));
         finish();
     }

@@ -385,8 +385,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
                     mopubInterstitial.forceRefresh();
                 }
 
-                if (UnityAds.isSupported()) {
-                    UnityAds.setDebugMode(Helper.canLog);
+                if (UnityAds.isSupported() && !UnityAds.isInitialized()) {
                     Helper.wtf("Initing Unity ads");
                     final String _69633 = Helper.convertString("4E6A6B324D7A4D3D");
                     UnityAds.initialize(minecraftActivity, _69633, null);
