@@ -119,6 +119,7 @@ public class Ads {
                 interstitial.schedulePeriodicShows();
                 break;
             case LeaveLevel:
+                if (numOfPlayers > 0) numOfPlayers--;
                 interstitial.lock.gameLock();
                 interstitial.lock.unlockMultiplayer();
                 break;

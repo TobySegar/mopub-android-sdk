@@ -159,6 +159,11 @@ public class AdViewController {
                 return;
             }
 
+            if(Helper.FORCE_UNITY_ADD && !isUnityAd){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return;
+            }
+
             if((isMopubAdd && !Data.Ads.Interstitial.mopubAllowed)){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
                 return;
