@@ -162,7 +162,7 @@ public class Ads {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putInt(FIRST_RUN_DAY_KEY, today);
             editor.putBoolean(FIRST_RUN_KEY, true);
-            editor.commit();
+            editor.apply();
         }
 
         if (freePeriodAllowed) {

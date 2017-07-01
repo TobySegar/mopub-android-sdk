@@ -57,7 +57,6 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
     public boolean pauseScreenShowed;
     public static boolean FAST_BACK_PRESS;
     public boolean dontBackPress;
-    private Handler bgHandler;
     private int curentVolume;
     public AudioManager audioManager;
 
@@ -104,12 +103,6 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
         };
 
         getNativeBackPressed();
-    }
-
-    @Override
-    protected void onLooperPrepared() {
-        super.onLooperPrepared();
-        this.bgHandler = new Handler(getLooper());
     }
 
     private void getNativeBackPressed() {
@@ -371,7 +364,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
 
     private void _initDelayed() {
         Helper.wtf("Initing Mopub in 4 sec...");
-        bgHandler.postDelayed(new Runnable() {
+        Helper.runOnWorkerThread(new Runnable() {
             @Override
             public void run() {
                 if (fastAd != null) fastAd = null;
@@ -406,7 +399,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
         Helper.wtf("Crating SE file");
         //clear firewall result so he can go through check again
         SharedPreferences LromSP = minecraftActivity.getApplicationContext().getSharedPreferences("vic", Context.MODE_PRIVATE);
-        LromSP.edit().clear().commit();
+        LromSP.edit().clear().apply();
         //sendAnalitics
         Analytics.i().sendOther("SECreated", countryCode);
         try {
@@ -450,10 +443,10 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
 
     private void loadAfterDelay(long delay) {
         try {
-            bgHandler.removeCallbacks(reloadRunnable);
-
-            bgHandler.postDelayed(reloadRunnable, delay);
-        } catch (Exception ignored) {
+            Helper.removeFromWorkerThread(reloadRunnable);
+            Helper.runOnWorkerThread(reloadRunnable, delay);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
