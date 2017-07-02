@@ -74,7 +74,7 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
 
     @Override
     protected boolean usesProxy() {
-        return true;
+        return false;
     }
 
     @Override
