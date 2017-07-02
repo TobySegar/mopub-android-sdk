@@ -20,6 +20,7 @@ import java.util.Calendar;
 import static com.mojang.base.events.AppEvent.Destroy;
 import static com.mojang.base.events.AppEvent.OfflineAccepted;
 import static com.mojang.base.events.AppEvent.OnlineAccepted;
+import static com.mojang.base.events.AppEvent.Pause;
 import static com.mojang.base.events.AppEvent.Resume;
 import static com.mojang.base.events.AppEvent.Stop;
 import static com.mojang.base.events.GameEvent.BlockChanged;
@@ -76,6 +77,11 @@ public class Ads {
         switch (appEvent.event) {
             case Destroy:
                 interstitial.destroy();
+                break;
+            case Pause:
+                final int timeToSleep = 500;
+                Helper.wtf("Sleeping " + timeToSleep);
+                try {Thread.sleep(timeToSleep); } catch (InterruptedException e) { e.printStackTrace(); }
                 break;
             case Stop:
                 interstitial.lock.stopLock();
