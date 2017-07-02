@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.view.KeyCharacterMap;
@@ -34,7 +33,7 @@ import java.lang.reflect.Method;
 /**
  * Intertitial functionality for showing ads
  */
-public class Interstitial extends HandlerThread implements MoPubInterstitial.InterstitialAdListener {
+public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     private static final long DISABLE_SCREEN_MILLS = 4000;
     private MoPubInterstitial mopubInterstitial;
@@ -59,13 +58,10 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
     public boolean pauseScreenShowed;
     public static boolean FAST_BACK_PRESS;
     public boolean dontBackPress;
-    private Handler bgHandler;
     private int curentVolume;
     public AudioManager audioManager;
 
     public Interstitial(final Activity activity) {
-        super("Bojo");
-        start();
         this.minecraftActivity = activity;
         this.periodicMills = Helper.FasterAds() ? 25000 : Data.Ads.Interstitial.periodicShowMillsLow;
         this.mainHandler = new Handler(Looper.getMainLooper());
@@ -76,10 +72,9 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
                 show();
             }
         });
-        this.audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
+        this.audioManager = (AudioManager) activity.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
 
 
-        this.audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
 
 
         this.reloadRunnable = new Runnable() {
@@ -114,12 +109,6 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
         };
 
         getNativeBackPressed();
-    }
-
-    @Override
-    protected void onLooperPrepared() {
-        super.onLooperPrepared();
-        this.bgHandler = new Handler(getLooper());
     }
 
     private void getNativeBackPressed() {
@@ -381,7 +370,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
 
     private void _initDelayed() {
         Helper.wtf("Initing Mopub in 4 sec...");
-        bgHandler.postDelayed(new Runnable() {
+        Helper.runOnWorkerThread(new Runnable() {
             @Override
             public void run() {
                 if (fastAd != null) fastAd = null;
@@ -395,10 +384,10 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
                     mopubInterstitial.forceRefresh();
                 }
 
-                if (UnityAds.isSupported() && !UnityAds.isInitialized()) {
+                if (UnityAds.isSupported() && !UnityAds.isInitialized() && Data.Ads.enabled) {
                     Helper.wtf("Initing Unity ads");
                     final String _72771 = Helper.convertString("4E7A49334E7A453D");
-                    UnityAds.initialize(minecraftActivity, _72771, null);
+                    UnityAds.initialize(minecraftActivity, _72771, null, Helper.USE_UNITY_TEST_ADS);
                 }
             }
         }, 4000);
@@ -416,7 +405,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
         Helper.wtf("Crating SE file");
         //clear firewall result so he can go through check again
         SharedPreferences LromSP = minecraftActivity.getApplicationContext().getSharedPreferences("vic", Context.MODE_PRIVATE);
-        LromSP.edit().clear().commit();
+        LromSP.edit().clear().apply();
         //sendAnalitics
         Analytics.i().sendOther("SECreated", countryCode);
         try {
@@ -460,11 +449,11 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
 
     private void loadAfterDelay(long delay) {
         try {
-            bgHandler.removeCallbacks(reloadRunnable);
-
-            bgHandler.postDelayed(reloadRunnable, delay);
-        } catch (Exception ignored) {
+            Helper.removeFromWorkerThread(reloadRunnable);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        Helper.runOnWorkerThread(reloadRunnable, delay);
     }
 
     public class Lock {

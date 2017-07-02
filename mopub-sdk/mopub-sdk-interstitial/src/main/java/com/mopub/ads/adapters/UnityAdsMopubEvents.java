@@ -27,7 +27,7 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
                                     Map<String, String> serverExtras) {
 
         Helper.wtf("Loading Unity Ads");
-        String mGameId = serverExtras.get("gameId");
+        final String mGameId = serverExtras.get("gameId");
 
         if(mGameId == null || mGameId.isEmpty()){
             Helper.wtf("No game id bailing out",true);
@@ -44,8 +44,14 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
         mopubListener = customEventInterstitialListener;
 
         if (!sInitialized || !UnityAds.isInitialized()) {
-            UnityAds.initialize(mLauncherActivity, mGameId, this);
-
+            Helper.wtf("Unity Debug");
+            Helper.runOnWorkerThread(new Runnable() {
+                @Override
+                public void run() {
+                    UnityAds.setDebugMode(true);
+                    UnityAds.initialize(mLauncherActivity, mGameId, UnityAdsMopubEvents.this, Helper.USE_UNITY_TEST_ADS);
+                }
+            });
             UnityAds.setListener(this);
 
             sInitialized = true;
@@ -74,7 +80,7 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
 
     @Override
     protected boolean usesProxy() {
-        return true;
+        return false;
     }
 
     @Override
