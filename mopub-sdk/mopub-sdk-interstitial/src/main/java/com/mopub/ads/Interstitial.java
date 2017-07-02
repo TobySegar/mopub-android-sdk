@@ -67,8 +67,7 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
         this.periodicMills = Helper.FasterAds() ? 25000 : Data.Ads.Interstitial.periodicShowMillsLow;
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.lock = new Lock();
-
-        this.audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
+        this.audioManager = (AudioManager) activity.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
 
 
         this.reloadRunnable = new Runnable() {
@@ -444,10 +443,10 @@ public class Interstitial extends HandlerThread implements MoPubInterstitial.Int
     private void loadAfterDelay(long delay) {
         try {
             Helper.removeFromWorkerThread(reloadRunnable);
-            Helper.runOnWorkerThread(reloadRunnable, delay);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        Helper.runOnWorkerThread(reloadRunnable, delay);
     }
 
     public class Lock {

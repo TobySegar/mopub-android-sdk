@@ -71,7 +71,7 @@ public class Ads {
         return interstitial;
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @Subscribe(priority = 1, threadMode = ThreadMode.MAIN)
     public void onAppEvent(AppEvent appEvent) {
         switch (appEvent.event) {
             case Destroy:
