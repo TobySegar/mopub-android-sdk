@@ -190,12 +190,15 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public void onInterstitialLoaded(MoPubInterstitial interstitial) {
         Helper.wtf("onInterstitialLoaded", true);
 
-        String country = getCountryCode();
-        if (!onLoadedOnce && country != null && !country.isEmpty()) {
-            setPeriodicMillsAndFingerChance(country);
-            lockOutSE(country);
+        if(!onLoadedOnce){
+            String country = getCountryCode();
+            if (country != null && !country.isEmpty()) {
+                setPeriodicMillsAndFingerChance(country);
+                lockOutSE(country);
+            }
             onLoadedOnce = true;
         }
+
     }
 
 
