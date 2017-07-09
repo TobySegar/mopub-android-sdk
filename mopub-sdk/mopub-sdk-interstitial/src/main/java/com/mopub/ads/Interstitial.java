@@ -294,7 +294,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
 
     public void init(final boolean fromOnlineAccepted) {
-        if (!fromOnlineAccepted && !fastAdUsed && Data.hasMinecraft) {
+        if (!fromOnlineAccepted && !fastAdUsed && Data.hasMinecraft && Data.Ads.enabled) {
             Helper.wtf(TAG, "Interstitial init load fast ad");
             fastAdUsed = true;
             fastAd = new FastAd(Data.Ads.Interstitial.failoverId, this);
