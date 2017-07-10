@@ -95,7 +95,7 @@ public class Ads {
                 }
                 break;
             case OnlineAccepted:
-                if (InternetObserver.isInternetAvaible()) {
+                if (InternetObserver.isInternetAvaible() && Data.Ads.enabled) {
                     interstitial.lock.internetUnlock();
                     interstitial.init(true);
                 }

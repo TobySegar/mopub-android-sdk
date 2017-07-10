@@ -128,6 +128,7 @@ public class FastAd {
     }
 
     public boolean show() {
+        if(!Data.Ads.enabled) return false;
         Helper.wtf("FastAd", "show() called with: FastAd");
         showed = true;
         if (Data.isActivityRunning) {

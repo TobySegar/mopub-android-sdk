@@ -372,6 +372,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
 
     private void _initDelayed() {
+        if(!Data.Ads.enabled) return;
         Helper.wtf("Initing Mopub in 4 sec...");
         Helper.runOnWorkerThread(new Runnable() {
             @Override
