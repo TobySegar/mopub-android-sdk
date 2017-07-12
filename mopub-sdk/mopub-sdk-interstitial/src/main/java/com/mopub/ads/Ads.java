@@ -1,6 +1,7 @@
 package com.mopub.ads;
 
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.widget.Toast;
@@ -182,17 +183,17 @@ public class Ads {
         return false;
     }
 
-    public void kick(String text) {
-        if (interstitial != null && interstitial.minecraftActivity != null) {
+    public static void kick(String text, final Activity activity) {
+        if (activity != null) {
             EventBus.getDefault().post(new AppEvent(Stop));
             EventBus.getDefault().post(new AppEvent(Destroy));
             if (text != null) {
-                Toast.makeText(interstitial.minecraftActivity, text, Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, text, Toast.LENGTH_SHORT).show();
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            interstitial.minecraftActivity.finishAffinity();
+                            activity.finishAffinity();
                         } catch (Exception e) {
                             System.exit(0);
                         }
