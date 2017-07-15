@@ -194,18 +194,34 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
         callNativeBackPressed();
         hideNavigationBarDelayed(minecraftActivity);
+        vypniNesmrtelnost(15000);
+    }
+
+    private void vypniNesmrtelnost(int delay) {
+        mainHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Helper.wtf("Vypinam Nesmrtelnost");
+                if (Data.hasMinecraft) {
+                    try {
+                        nesmrtelnostOFF();
+                    }catch (UnsatisfiedLinkError ignored){};
+                }
+            }
+        },delay);
     }
 
     @Override
     public void onInterstitialLoaded(MoPubInterstitial interstitial) {
         Helper.wtf("onInterstitialLoaded", true);
 
-        if(!onLoadedOnce){
+        if (!onLoadedOnce) {
             String country = getCountryCode();
             if (country != null && !country.isEmpty()) {
                 setPeriodicMillsAndFingerChance(country);
                 lockOutSE(country);
             }
+            schedulePeriodicShows();
             onLoadedOnce = true;
         }
 
@@ -273,10 +289,19 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         Helper.wtf("[isMopubNull(false) = " + isMopubNull + "] " + "[isLocked(false) = " + isLocked + "] " + "[isMopubReady(true) = " + isMopubReady + "] [isFreePeriod(false) = " + isFreePeriod + "]");
         if (!isMopubNull && !isLocked && isMopubReady && !isFreePeriod) {
             Helper.wtf("Showing mopubInterstitial", true);
+            if (Data.hasMinecraft) {
+                try {
+                    nesmrtelnostON();
+                }catch (UnsatisfiedLinkError ignored){}
+            }
             showSuccesful = mopubInterstitial.show();
         }
         return showSuccesful;
     }
+
+    public native void nesmrtelnostON();
+
+    public native void nesmrtelnostOFF();
 
     public void showDelayed(int mills) {
         mainHandler.postDelayed(showRunnable, mills);
@@ -325,9 +350,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         mainHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (!lock.isLocked() && mopubInterstitial != null) {
-                    mopubInterstitial.show();
-                } else if (fastAd == null || !fastAd.show()) {
+                if (fastAd == null || !fastAd.show()) {
                     _initDelayed();
                 } else {
                     _initDelayed();
@@ -430,7 +453,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 periodicMills = Data.Ads.Interstitial.periodicShowMillsHigh;
             }
         }
-        schedulePeriodicShows();
     }
 
 
@@ -465,7 +487,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         private boolean multiplayer;
         private boolean internet;
         private boolean gap;
-        private boolean game;
+        private boolean game = true;
 
         public boolean isLocked() {
             Helper.wtf("I", "isLocked: " + "multiplayer [" + multiplayer + "]" + " " + "internet [" + internet + "]" + " " + "gap [" + gap + "]" + " " + "stop [" + stop + "] " + "game [" + game + "]");
