@@ -123,7 +123,6 @@ public class Ads {
             case GamePlayStart:
                 interstitial.lock.gameUnlock();
                 interstitial.showFastDelayed(5000);
-                interstitial.schedulePeriodicShows();
                 break;
             case LeaveLevel:
                 if (numOfPlayers > 0) numOfPlayers--;
