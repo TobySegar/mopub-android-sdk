@@ -11,12 +11,14 @@ import java.util.Locale;
  * A Vast tracking URL with an "absolute" trigger threshold. The tracker should be triggered
  * after a fixed number of milliseconds have been played.
  */
-public class VastAbsoluteProgressTracker extends VastTracker implements Comparable<VastAbsoluteProgressTracker>, Serializable {
+public class VastAbsoluteProgressTracker extends VastTracker
+        implements Comparable<VastAbsoluteProgressTracker>, Serializable {
     private static final long serialVersionUID = 0L;
     private final int mTrackingMilliseconds;
 
-    public VastAbsoluteProgressTracker(@NonNull final String trackingUrl, int trackingMilliseconds) {
-        super(trackingUrl);
+    public VastAbsoluteProgressTracker(@NonNull final MessageType messageType,
+            @NonNull final String content, int trackingMilliseconds) {
+        super(messageType, content);
         /**
          * Bojo-We were getting here negative @trackingMilliseconds on firebase
          * This is video time tracker that can be triggered or not base on it
@@ -28,6 +30,11 @@ public class VastAbsoluteProgressTracker extends VastTracker implements Comparab
         }
         Preconditions.checkArgument(trackingMilliseconds >= 0);
         mTrackingMilliseconds = trackingMilliseconds;
+    }
+
+    public VastAbsoluteProgressTracker(@NonNull final String trackingUrl,
+            int trackingMilliseconds) {
+        this(MessageType.TRACKING_URL, trackingUrl, trackingMilliseconds);
     }
 
     public int getTrackingMilliseconds() {
@@ -44,6 +51,6 @@ public class VastAbsoluteProgressTracker extends VastTracker implements Comparab
 
     @Override
     public String toString() {
-        return String.format(Locale.US, "%dms: %s", mTrackingMilliseconds, mTrackingUrl);
+        return String.format(Locale.US, "%dms: %s", mTrackingMilliseconds, getContent());
     }
 }

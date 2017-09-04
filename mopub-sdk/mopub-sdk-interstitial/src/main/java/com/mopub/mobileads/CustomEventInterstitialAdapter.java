@@ -33,6 +33,7 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
     private Context mContext;
     private Map<String, Object> mLocalExtras;
     private Map<String, String> mServerExtras;
+    private long mBroadcastIdentifier;
     private final Handler mHandler;
     private final Runnable mTimeout;
     private Proxy mProxy;
@@ -45,6 +46,7 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         Preconditions.checkNotNull(serverExtras);
         mHandler = new Handler();
         mMoPubInterstitial = moPubInterstitial;
+        mBroadcastIdentifier = broadcastIdentifier;
         mContext = mMoPubInterstitial.getActivity();
         mTimeout = new Runnable() {
             @Override
@@ -131,6 +133,11 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         mServerExtras = null;
         mLocalExtras = null;
         mCustomEventInterstitialAdapterListener = null;
+        final WebViewCacheService.Config config =
+                WebViewCacheService.popWebViewConfig(mBroadcastIdentifier);
+        if (config != null) {
+            config.getWebView().destroy();
+        }
         mInvalidated = true;
     }
 

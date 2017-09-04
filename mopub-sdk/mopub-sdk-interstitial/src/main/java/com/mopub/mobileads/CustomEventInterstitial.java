@@ -15,7 +15,7 @@ import java.util.Map;
  * At runtime, the MoPub SDK will find and instantiate a CustomEventInterstitial subclass as needed
  * and invoke its loadInterstitial() method.
  */
-public abstract class CustomEventInterstitial {
+public abstract class CustomEventInterstitial implements Interstitial {
 
 
     /*
