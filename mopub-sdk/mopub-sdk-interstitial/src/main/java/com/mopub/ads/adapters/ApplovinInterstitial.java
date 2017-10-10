@@ -54,7 +54,7 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
             return;
         }
 
-        Helper.wtf("Request received for new interstitial." );
+        Helper.wtf("Applovin: Request received for new interstitial." );
 
         AppLovinSdkSettings setting = new AppLovinSdkSettings();
         setting.setVerboseLogging(Helper.canLog);

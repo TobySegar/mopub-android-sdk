@@ -25,12 +25,10 @@ public class FastAd {
     private final Interstitial interstitial;
     private InterstitialAd mGoogleInterstitialAd;
     private Activity activity;
-    public boolean showed;
     private boolean useApplovin;
     private AppLovinSdk sdk;
     private Runnable initMopubRunnable;
     private AppLovinAd loadedApplovinAd;
-    private int currentVolume;
 
 
     public FastAd(String admobId, Interstitial interstitial) {
@@ -95,14 +93,13 @@ public class FastAd {
             public void onAdClosed() {
                 super.onAdClosed();
                 initMopubRunnable.run();
-                interstitial.callNativeBackPressed();
-                Helper.setVolume(currentVolume,interstitial.audioManager);
+                interstitial.onInterstitialDismissed(null);
             }
 
             @Override
             public void onAdOpened() {
                 super.onAdOpened();
-                currentVolume = Helper.setQuietVolume(interstitial.audioManager);
+                interstitial.onInterstitialShown(null);
             }
 
             @Override
@@ -129,7 +126,7 @@ public class FastAd {
 
     public boolean show() {
         Helper.wtf("FastAd", "show() called with: FastAd");
-        showed = true;
+        interstitial.fastAdShowed = true;
         if (Data.isActivityRunning) {
             if (useApplovin) {
                 if (AppLovinInterstitialAd.isAdReadyToDisplay(activity)) {
@@ -138,16 +135,14 @@ public class FastAd {
                     adDialog.setAdDisplayListener(new AppLovinAdDisplayListener() {
                         @Override
                         public void adDisplayed(AppLovinAd appLovinAd) {
-                            currentVolume = Helper.setQuietVolume(interstitial.audioManager);
+                            interstitial.onInterstitialShown(null);
                         }
 
                         @Override
                         public void adHidden(AppLovinAd appLovinAd) {
                             Helper.wtf("Fast Ads applovin hidden init mopub");
                             initMopubRunnable.run();
-                            interstitial.callNativeBackPressed();
-                            Helper.setVolume(currentVolume,interstitial.audioManager);
-                            interstitial.hideNavigationBarDelayed(activity);
+                            interstitial.onInterstitialDismissed(null);
                         }
                     });
                     adDialog.showAndRender(loadedApplovinAd);

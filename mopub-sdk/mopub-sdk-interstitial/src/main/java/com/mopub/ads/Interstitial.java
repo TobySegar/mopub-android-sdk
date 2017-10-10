@@ -35,12 +35,11 @@ import java.lang.reflect.Method;
 public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     private static final long DISABLE_SCREEN_MILLS = 4000;
-    private MoPubInterstitial mopubInterstitial;
+    private @Nullable MoPubInterstitial mopubInterstitial;
     public final Activity minecraftActivity;
 
     private final Handler mainHandler;
     private String TAG = this.getClass().getName();
-    private boolean freePeriod;
     private final Runnable reloadRunnable;
     private double backOffPower = 1;
     private Runnable periodicShowRunnable;
@@ -48,7 +47,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private final Runnable gapUnlockRunnable;
     private double periodicMills;
     private FastAd fastAd;
-    private boolean fastAdUsed;
     private boolean onLoadedOnce;
     private boolean periodicScheduled;
     public final Lock lock;
@@ -58,6 +56,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public boolean dontBackPress;
     private int curentVolume;
     public AudioManager audioManager;
+    public boolean fastAdShowed;
 
     public Interstitial(final Activity activity) {
         this.minecraftActivity = activity;
@@ -70,7 +69,14 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.reloadRunnable = new Runnable() {
             @Override
             public void run() {
-                mopubInterstitial.load();
+                //mopub can be null if we use fast ad late
+                if(mopubInterstitial != null) {
+                    mopubInterstitial.load();
+                    return;
+                }
+                //this means we dont get onLoad ani onDismissed
+                //so we have to try manually again
+                mainHandler.postDelayed(this,5000);
             }
         };
         this.gapUnlockRunnable = new Runnable() {
@@ -132,7 +138,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         }, delay);
     }
 
-    public static void hideNavBar(Activity activity) {
+    private static void hideNavBar(Activity activity) {
         if (Data.hasMinecraft) {
             View decorView = activity.getWindow().getDecorView();
             int currentVis = decorView.getSystemUiVisibility();
@@ -184,26 +190,13 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
         callNativeBackPressed();
         hideNavigationBarDelayed(minecraftActivity);
-        vypniNesmrtelnost(15000);
+        nesmrtelnost(false, 15000);
     }
 
-    private void vypniNesmrtelnost(int delay) {
-        mainHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Helper.wtf("Vypinam Nesmrtelnost");
-                if (Data.hasMinecraft) {
-                    try {
-                        nesmrtelnostOFF();
-                    }catch (UnsatisfiedLinkError ignored){};
-                }
-            }
-        },delay);
-    }
 
     @Override
     public void onInterstitialLoaded(MoPubInterstitial interstitial) {
-        Helper.wtf("onInterstitialLoaded", true);
+        Helper.wtf("Interstitial: onInterstitialLoaded", true);
 
         if (!onLoadedOnce) {
             String country = getCountryCode();
@@ -232,10 +225,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         } catch (Exception ignored) {
             return null;
         }
-    }
-
-    void setFreePeriod(boolean freePeriod) {
-        this.freePeriod = freePeriod;
     }
 
     @Override
@@ -275,40 +264,50 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         boolean isMopubNull = mopubInterstitial == null;
         boolean isLocked = lock.isLocked();
         boolean isMopubReady = !isMopubNull && mopubInterstitial.isReady();
-        boolean isFreePeriod = freePeriod;
-        Helper.wtf("[isMopubNull(false) = " + isMopubNull + "] " + "[isLocked(false) = " + isLocked + "] " + "[isMopubReady(true) = " + isMopubReady + "] [isFreePeriod(false) = " + isFreePeriod + "]");
-        if (!isMopubNull && !isLocked && isMopubReady && !isFreePeriod) {
+        Helper.wtf("[isMopubNull(false) = " + isMopubNull + "] " + "[isLocked(false) = " + isLocked + "] " + "[isMopubReady(true) = " + isMopubReady + "]");
+        if (!fastAdShowed && fastAd != null && !isLocked) {
+            nesmrtelnost(true);
+            fastAd.show();
+        } else if (!isMopubNull && !isLocked && isMopubReady) {
             Helper.wtf("Showing mopubInterstitial", true);
-            if (Data.hasMinecraft) {
-                try {
-                    nesmrtelnostON();
-                }catch (UnsatisfiedLinkError ignored){}
-            }
+            nesmrtelnost(true);
             showSuccesful = mopubInterstitial.show();
         }
+        lock.forceOneShowUnlock();
         return showSuccesful;
+    }
+
+    public void show(int delay) {
+        mainHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                show();
+            }
+        }, delay);
+    }
+
+    private void nesmrtelnost(boolean zapnut) {
+        if (Data.hasMinecraft) try {
+            if (zapnut) nesmrtelnostON();
+            else nesmrtelnostOFF();
+        } catch (UnsatisfiedLinkError ignored) {
+            Helper.wtf("!Failed to zapnut nesmrtelnost");
+        }
+        Helper.wtf("Nesmrtelnos = " + zapnut);
+    }
+
+    private void nesmrtelnost(final boolean zaplnut, int delay) {
+        mainHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                nesmrtelnost(zaplnut);
+            }
+        }, delay);
     }
 
     public native void nesmrtelnostON();
 
     public native void nesmrtelnostOFF();
-
-    public void showDelayed(int mills) {
-        mainHandler.postDelayed(showRunnable, mills);
-    }
-
-    public void showDelayed(int mills, final Runnable runnable) {
-        mainHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (!show()) {
-                    Helper.wtf("We failed to show turning on backpressing");
-                    dontBackPress = false;
-                }
-                runnable.run();
-            }
-        }, mills);
-    }
 
 
     public void destroy() {
@@ -319,9 +318,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
 
     public void init(final boolean fromOnlineAccepted) {
-        if (!fromOnlineAccepted && !fastAdUsed && Data.hasMinecraft && Data.Ads.enabled) {
-            Helper.wtf(TAG, "Interstitial init load fast ad");
-            fastAdUsed = true;
+        if (!fromOnlineAccepted && !fastAdShowed && Data.hasMinecraft) {
+            Helper.wtf(TAG, "Interstitial init and load fast ad");
             fastAd = new FastAd(Data.Ads.Interstitial.failoverId, this);
             fastAd.load(minecraftActivity, new Runnable() {
                 @Override
@@ -330,24 +328,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                     gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
                 }
             });
-        } else {
+        } else if (fromOnlineAccepted) {
             _initDelayed();
         }
     }
 
-    public void showFastDelayed(int mills) {
-        Helper.wtf("Trying fast ad");
-        mainHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (fastAd == null || !fastAd.show()) {
-                    _initDelayed();
-                } else {
-                    _initDelayed();
-                }
-            }
-        }, mills);
-    }
 
     public void showUnityAdsVideo() {
         if (!lock.isMultiplayerLocked()) {
@@ -400,7 +385,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                     mopubInterstitial.forceRefresh();
                 }
 
-                if (UnityAds.isSupported() && !UnityAds.isInitialized() && Data.Ads.enabled) {
+                if (UnityAds.isSupported() && !UnityAds.isInitialized()) {
                     Helper.wtf("Initing Unity ads");
                     final String _69633 = Helper.convertString("4E6A6B324D7A4D3D");
                     UnityAds.initialize(minecraftActivity, _69633, null, Helper.USE_UNITY_TEST_ADS);
@@ -477,10 +462,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         private boolean internet;
         private boolean gap;
         private boolean game = true;
+        private boolean forceShow;
 
         public boolean isLocked() {
-            Helper.wtf("I", "isLocked: " + "multiplayer [" + multiplayer + "]" + " " + "internet [" + internet + "]" + " " + "gap [" + gap + "]" + " " + "stop [" + stop + "] " + "game [" + game + "]");
-            return multiplayer || internet || gap || game || stop;
+            Helper.wtf("I", "isLocked: " + "forceOneShowLock [" + forceShow + "]" + "multiplayer [" + multiplayer + "]" + " " + "internet [" + internet + "]" + " " + "gap [" + gap + "]" + " " + "stop [" + stop + "] " + "game [" + game + "]");
+            return !forceShow && (multiplayer || internet || gap || game || stop);
         }
 
         public boolean isMultiplayerLocked() {
@@ -501,6 +487,15 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         public void unlockGap() {
             Helper.wtf("I", "unlockGap: ");
             gap = false;
+        }
+
+        public void forceOneShowLock() {
+            Helper.wtf("I", "forceOneShowLock: ");
+            forceShow = true;
+        }
+        public void forceOneShowUnlock() {
+            Helper.wtf("I", "forceOneShowUnlock: ");
+            forceShow = false;
         }
 
         public void gapLock() {
@@ -537,5 +532,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             Helper.wtf("I", "internetUnlock: ");
             internet = false;
         }
+
     }
 }

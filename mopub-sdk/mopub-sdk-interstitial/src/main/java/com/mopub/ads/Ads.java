@@ -2,7 +2,6 @@ package com.mopub.ads;
 
 
 import android.app.Activity;
-import android.content.SharedPreferences;
 import android.os.Handler;
 import android.widget.Toast;
 
@@ -10,13 +9,10 @@ import com.mojang.base.Helper;
 import com.mojang.base.InternetObserver;
 import com.mojang.base.events.AppEvent;
 import com.mojang.base.events.GameEvent;
-import com.mojang.base.json.Data;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-
-import java.util.Calendar;
 
 import static com.mojang.base.events.AppEvent.Destroy;
 import static com.mojang.base.events.AppEvent.OfflineAccepted;
@@ -37,30 +33,18 @@ import static com.mojang.base.events.GameEvent.StartSleepInBed;
  * Controlls how ads are showed
  */
 public class Ads {
-    private final String TAG = this.getClass().getName();
-
     private Interstitial interstitial;
     private int numOfPlayers;
     private int timesBlockChanged;
-    private SharedPreferences sharedPreferences;
-    private Calendar calendar;
-    private static final String FIRST_RUN_DAY_KEY = "FirstRunDay";
-    static final String FIRST_RUN_KEY = "FirstRun";
-    private static final int NUM_FREE_DAYS = 2;
-    final int measureUnit = Calendar.DAY_OF_YEAR;
     private static Ads instance;
 
 
-    public Ads(Interstitial interstitial, SharedPreferences sharedPreferences, Calendar calendar) {
+    public Ads(Interstitial interstitial) {
         this.interstitial = interstitial;
         this.numOfPlayers = 0;
-        this.sharedPreferences = sharedPreferences;
-        this.calendar = calendar;
         if (Ads.instance == null) {
             Ads.instance = this;
         }
-
-        this.interstitial.setFreePeriod(isInFreePeriod(Data.Ads.Interstitial.freePeriodAllowed));
 
         EventBus.getDefault().register(this);
     }
@@ -80,9 +64,6 @@ public class Ads {
                 interstitial.destroy();
                 break;
             case Pause:
-                final int timeToSleep = 500;
-                Helper.wtf("Sleeping " + timeToSleep);
-                try {Thread.sleep(timeToSleep); } catch (InterruptedException e) { e.printStackTrace(); }
                 break;
             case Stop:
                 interstitial.lock.stopLock();
@@ -111,18 +92,23 @@ public class Ads {
         switch (gameEvent.event) {
             case PlayerConnected:
                 numOfPlayers++;
+                Helper.wtf("Number of players in game = " + numOfPlayers);
                 if (numOfPlayers > 1) interstitial.lock.lockMultiplayer();
                 break;
             case PlayerDisconnected:
-                if (numOfPlayers > 0) numOfPlayers--;
+                if (numOfPlayers > 0) {
+                    numOfPlayers--;
+                    Helper.wtf("Number of players in game = " + numOfPlayers);
+                }
                 if (numOfPlayers == 1) interstitial.lock.unlockMultiplayer();
                 break;
             case PlayerJoinedMultiplayer:
                 interstitial.lock.lockMultiplayer();
+                interstitial.lock.forceOneShowLock();
                 break;
             case GamePlayStart:
                 interstitial.lock.gameUnlock();
-                interstitial.showFastDelayed(5000);
+                interstitial.show(5000);
                 break;
             case LeaveLevel:
                 if (numOfPlayers > 0) numOfPlayers--;
@@ -133,7 +119,6 @@ public class Ads {
                 interstitial.showUnityAdsVideo();
                 break;
             case PauseScreenPushed:
-                Helper.wtf("Setting pausescreen SHowed to true");
                 interstitial.pauseScreenShowed = true;
                 break;
             case BlockChanged:
@@ -154,32 +139,6 @@ public class Ads {
         } else {
             Helper.wtf("start: No Internet Avaible for ads", true);
         }
-    }
-
-    public boolean isInFreePeriod(boolean freePeriodAllowed) {
-        if (Helper.DEBUG) {
-            Helper.wtf(TAG, "isInFreePeriod: false cause debug");
-            return false;
-        }
-        //mark first run
-        final boolean runnedBefore = sharedPreferences.getBoolean(FIRST_RUN_KEY, false);
-        if (!runnedBefore) {
-            int today = calendar.get(measureUnit);
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putInt(FIRST_RUN_DAY_KEY, today);
-            editor.putBoolean(FIRST_RUN_KEY, true);
-            editor.apply();
-        }
-
-        if (freePeriodAllowed) {
-            int firstRunDay = sharedPreferences.getInt(FIRST_RUN_DAY_KEY, -1);
-            if (firstRunDay != -1) {
-                int today = calendar.get(measureUnit);
-                int endFreeDay = firstRunDay + NUM_FREE_DAYS;
-                return today >= firstRunDay && today <= endFreeDay;
-            }
-        }
-        return false;
     }
 
     public static void kick(String text, final Activity activity) {
