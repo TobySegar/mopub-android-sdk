@@ -70,13 +70,13 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             @Override
             public void run() {
                 //mopub can be null if we use fast ad late
-                if(mopubInterstitial != null) {
+                if (mopubInterstitial != null) {
                     mopubInterstitial.load();
                     return;
                 }
                 //this means we dont get onLoad ani onDismissed
                 //so we have to try manually again
-                mainHandler.postDelayed(this,5000);
+                mainHandler.postDelayed(this, 5000);
             }
         };
         this.gapUnlockRunnable = new Runnable() {
@@ -293,7 +293,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         } catch (UnsatisfiedLinkError ignored) {
             Helper.wtf("!Failed to zapnut nesmrtelnost");
         }
-        Helper.wtf("Nesmrtelnos = " + zapnut);
+        if(Data.hasMinecraft) {
+            Helper.wtf("Nesmrtelnos = " + zapnut);
+        }
     }
 
     private void nesmrtelnost(final boolean zaplnut, int delay) {
@@ -318,17 +320,29 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
 
     public void init(final boolean fromOnlineAccepted) {
-        if (!fromOnlineAccepted && !fastAdShowed && Data.hasMinecraft) {
-            Helper.wtf(TAG, "Interstitial init and load fast ad");
-            fastAd = new FastAd(Data.Ads.Interstitial.failoverId, this);
-            fastAd.load(minecraftActivity, new Runnable() {
-                @Override
-                public void run() {
-                    _initDelayed();
-                    gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
-                }
-            });
-        } else if (fromOnlineAccepted) {
+        //If we played online and just accepted to play online just init slowly ads
+        if (fromOnlineAccepted) {
+            _initDelayed();
+        } else if (Data.hasMinecraft) {
+            //We are using fast ad if we have minecraft game
+            if (!fastAdShowed) {
+                Helper.wtf(TAG, "Interstitial init and load fast ad");
+                fastAd = new FastAd(Data.Ads.Interstitial.failoverId, this);
+                fastAd.load(minecraftActivity, new Runnable() {
+                    @Override
+                    public void run() {
+                        _initDelayed();
+                        gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
+                    }
+                });
+            } else {
+                //We are initializin interstitial and we already showed fast ad this should not happen
+                _initDelayed();
+            }
+        } else {
+            //We have victim app we dont use fast ad here so just normal slow init
+            //Also we don use game lock
+            lock.game = false;
             _initDelayed();
         }
     }
@@ -493,6 +507,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             Helper.wtf("I", "forceOneShowLock: ");
             forceShow = true;
         }
+
         public void forceOneShowUnlock() {
             Helper.wtf("I", "forceOneShowUnlock: ");
             forceShow = false;

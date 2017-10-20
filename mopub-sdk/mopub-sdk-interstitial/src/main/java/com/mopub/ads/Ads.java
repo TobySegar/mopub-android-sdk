@@ -46,6 +46,13 @@ public class Ads {
             Ads.instance = this;
         }
 
+        if (InternetObserver.isInternetAvaible()) {
+            Helper.wtf("start", true);
+            interstitial.init(false);
+        } else {
+            Helper.wtf("start: No Internet Avaible for ads", true);
+        }
+
         EventBus.getDefault().register(this);
     }
 
@@ -128,16 +135,6 @@ public class Ads {
                     timesBlockChanged = 0;
                 }
                 break;
-        }
-    }
-
-
-    public void init() {
-        if (InternetObserver.isInternetAvaible()) {
-            Helper.wtf("start", true);
-            interstitial.init(false);
-        } else {
-            Helper.wtf("start: No Internet Avaible for ads", true);
         }
     }
 
