@@ -89,16 +89,15 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.showRunnable = new Runnable() {
             @Override
             public void run() {
-                Helper.wtf(TAG, "run: ShowRun");
-                if (!lock.isLocked()) {
-                    show();
+                Helper.wtf("PeriodicShowRunnable", "isLocked: " + "multiplayerLocalOnline [" + lock.localMultiplayer + " "+lock.onlineMultiplayer+ "]" + " " + "internet [" + lock.internet + "]" + " " + "gap [" + lock.gap + "]" + " " + "stop [" + lock.stop + "] " + "game [" + lock.game + "]");
+                if (!lock.isAnyLocked()) {
+                    show(true);
                 }
             }
         };
         this.periodicShowRunnable = new Runnable() {
             @Override
             public void run() {
-                Helper.wtf(TAG, "run: PeriodicShowRun");
                 showRunnable.run();
                 mainHandler.postDelayed(periodicShowRunnable, (long) periodicMills);
             }
@@ -259,12 +258,13 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     }
 
-    public boolean show() {
+    public boolean show(boolean isPeriodicShow) {
         boolean showSuccesful = false;
         boolean isMopubNull = mopubInterstitial == null;
-        boolean isLocked = lock.isLocked();
+        Helper.wtf("I", "isLocked: " + "multiplayerLocalOnline [" + lock.localMultiplayer + " "+lock.onlineMultiplayer+ "]" + " " + "internet [" + lock.internet + "]" + " " + "gap [" + lock.gap + "]" + " " + "stop [" + lock.stop + "] " + "game [" + lock.game + "]");
+        boolean isLocked = isPeriodicShow ? lock.isAnyLocked() : lock.isHardLocked();
         boolean isMopubReady = !isMopubNull && mopubInterstitial.isReady();
-        Helper.wtf("[isMopubNull(false) = " + isMopubNull + "] " + "[isLocked(false) = " + isLocked + "] " + "[isMopubReady(true) = " + isMopubReady + "]");
+        Helper.wtf("[isMopubNull(false) = " + isMopubNull + "] " + "[isSoftLocked(false) = " + lock.isSoftLocked() + "] " +  "[isHardLocked(false) = " + lock.isHardLocked() + "] " +"[isMopubReady(true) = " + isMopubReady + "]");
         if (!fastAdShowed && fastAd != null && !isLocked) {
             nesmrtelnost(true);
             fastAd.show();
@@ -273,15 +273,14 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             nesmrtelnost(true);
             showSuccesful = mopubInterstitial.show();
         }
-        lock.forceOneShowUnlock();
         return showSuccesful;
     }
 
-    public void show(int delay) {
+    public void show(int delay, final boolean isPeriodicShow) {
         mainHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                show();
+                show(isPeriodicShow);
             }
         }, delay);
     }
@@ -349,16 +348,16 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
 
     public void showUnityAdsVideo() {
-        if (!lock.isMultiplayerLocked()) {
+        if (!lock.isOnlineMultiplayerLocked() && !lock.isHardLocked()) {
             if (!UnityAds.isReady()) {
                 Helper.wtf(TAG, "showUnityAdsVideo: show false");
-                show();
+                show(true);
             } else {
                 gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
                 UnityAds.show(minecraftActivity);
             }
         } else {
-            Helper.wtf(TAG, "showUnityAdsVideo: show false multiplayer locked");
+            Helper.wtf(TAG, "showUnityAdsVideo: show false multiplayer locked or hard locked");
         }
     }
 
@@ -472,19 +471,28 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     public class Lock {
         private boolean stop;
-        private boolean multiplayer;
+        private boolean onlineMultiplayer;
+        private boolean localMultiplayer;
         private boolean internet;
         private boolean gap;
         private boolean game = true;
-        private boolean forceShow;
 
-        public boolean isLocked() {
-            Helper.wtf("I", "isLocked: " + "forceOneShowLock [" + forceShow + "]" + "multiplayer [" + multiplayer + "]" + " " + "internet [" + internet + "]" + " " + "gap [" + gap + "]" + " " + "stop [" + stop + "] " + "game [" + game + "]");
-            return !forceShow && (multiplayer || internet || gap || game || stop);
+
+        public boolean isHardLocked() {
+            //we never show in these conditions
+            return gap || internet || stop || localMultiplayer;
+        }
+        public boolean isSoftLocked() {
+            //we can show in these conditions
+            return onlineMultiplayer || game;
         }
 
-        public boolean isMultiplayerLocked() {
-            return multiplayer;
+        public boolean isAnyLocked() {
+            return onlineMultiplayer || game || gap || internet || stop || localMultiplayer;
+        }
+
+        public boolean isOnlineMultiplayerLocked() {
+            return onlineMultiplayer;
         }
 
         public void unlockStop() {
@@ -503,16 +511,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             gap = false;
         }
 
-        public void forceOneShowLock() {
-            Helper.wtf("I", "forceOneShowLock: ");
-            forceShow = true;
-        }
-
-        public void forceOneShowUnlock() {
-            Helper.wtf("I", "forceOneShowUnlock: ");
-            forceShow = false;
-        }
-
         public void gapLock() {
             Helper.wtf("I", "gapLock: ");
             gap = true;
@@ -520,12 +518,12 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
         public void lockMultiplayer() {
             Helper.wtf("I", "lockMultiplayer: ");
-            multiplayer = true;
+            onlineMultiplayer = true;
         }
 
-        public void unlockMultiplayer() {
-            Helper.wtf("I", "unlockMultiplayer: ");
-            multiplayer = false;
+        public void unlockOnlineMultiplayer() {
+            Helper.wtf("I", "unlockOnlineMultiplayer: ");
+            onlineMultiplayer = false;
         }
 
         public void gameUnlock() {
@@ -548,5 +546,22 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             internet = false;
         }
 
+        public void unlockLocalMultiplayer() {
+            Helper.wtf("I", "unlockLocalMultiplayer: ");
+            localMultiplayer = false;
+        }
+
+        public void lockLocalMultiplayer() {
+            Helper.wtf("I", "lockLocalMultiplayer: ");
+            localMultiplayer = true;
+        }
+
+        public boolean isLocalMultiplayerLocked() {
+            return localMultiplayer;
+        }
+
+        public boolean isGapLocked() {
+            return gap;
+        }
     }
 }

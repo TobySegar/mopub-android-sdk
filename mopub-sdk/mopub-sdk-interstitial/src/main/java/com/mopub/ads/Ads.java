@@ -100,27 +100,28 @@ public class Ads {
             case PlayerConnected:
                 numOfPlayers++;
                 Helper.wtf("Number of players in game = " + numOfPlayers);
-                if (numOfPlayers > 1) interstitial.lock.lockMultiplayer();
+                if (numOfPlayers > 1) interstitial.lock.lockLocalMultiplayer();
                 break;
             case PlayerDisconnected:
                 if (numOfPlayers > 0) {
                     numOfPlayers--;
                     Helper.wtf("Number of players in game = " + numOfPlayers);
                 }
-                if (numOfPlayers == 1) interstitial.lock.unlockMultiplayer();
+                if (numOfPlayers == 1) interstitial.lock.unlockLocalMultiplayer();
                 break;
             case PlayerJoinedMultiplayer:
                 interstitial.lock.lockMultiplayer();
-                interstitial.lock.forceOneShowLock();
                 break;
             case GamePlayStart:
                 interstitial.lock.gameUnlock();
-                interstitial.show(5000);
+                interstitial.show(5000,false);
                 break;
             case LeaveLevel:
-                if (numOfPlayers > 0) numOfPlayers--;
+                numOfPlayers = 0;
+                showAfterLeftMultiplayerServer();
                 interstitial.lock.gameLock();
-                interstitial.lock.unlockMultiplayer();
+                interstitial.lock.unlockOnlineMultiplayer();
+                interstitial.lock.unlockLocalMultiplayer();
                 break;
             case StartSleepInBed:
                 interstitial.showUnityAdsVideo();
@@ -131,10 +132,27 @@ public class Ads {
             case BlockChanged:
                 timesBlockChanged++;
                 if (timesBlockChanged == 3) {
-                    interstitial.show();
+                    interstitial.show(false);
                     timesBlockChanged = 0;
                 }
                 break;
+        }
+    }
+
+    private void showAfterLeftMultiplayerServer() {
+        boolean isOnlyMultiplayerLocked = false;
+        if(interstitial.lock.isOnlineMultiplayerLocked()){
+            //we check if only lock locked is from multiplayer.
+            interstitial.lock.unlockOnlineMultiplayer();
+            isOnlyMultiplayerLocked = !interstitial.lock.isAnyLocked();
+            interstitial.lock.lockMultiplayer();
+        }
+
+        if(isOnlyMultiplayerLocked){
+            if(interstitial.lock.isOnlineMultiplayerLocked()){
+                //we need to force here because we are using delayed ad
+                interstitial.show(5000,false);
+            }
         }
     }
 
