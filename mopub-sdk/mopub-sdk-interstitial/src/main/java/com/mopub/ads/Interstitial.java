@@ -167,10 +167,14 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                             nativeBackPressedMethod.invoke(minecraftActivity);
                             dontBackPress = false;
                             Helper.wtf("called -- NativeBackPressed");
+                        }else{
+                            Helper.wtf("nativeBackPressedMethod != null = "+ (nativeBackPressedMethod != null) + " dontBackPress = " + dontBackPress);
                         }
                     } catch (InvocationTargetException e) {
+                        Helper.wtf("failed back press");
                         e.printStackTrace();
                     } catch (IllegalAccessException e) {
+                        Helper.wtf("failed back press");
                         e.printStackTrace();
                     }
                     pauseScreenShowed = false;
@@ -363,12 +367,12 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
 
     public void schedulePeriodicShows() {
-        if (!periodicScheduled && Data.hasMinecraft) {
+        if (!periodicScheduled) {
             Helper.wtf("schedulePeriodicShows: Scheduled za " + String.valueOf(periodicMills));
             mainHandler.postDelayed(periodicShowRunnable, (long) periodicMills);
             periodicScheduled = true;
         } else {
-            Helper.wtf("Not scheduling periodic cause he is victim or already scheduled");
+            Helper.wtf("Not scheduling periodic cause already scheduled");
         }
     }
 
