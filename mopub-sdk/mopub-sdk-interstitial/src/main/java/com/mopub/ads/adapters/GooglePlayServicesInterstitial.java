@@ -54,7 +54,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
             return;
         }
 
-        if(true){//if (extrasAreValid(serverExtras)) {
+        if (extrasAreValid(serverExtras)) {
             adUnitId = Helper.DEBUG ? debugIntID : serverExtras.get(AD_UNIT_ID_KEY);
         } else {
             mInterstitialListener.onInterstitialFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
