@@ -157,6 +157,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     public void callNativeBackPressed() {
         if (pauseScreenShowed) {
+            if(Data.hasOldMinecraft) FAST_BACK_PRESS = true;
+
             int delayMillis = FAST_BACK_PRESS ? 500 : 1555;
             FAST_BACK_PRESS = false;
             mainHandler.postDelayed(new Runnable() {
@@ -265,7 +267,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public boolean show(boolean isPeriodicShow) {
         boolean showSuccesful = false;
         boolean isMopubNull = mopubInterstitial == null;
-        Helper.wtf("I", "isLocked: " + "multiplayerLocalOnline [" + lock.localMultiplayer + " "+lock.onlineMultiplayer+ "]" + " " + "internet [" + lock.internet + "]" + " " + "gap [" + lock.gap + "]" + " " + "stop [" + lock.stop + "] " + "game [" + lock.game + "]");
+        Helper.wtf("I", "isPeriodicShow " + "["+ isPeriodicShow +"]" + "isLocked: " + "multiplayerLocalOnline [" + lock.localMultiplayer + " "+lock.onlineMultiplayer+ "]" + " " + "internet [" + lock.internet + "]" + " " + "gap [" + lock.gap + "]" + " " + "stop [" + lock.stop + "] " + "game [" + lock.game + "]");
         boolean isLocked = isPeriodicShow ? lock.isAnyLocked() : lock.isHardLocked();
         boolean isMopubReady = !isMopubNull && mopubInterstitial.isReady();
         Helper.wtf("[isMopubNull(false) = " + isMopubNull + "] " + "[isSoftLocked(false) = " + lock.isSoftLocked() + "] " +  "[isHardLocked(false) = " + lock.isHardLocked() + "] " +"[isMopubReady(true) = " + isMopubReady + "]");

@@ -131,7 +131,7 @@ public class Ads {
                 break;
             case BlockChanged:
                 timesBlockChanged++;
-                if (timesBlockChanged == 3) {
+                if (timesBlockChanged == 4) {
                     interstitial.show(false);
                     timesBlockChanged = 0;
                 }
