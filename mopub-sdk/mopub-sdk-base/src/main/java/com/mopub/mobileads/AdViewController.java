@@ -172,6 +172,7 @@ public class AdViewController {
             boolean isUnityAd = customEventClassName.equals("com.mopub.ads.adapters.UnityAdsMopubEvents");
             boolean isApplovinAd = customEventClassName.equals("com.mopub.ads.adapters.ApplovinInterstitial");
             boolean isAdmobAd = customEventClassName.equals("com.mopub.ads.adapters.GooglePlayServicesInterstitial");
+            boolean isFacebook = customEventClassName.equals("com.mopub.ads.adapters.FacebookInterstitial");
 
             if(Helper.FORCE_ADMOB_ADD && !isAdmobAd){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
@@ -179,6 +180,11 @@ public class AdViewController {
             }
 
             if(Helper.FORCE_APPLOVIN_ADD && !isApplovinAd){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return true;
+            }
+
+            if(Helper.FORCE_FACEBOOK && !isFacebook){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
                 return true;
             }
