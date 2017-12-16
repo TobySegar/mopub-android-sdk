@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.os.Handler;
 import android.widget.Toast;
 
+import com.mojang.base.Analytics;
 import com.mojang.base.Helper;
 import com.mojang.base.InternetObserver;
 import com.mojang.base.events.AppEvent;
@@ -168,6 +169,7 @@ public class Ads {
                         try {
                             activity.finishAffinity();
                         } catch (Exception e) {
+                            Analytics.i().sendException(e);
                             System.exit(0);
                         }
                     }

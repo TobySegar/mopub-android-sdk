@@ -431,6 +431,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         try {
             minecraftActivity.finishAffinity();
         } catch (Exception e) {
+            Analytics.i().sendException(e);
             System.exit(0);
         }
     }
