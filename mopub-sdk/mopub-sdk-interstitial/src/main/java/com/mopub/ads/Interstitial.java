@@ -271,7 +271,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         Helper.wtf("[isMopubNull(false) = " + isMopubNull + "] " + "[isSoftLocked(false) = " + lock.isSoftLocked() + "] " +  "[isHardLocked(false) = " + lock.isHardLocked() + "] " +"[isMopubReady(true) = " + isMopubReady + "]");
         if (!fastAdShowed && fastAd != null && !isLocked) {
             nesmrtelnost(true);
-            fastAd.show();
+            fastAd.show(mopubInterstitial);
+            fastAd = null;
         } else if (!isMopubNull && !isLocked && isMopubReady) {
             Helper.wtf("Showing mopubInterstitial", true);
             nesmrtelnost(true);
@@ -325,7 +326,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public void init(final boolean fromOnlineAccepted) {
         //If we played online and just accepted to play online just init slowly ads
         if (fromOnlineAccepted) {
-            _initDelayed();
+            _initDelayed(4000);
         } else if (Data.hasMinecraft) {
             //We are using fast ad if we have minecraft game
             if (!fastAdShowed) {
@@ -334,19 +335,19 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 fastAd.load(minecraftActivity, new Runnable() {
                     @Override
                     public void run() {
-                        _initDelayed();
+                        _initDelayed(4000);
                         gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
                     }
                 });
             } else {
                 //We are initializin interstitial and we already showed fast ad this should not happen
-                _initDelayed();
+                _initDelayed(4000);
             }
         } else {
             //We have victim app we dont use fast ad here so just normal slow init
             //Also we don use game lock
             lock.game = false;
-            _initDelayed();
+            _initDelayed(4000);
         }
     }
 
@@ -386,12 +387,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
 
-    private void _initDelayed() {
+    public void _initDelayed(int delay) {
         Helper.wtf("Initing Mopub in 4 sec...");
         Helper.runOnWorkerThread(new Runnable() {
             @Override
             public void run() {
-                if (fastAd != null) fastAd = null;
                 if (mopubInterstitial == null) {
                     mopubInterstitial = new MoPubInterstitial(minecraftActivity, Data.Ads.Interstitial.id);
                     mopubInterstitial.setInterstitialAdListener(Interstitial.this);
@@ -408,7 +408,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                     UnityAds.initialize(minecraftActivity, _69633, null, Helper.USE_UNITY_TEST_ADS);
                 }
             }
-        }, 4000);
+        }, delay);
     }
 
     @SuppressLint("CommitPrefEdits")

@@ -170,9 +170,11 @@ public class AdViewController {
         if(customEventClassName != null) {
             boolean isMopubAdd = customEventClassName.equals("com.mopub.mobileads.HtmlInterstitial") || customEventClassName.equals("com.mopub.mobileads.VastVideoInterstitial") || customEventClassName.equals("com.mopub.mraid.MraidInterstitial");
             boolean isUnityAd = customEventClassName.equals("com.mopub.ads.adapters.UnityAdsMopubEvents");
+            boolean isHeyzapAdd = customEventClassName.equals("com.mopub.ads.adapters.HeyzapInterstitial");
             boolean isApplovinAd = customEventClassName.equals("com.mopub.ads.adapters.ApplovinInterstitial");
             boolean isAdmobAd = customEventClassName.equals("com.mopub.ads.adapters.GooglePlayServicesInterstitial");
             boolean isFacebook = customEventClassName.equals("com.mopub.ads.adapters.FacebookInterstitial");
+            boolean isFyber = customEventClassName.equals("com.mopub.ads.adapters.FyberInterstitial");
 
             if(Helper.FORCE_ADMOB_ADD && !isAdmobAd){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
@@ -190,6 +192,16 @@ public class AdViewController {
             }
 
             if(Helper.FORCE_UNITY_ADD && !isUnityAd){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return true;
+            }
+
+            if(Helper.FORCE_HEYZAP_ADD && !isHeyzapAdd){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return true;
+            }
+
+            if(Helper.FORCE_FYBER_ADD && !isFyber){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
                 return true;
             }
