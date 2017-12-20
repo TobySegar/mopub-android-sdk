@@ -18,6 +18,7 @@ import com.mojang.base.json.Data;
 import com.mopub.ads.Ads;
 import com.mopub.ads.Interstitial;
 import com.mopub.ads.Proxy;
+import com.mopub.mobileads.MoPubInterstitial;
 
 
 public class FastAd {
@@ -29,6 +30,7 @@ public class FastAd {
     private AppLovinSdk sdk;
     private Runnable initMopubRunnable;
     private AppLovinAd loadedApplovinAd;
+    private final String KEY = "M/A";
 
 
     public FastAd(String admobId, Interstitial interstitial) {
@@ -41,26 +43,31 @@ public class FastAd {
         this.activity = (Activity) context;
         this.initMopubRunnable = initMopubRunnable;
         this.useApplovin = Data.Ads.Interstitial.fastAdApplovin | hasCountryForApplovin(context);
-
         if (GooglePlayServicesInterstitial.isDisabled(activity) && !useApplovin) {
             this.initMopubRunnable.run();
             return;
         }
-
-        if (!useApplovin) {
-            loadAdmob();
-        } else {
-            loadApplovin();
-        }
+        Helper.runOnWorkerThread(new Runnable() {
+            @Override
+            public void run() {
+                if (!useApplovin) {
+                    loadAdmob();
+                } else {
+                    loadApplovin();
+                }
+                //WE ALSO INIT MOPUB HERE SO WE CAN TRY IT TO SHOW IF USER WAITS
+                interstitial._initDelayed(300);
+            }
+        });
 
     }
 
-    private boolean hasCountryForApplovin(Context context){
+    private boolean hasCountryForApplovin(Context context) {
         final String country = "Country";
-        String userCountry = context.getSharedPreferences(country,Context.MODE_PRIVATE).getString(country,null);
-        if(userCountry != null){
+        String userCountry = context.getSharedPreferences(country, Context.MODE_PRIVATE).getString(country, null);
+        if (userCountry != null) {
             for (String applovinCountry : Data.Ads.Interstitial.applovinCountries) {
-                if(userCountry.equals(applovinCountry))
+                if (userCountry.equals(applovinCountry))
                     return true;
             }
         }
@@ -68,7 +75,7 @@ public class FastAd {
     }
 
     private void loadApplovin() {
-        Helper.wtf("loading Applovin fastad",true);
+        Helper.wtf("loading Applovin fastad", true);
         sdk = AppLovinSdk.getInstance(this.activity);
         sdk.getAdService().loadNextAd(AppLovinAdSize.INTERSTITIAL, new AppLovinAdLoadListener() {
             @Override
@@ -84,8 +91,9 @@ public class FastAd {
         });
     }
 
+
     private void loadAdmob() {
-        Helper.wtf("loading Admob fastad",true);
+        Helper.wtf("loading Admob fastad", true);
         mGoogleInterstitialAd = new InterstitialAd(activity);
         mGoogleInterstitialAd.setAdUnitId(admobId);
         mGoogleInterstitialAd.setAdListener(new AdListener() {
@@ -112,7 +120,7 @@ public class FastAd {
             public void onAdLeftApplication() {
                 super.onAdLeftApplication();
                 GooglePlayServicesInterstitial.registerAdmobClick(activity);
-                Ads.getInstance().getInterstitial().showBlackScreen(activity,Data.Ads.Interstitial.disableTouchChance);
+                Ads.getInstance().getInterstitial().showBlackScreen(activity, Data.Ads.Interstitial.disableTouchChance);
             }
         });
 
@@ -124,11 +132,14 @@ public class FastAd {
         mGoogleInterstitialAd.loadAd(adRequest);
     }
 
-    public boolean show() {
+    public boolean show(MoPubInterstitial mopubInterstitial) {
         Helper.wtf("FastAd", "show() called with: FastAd");
         interstitial.fastAdShowed = true;
         if (Data.isActivityRunning) {
-            if (useApplovin) {
+            //WE TRY MOPUB IF WE CAN
+            if(mopubInterstitial.isReady()){
+                interstitial.show(false);
+            }else if (useApplovin) {
                 if (AppLovinInterstitialAd.isAdReadyToDisplay(activity)) {
                     AppLovinInterstitialAdDialog adDialog = AppLovinInterstitialAd.create(sdk, this.activity);
 
