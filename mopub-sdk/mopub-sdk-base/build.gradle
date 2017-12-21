@@ -21,7 +21,7 @@ dependencies {
     }
     compile 'com.mopub.volley:mopub-volley:1.1.0'
     compile project(':base')
-    compile 'com.google.android.gms:play-services-ads:10.0.0'
+    //compile 'com.google.android.gms:play-services-ads:10.0.0'
     compile project(':unity-ads')
     //compile project(':audience-network-sdk-4.26.1')
 }
