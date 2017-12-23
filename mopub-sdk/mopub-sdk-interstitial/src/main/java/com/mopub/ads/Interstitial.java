@@ -469,6 +469,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         try {
             Helper.removeFromWorkerThread(reloadRunnable);
         } catch (Exception e) {
+            Analytics.i().sendException(e);
             e.printStackTrace();
         }
         Helper.runOnWorkerThread(reloadRunnable, delay);
