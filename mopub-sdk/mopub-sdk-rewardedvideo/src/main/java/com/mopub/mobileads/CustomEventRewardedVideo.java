@@ -8,7 +8,7 @@ import android.support.annotation.Nullable;
 public abstract class CustomEventRewardedVideo extends CustomEventRewardedAd {
 
     @Deprecated
-    protected interface CustomEventRewardedVideoListener {
+    public interface CustomEventRewardedVideoListener {
     }
 
     @Deprecated

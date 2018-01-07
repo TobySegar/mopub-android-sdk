@@ -1,23 +1,23 @@
 apply from: 'shared-build.gradle'
 
 dependencies {
-    testCompile project(':mopub-sdk-base')
-    testCompile project(':mopub-sdk-banner')
-    testCompile project(':mopub-sdk-interstitial')
-    testCompile project(':mopub-sdk-rewardedvideo')
-    testCompile project(':mopub-sdk-native-static')
-    testCompile project(':mopub-sdk-native-video')
+    testImplementation project(':mopub-sdk-base')
+    testImplementation project(':mopub-sdk-banner')
+    testImplementation project(':mopub-sdk-interstitial')
+    testImplementation project(':mopub-sdk-rewardedvideo')
+    testImplementation project(':mopub-sdk-native-static')
+    testImplementation project(':mopub-sdk-native-video')
 
-    testCompile 'junit:junit:4.10'
-    testCompile 'org.robolectric:robolectric:3.0'
-    testCompile 'org.robolectric:shadows-support-v4:3.0'
-    testCompile 'org.robolectric:shadows-httpclient:3.0'
-    testCompile 'com.squareup:fest-android:1.0.7'
-    testCompile 'org.mockito:mockito-core:1.9.5'
-    testCompile 'org.powermock:powermock-module-junit4:1.6.5'
-    testCompile 'org.powermock:powermock-module-junit4-rule:1.6.5'
-    testCompile 'org.powermock:powermock-api-mockito:1.6.5'
-    testCompile 'org.powermock:powermock-classloading-xstream:1.6.5'
+    testImplementation 'junit:junit:4.10'
+    testImplementation 'org.robolectric:robolectric:3.0'
+    testImplementation 'org.robolectric:shadows-support-v4:3.0'
+    testImplementation 'org.robolectric:shadows-httpclient:3.0'
+    testImplementation 'com.squareup:fest-android:1.0.7'
+    testImplementation 'org.mockito:mockito-core:1.9.5'
+    testImplementation 'org.powermock:powermock-module-junit4:1.6.5'
+    testImplementation 'org.powermock:powermock-module-junit4-rule:1.6.5'
+    testImplementation 'org.powermock:powermock-api-mockito:1.6.5'
+    testImplementation 'org.powermock:powermock-classloading-xstream:1.6.5'
 }
 
 project.description = 'MoPub Android SDK'
@@ -25,3 +25,7 @@ project.ext.displayName = 'MoPub Android SDK'
 project.ext.projectName = 'mopub-sdk'
 project.ext.uploadName = 'mopub-android-sdk'
 //apply from: 'publisher.gradle'
+
+android {
+    buildToolsVersion '26.0.2'
+}

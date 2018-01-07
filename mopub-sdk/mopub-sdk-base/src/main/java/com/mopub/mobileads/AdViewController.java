@@ -45,6 +45,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
+import static com.mojang.base.Helper.FORCE_AD;
+import static com.mojang.base.Helper.FORCE_CUSTOMEVENT_CLASS;
 
 public class AdViewController {
     static final int DEFAULT_REFRESH_TIME_MILLISECONDS = 60000;  // 1 minute
@@ -145,12 +147,17 @@ public class AdViewController {
     @VisibleForTesting
     void onAdLoadSuccess(@NonNull final AdResponse adResponse) {
         mBackoffPower = 1;
-        mAdResponse = changeResponseCustomClassPath(adResponse);
+        mAdResponse = adResponse;
 
+        if(FORCE_AD) {
+            mAdResponse = createTestingAdResponse(adResponse);
 
-        String customEventClassName = mAdResponse.getCustomEventClassName();
+            if(forceAdFromMopubServer(mAdResponse.getCustomEventClassName())){
+                return;
+            }
+        }
 
-        if (forceAdFromMopubServer(customEventClassName)) return;
+        final String customEventClassName = mAdResponse.getCustomEventClassName();
 
         // Do other ad loading setup. See AdFetcher & AdLoadTask.
         mTimeoutMilliseconds = mAdResponse.getAdTimeoutMillis() == null
@@ -166,6 +173,15 @@ public class AdViewController {
         scheduleRefreshTimerIfEnabled();
     }
 
+    private AdResponse createTestingAdResponse(AdResponse adResponse) {
+        if(FORCE_CUSTOMEVENT_CLASS != null) {
+            adResponse = adResponse.toBuilder()
+                    .setCustomEventClassName(FORCE_CUSTOMEVENT_CLASS)
+                    .build();
+        }
+        return adResponse;
+    }
+
     private boolean forceAdFromMopubServer(String customEventClassName) {
         if(customEventClassName != null) {
             boolean isMopubAdd = customEventClassName.equals("com.mopub.mobileads.HtmlInterstitial") || customEventClassName.equals("com.mopub.mobileads.VastVideoInterstitial") || customEventClassName.equals("com.mopub.mraid.MraidInterstitial");
@@ -175,6 +191,10 @@ public class AdViewController {
             boolean isAdmobAd = customEventClassName.equals("com.mopub.ads.adapters.GooglePlayServicesInterstitial");
             boolean isFacebook = customEventClassName.equals("com.mopub.ads.adapters.FacebookInterstitial");
             boolean isFyber = customEventClassName.equals("com.mopub.ads.adapters.FyberInterstitial");
+            boolean isLocoMedia = customEventClassName.equals("com.mopub.ads.adapters.InLocoMediaInterstitial");
+            boolean isMilenial = customEventClassName.equals("com.mopub.ads.adapters.MillennialInterstitial");
+            boolean isSmaatoAdd = customEventClassName.equals("com.mopub.ads.adapters.SomaMopubAdapterInterstitial");
+            boolean isFlurryAd = customEventClassName.equals("com.mopub.ads.adapters.FlurryCustomEventInterstitial");
 
             if(Helper.FORCE_ADMOB_ADD && !isAdmobAd){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
@@ -191,7 +211,17 @@ public class AdViewController {
                 return true;
             }
 
+            if(Helper.FORCE_FLURRY_ADD && !isFlurryAd){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return true;
+            }
+
             if(Helper.FORCE_UNITY_ADD && !isUnityAd){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return true;
+            }
+
+            if(Helper.FORCE_SMAATO_ADD && !isSmaatoAdd){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
                 return true;
             }
@@ -202,6 +232,16 @@ public class AdViewController {
             }
 
             if(Helper.FORCE_FYBER_ADD && !isFyber){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return true;
+            }
+
+            if(Helper.FORCE_MILENIAL_ADD && !isMilenial){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return true;
+            }
+
+            if(Helper.FORCE_LOCOMEDIA_ADS && !isLocoMedia){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
                 return true;
             }
@@ -305,17 +345,6 @@ public class AdViewController {
         return mCountryCode;
     }
 
-    private AdResponse changeResponseCustomClassPath(AdResponse adResponse) {
-        if(adResponse == null || adResponse.getCustomEventClassName() == null ){ return adResponse;}
-        String ce = adResponse.getCustomEventClassName();
-        if(ce.contains("VastVideoInterstitial") || ce.contains("MraidInterstitial") || ce.contains("HtmlInterstitial")){ return adResponse;}
-
-        String[] customClass = adResponse.getCustomEventClassName().split("\\.");
-        if(customClass[2].equals("mobileads")){
-            return adResponse.toBuilder().setCustomEventClassName("com.mopub.ads.adapters." + customClass[3]).build();
-        }
-        return adResponse;
-    }
 
     @VisibleForTesting
     @NonNull

@@ -9,11 +9,14 @@ import com.chartboost.sdk.Chartboost;
 import com.chartboost.sdk.ChartboostDelegate;
 import com.chartboost.sdk.Model.CBError;
 import com.mopub.common.MoPub;
+import com.mopub.common.MoPubReward;
 import com.mopub.common.Preconditions;
 import com.mopub.common.VisibleForTesting;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.mobileads.CustomEventInterstitial.CustomEventInterstitialListener;
+import com.mopub.mobileads.CustomEventRewardedVideo;
 import com.mopub.mobileads.MoPubErrorCode;
+import com.mopub.mobileads.MoPubRewardedVideoManager;
 
 import java.util.Collections;
 import java.util.Map;
@@ -21,10 +24,13 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import static com.mopub.mobileads.MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR;
+import static com.mopub.mobileads.MoPubErrorCode.VIDEO_DOWNLOAD_ERROR;
+
 /**
  * Shared infrastructure for initializing the Chartboost SDK when mediated by MoPub
  *
- * Certified with Chartboost 6.6.3
+ * Certified with Chartboost 7.0.1
  */
 public class ChartboostShared {
     private static volatile ChartboostSingletonDelegate sDelegate = new ChartboostSingletonDelegate();
@@ -92,7 +98,7 @@ public class ChartboostShared {
      * and rewarded videos to the appropriate listener based on the Chartboost location used.
      */
     public static class ChartboostSingletonDelegate extends ChartboostDelegate
-    {
+            implements CustomEventRewardedVideo.CustomEventRewardedVideoListener {
         private static final CustomEventInterstitialListener NULL_LISTENER =
                 new CustomEventInterstitialListener() {
                     @Override
@@ -197,6 +203,74 @@ public class ChartboostShared {
         public void didDisplayInterstitial(String location) {
             MoPubLog.d("Chartboost interstitial ad shown.");
             getInterstitialListener(location).onInterstitialShown();
+        }
+
+        //******************
+        // Rewarded Videos
+        //******************
+        @Override
+        public void didCacheRewardedVideo(String location) {
+            super.didCacheRewardedVideo(location);
+
+            if (mRewardedVideoLocationsToLoad.contains(location)) {
+                MoPubLog.d("Chartboost rewarded video cached for location " + location + ".");
+                MoPubRewardedVideoManager.onRewardedVideoLoadSuccess(ChartboostRewardedVideo.class, location);
+                mRewardedVideoLocationsToLoad.remove(location);
+            }
+        }
+
+        @Override
+        public void didFailToLoadRewardedVideo(String location, CBError.CBImpressionError error) {
+            super.didFailToLoadRewardedVideo(location, error);
+            String suffix = error != null ? " with error: " + error.name() : "";
+            if (mRewardedVideoLocationsToLoad.contains(location)) {
+                MoPubErrorCode errorCode = VIDEO_DOWNLOAD_ERROR;
+                MoPubLog.d("Chartboost rewarded video cache failed for location " + location + suffix);
+                if (CBError.CBImpressionError.INVALID_LOCATION.equals(error)) {
+                    errorCode = ADAPTER_CONFIGURATION_ERROR;
+                }
+                MoPubRewardedVideoManager.onRewardedVideoLoadFailure(ChartboostRewardedVideo.class, location, errorCode);
+                mRewardedVideoLocationsToLoad.remove(location);
+            }
+        }
+
+        @Override
+        public void didDismissRewardedVideo(String location) {
+            // This is called before didCloseRewardedVideo and didClickRewardedVideo
+            super.didDismissRewardedVideo(location);
+            MoPubRewardedVideoManager.onRewardedVideoClosed(ChartboostRewardedVideo.class, location);
+            MoPubLog.d("Chartboost rewarded video dismissed for location " + location + ".");
+        }
+
+        @Override
+        public void didCloseRewardedVideo(String location) {
+            super.didCloseRewardedVideo(location);
+            MoPubLog.d("Chartboost rewarded video closed for location " + location + ".");
+        }
+
+        @Override
+        public void didClickRewardedVideo(String location) {
+            super.didClickRewardedVideo(location);
+            MoPubRewardedVideoManager.onRewardedVideoClicked(ChartboostRewardedVideo.class, location);
+            MoPubLog.d("Chartboost rewarded video clicked for location " + location + ".");
+        }
+
+        @Override
+        public void didCompleteRewardedVideo(String location, int reward) {
+            super.didCompleteRewardedVideo(location, reward);
+            MoPubLog.d("Chartboost rewarded video completed for location " + location + " with "
+                    + "reward amount " + reward);
+            MoPubRewardedVideoManager.onRewardedVideoCompleted(
+                    ChartboostRewardedVideo.class,
+                    location,
+                    MoPubReward.success(MoPubReward.NO_REWARD_LABEL, reward));
+        }
+
+        @Override
+        public void didDisplayRewardedVideo(String location) {
+            super.didDisplayRewardedVideo(location);
+            MoPubLog.d("Chartboost rewarded video displayed for location " + location + ".");
+            MoPubRewardedVideoManager.onRewardedVideoStarted(ChartboostRewardedVideo.class, location);
         }
 
         //******************

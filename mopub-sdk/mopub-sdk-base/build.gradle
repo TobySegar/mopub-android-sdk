@@ -4,26 +4,40 @@ repositories {
     flatDir {
         dirs './libs'
     }
-    maven { url "https://s3.amazonaws.com/moat-sdk-builds" }
     maven { url "https://maven.google.com" }
+    maven { url "https://s3.amazonaws.com/moat-sdk-builds" }
+    jcenter()
 }
 //FACEBOOK
 //https://mvnrepository.com/artifact/com.facebook.android/audience-network-sdk
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     def avidEnabled = project.hasProperty("mopub.avidEnabled") ? project.getProperty("mopub.avidEnabled").toBoolean() : true
     if (avidEnabled) {
-        compile('com.mopub:libAvid-mopub:3.6.4')
+        implementation('com.mopub:libAvid-mopub:3.6.4')
     }
     def moatEnabled = project.hasProperty("mopub.moatEnabled") ? project.getProperty("mopub.moatEnabled").toBoolean() : true
     if (moatEnabled) {
-        compile 'com.moat.analytics.mobile.mpub:moat-mobile-app-kit:2.1.0'
+        implementation 'com.moat.analytics.mobile.mpub:moat-mobile-app-kit:2.1.0'
     }
-    compile 'com.mopub.volley:mopub-volley:1.1.0'
-    compile project(':base')
-    //compile 'com.google.android.gms:play-services-ads:10.0.0'
-    compile project(':unity-ads')
-    //compile project(':audience-network-sdk-4.26.1')
+    implementation 'com.mopub.volley:mopub-volley:1.1.0'
+
+    implementation project(':base')
+
+    //Locodoco
+    implementation 'com.google.android.gms:play-services-ads:10.0.0'
+    implementation 'com.google.android.gms:play-services-location:10.0.0'
+    implementation 'com.inlocomedia.android:android-sdk-ads:3.4.0' //Ads SDK
+    implementation 'com.inlocomedia.android:android-sdk-location:3.4.0' //Location SDK
+
+    //Facebook
+    implementation project(':audience-network-sdk-4.26.1')
+
+    //UnityAds
+    implementation project(':unity-ads')
+
+    //MilenialMedia
+    implementation project(':android-milenial-sdk')
 }
 
 project.description = 'MoPub Android SDK - Base'
