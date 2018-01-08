@@ -37,7 +37,7 @@ dependencies {
     implementation project(':unity-ads')
 
     //MilenialMedia
-    implementation project(':android-milenial-sdk')
+    //implementation project(':android-milenial-sdk')
 }
 
 project.description = 'MoPub Android SDK - Base'
