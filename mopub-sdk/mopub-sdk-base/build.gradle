@@ -14,11 +14,11 @@ dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
     def avidEnabled = project.hasProperty("mopub.avidEnabled") ? project.getProperty("mopub.avidEnabled").toBoolean() : true
     if (avidEnabled) {
-        api('com.mopub:libAvid-mopub:3.6.4')
+        implementation('com.mopub:libAvid-mopub:3.6.4')
     }
     def moatEnabled = project.hasProperty("mopub.moatEnabled") ? project.getProperty("mopub.moatEnabled").toBoolean() : true
     if (moatEnabled) {
-        api 'com.moat.analytics.mobile.mpub:moat-mobile-app-kit:2.1.0'
+        implementation 'com.moat.analytics.mobile.mpub:moat-mobile-app-kit:2.1.0'
     }
     api 'com.mopub.volley:mopub-volley:1.1.0'
 
