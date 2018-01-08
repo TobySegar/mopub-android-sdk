@@ -1,8 +1,8 @@
 apply from: '../shared-build.gradle'
 
 dependencies {
-    implementation project(':mopub-sdk-native-static')
-    implementation 'com.google.android.exoplayer:exoplayer:r2.4.4'
+    api project(':mopub-sdk-native-static')
+    api 'com.google.android.exoplayer:exoplayer:r2.4.4'
 }
 
 project.description = 'MoPub Android SDK - Native Video'

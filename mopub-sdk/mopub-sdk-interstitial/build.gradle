@@ -1,7 +1,7 @@
 apply from: '../shared-build.gradle'
 
 dependencies {
-    implementation project(':mopub-sdk-base')
+    api project(':mopub-sdk-base')
 }
 
 project.description = 'MoPub Android SDK - Interstitial'
