@@ -45,8 +45,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
-import static com.mojang.base.Helper.FORCE_AD;
-import static com.mojang.base.Helper.FORCE_CUSTOMEVENT_CLASS;
 
 public class AdViewController {
     static final int DEFAULT_REFRESH_TIME_MILLISECONDS = 60000;  // 1 minute
@@ -149,7 +147,7 @@ public class AdViewController {
         mBackoffPower = 1;
         mAdResponse = adResponse;
 
-        if(FORCE_AD) {
+        if(Helper.getForceAd()) {
             mAdResponse = createTestingAdResponse(adResponse);
 
             if(forceAdFromMopubServer(mAdResponse.getCustomEventClassName())){
@@ -174,9 +172,10 @@ public class AdViewController {
     }
 
     private AdResponse createTestingAdResponse(AdResponse adResponse) {
-        if(FORCE_CUSTOMEVENT_CLASS != null) {
+        final String foreceAdClass = Helper.getForeceAdClass();
+        if(foreceAdClass != null) {
             adResponse = adResponse.toBuilder()
-                    .setCustomEventClassName(FORCE_CUSTOMEVENT_CLASS)
+                    .setCustomEventClassName(foreceAdClass)
                     .build();
         }
         return adResponse;
