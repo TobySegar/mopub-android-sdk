@@ -80,6 +80,11 @@ public class VastVideoInterstitial extends ResponseBodyInterstitial implements V
         super.onInvalidate();
     }
 
+    @Override
+    protected MoPubInterstitial.AdType getAdType() {
+        return MoPubInterstitial.AdType.MOPUB_VIDEO;
+    }
+
     /*
      * VastManager.VastManagerListener implementation
      */

@@ -10,11 +10,16 @@ import android.util.Log;
 import com.flurry.android.FlurryAgent;
 import com.flurry.android.FlurryAgentListener;
 
+import static android.util.Log.WARN;
+
 /**
  * Certified with Flurry 8.1.0
  */
 public final class FlurryAgentWrapper {
     public static final String PARAM_API_KEY = "apiKey";
+
+    // the adSpaceName refers to the ad space configured on dev.flurry.com under Publishers tab
+    // under left-hand nav Inventory / Ad Spaces
     public static final String PARAM_AD_SPACE_NAME = "adSpaceName";
 
     private static final String ORIGIN_IDENTIFIER = "Flurry_Mopub_Android";
@@ -45,6 +50,8 @@ public final class FlurryAgentWrapper {
         // init
         if (!FlurryAgent.isSessionActive()) {
             mAgentBuilder.withListener(flurryAgentListener) // withListener allows nulls
+                    .withLogEnabled(false)
+                    .withLogLevel(WARN)
                     .build(context, apiKey);
 
             // sessions are automatic on ICS+

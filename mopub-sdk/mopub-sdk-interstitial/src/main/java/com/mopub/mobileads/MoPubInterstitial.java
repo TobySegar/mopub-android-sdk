@@ -8,7 +8,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
-import com.mojang.base.Helper;
 import com.mopub.common.AdFormat;
 import com.mopub.common.Preconditions;
 import com.mopub.common.VisibleForTesting;
@@ -60,13 +59,20 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
      */
     public enum AdType {
         UNKNOWN,
-        ADMOB,
-        FACEBOOK,
+        ADMOB_INTERSTITIAL,
+        FACEBOOK_INTERSTITIAL,
         MOPUB_HTML,
-        MOPUB_VID,
-        MOPUB_INTER,
-        UNITY,
-        APPLOVIN
+        MOPUB_VIDEO,
+        MOPUB_INTERSTITIAL,
+        UNITY_INTERSTITIAL,
+        SMATO_INTERSTITIAL,
+        ADCOLONY_INTERSTITIAL,
+        CHARTBOOST_INTERSTITIAL,
+        APPLOVIN_INTERSTITIAL,
+        FLURRY_INTERSTITIAL,
+        INLOCOMEDIA_INTERSTITIAL,
+        INMOBI_INTERSTITIAL,
+        HEYZAP_INTERSTITIAL
     }
 
     @NonNull private MoPubInterstitialView mInterstitialView;
@@ -76,41 +82,14 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
     @NonNull private Handler mHandler;
     @NonNull private final Runnable mAdExpiration;
     @NonNull private volatile InterstitialState mCurrentInterstitialState;
-    @NonNull private AdType mAdType = AdType.UNKNOWN;
 
     public AdType getAdType() {
-        return mAdType;
+        if (mCustomEventInterstitialAdapter != null) {
+            return mCustomEventInterstitialAdapter.getAdType();
+        }
+        return AdType.UNKNOWN;
     }
 
-    private void setAdType(String className) {
-        switch (className) {
-            case ("com.mopub.mobileads.HtmlInterstitial"):
-                mAdType = AdType.MOPUB_HTML;
-                break;
-            case ("com.mopub.mobileads.VastVideoInterstitial"):
-                mAdType = AdType.MOPUB_VID;
-                break;
-            case ("com.mopub.mraid.MraidInterstitial"):
-                mAdType = AdType.MOPUB_INTER;
-                break;
-            case ("com.mopub.ads.adapters.UnityAdsMopubEvents"):
-                mAdType = AdType.UNITY;
-                break;
-            case ("com.mopub.ads.adapters.ApplovinInterstitial"):
-                mAdType = AdType.APPLOVIN;
-                break;
-            case ("com.mopub.ads.adapters.GooglePlayServicesInterstitial"):
-                mAdType = AdType.ADMOB;
-                break;
-            case ("com.mopub.ads.adapters.FacebookInterstitial"):
-                mAdType = AdType.FACEBOOK;
-                break;
-            default:
-                mAdType = AdType.UNKNOWN;
-                break;
-        }
-        Helper.wtf("adType set to: " + className);
-    }
 
     public interface InterstitialAdListener {
         void onInterstitialLoaded(MoPubInterstitial interstitial);
@@ -468,8 +447,6 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
         if (mInterstitialAdListener != null) {
             mInterstitialAdListener.onInterstitialDismissed(this);
         }
-
-        setAdType("unknown");
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -515,8 +492,6 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
                     mAdViewController.getAdReport());
             mCustomEventInterstitialAdapter.setAdapterListener(MoPubInterstitial.this);
             mCustomEventInterstitialAdapter.loadInterstitial();
-
-            setAdType(customEventClassName);
         }
 
         protected void trackImpression() {

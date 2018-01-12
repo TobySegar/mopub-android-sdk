@@ -9,11 +9,13 @@ import com.facebook.ads.InterstitialAd;
 import com.facebook.ads.InterstitialAdListener;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
+import com.mopub.mobileads.MoPubInterstitial;
 
 import java.util.Map;
 
 /**
  * Certified with Facebook Audience Network 4.26.0
+ * * Didnt get ad fur no fill
  */
 public class FacebookInterstitial extends CustomEventInterstitial implements InterstitialAdListener {
     public static final String PLACEMENT_ID_KEY = "placement_id";
@@ -29,8 +31,11 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
     protected void loadInterstitial(final Context context,
                                     final CustomEventInterstitialListener customEventInterstitialListener,
                                     final Map<String, Object> localExtras,
-                                    final Map<String, String> serverExtras) {
+                                    Map<String, String> serverExtras) {
         mInterstitialListener = customEventInterstitialListener;
+
+        serverExtras.clear();
+        serverExtras.put(PLACEMENT_ID_KEY,"269761163391164_269761760057771");
 
         final String placementId;
         if (extrasAreValid(serverExtras)) {
@@ -72,6 +77,11 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
         }
     }
 
+    @Override
+    protected MoPubInterstitial.AdType getAdType() {
+        return MoPubInterstitial.AdType.FACEBOOK_INTERSTITIAL;
+    }
+
     /**
      * InterstitialAdListener implementation
      */
@@ -84,7 +94,7 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
 
     @Override
     public void onError(final Ad ad, final AdError error) {
-        Log.d("MoPub", "Facebook interstitial ad failed to load.");
+        Log.d("MoPub", "Facebook interstitial ad failed to load. " + error.getErrorMessage());
         if (error == AdError.NO_FILL) {
             mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
         } else if (error == AdError.INTERNAL_ERROR) {

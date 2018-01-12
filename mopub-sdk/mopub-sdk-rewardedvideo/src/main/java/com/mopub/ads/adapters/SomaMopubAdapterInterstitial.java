@@ -7,6 +7,7 @@ import android.os.Looper;
 
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
+import com.mopub.mobileads.MoPubInterstitial;
 import com.smaato.soma.CrashReportTemplate;
 import com.smaato.soma.debug.DebugCategory;
 import com.smaato.soma.debug.Debugger;
@@ -14,11 +15,13 @@ import com.smaato.soma.debug.LogMessage;
 import com.smaato.soma.interstitial.Interstitial;
 import com.smaato.soma.interstitial.InterstitialAdListener;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Example of MoPub Smaato Interstitial mediation adapter.
  *
+ * Didnt get ad fur no fill
  * @author Chouaieb Nabil
  *         Updated to support latest MoPub SDK 4.7.0
  *         Common for all Publishers
@@ -33,14 +36,15 @@ public class SomaMopubAdapterInterstitial extends CustomEventInterstitial implem
     @Override
     protected void loadInterstitial(Context context,
                                     final CustomEventInterstitialListener customEventInterstitialListener, Map<String, Object> localExtras,
-                                    final Map<String, String> serverExtras) {
+                                    Map<String, String> serverExtras) {
 
-//        serverExtras = new HashMap<>();
-//        serverExtras.put("publisherId","1100013377");
-//        serverExtras.put("adSpaceId","130054389");
+        serverExtras = new HashMap<>();
+        serverExtras.put("publisherId","1100013377");
+        serverExtras.put("adSpaceId","130054389");
+        final Map<String, String> finalServerExtras = serverExtras;
 
         // Enable to get full logs
-        Debugger.setDebugMode(Debugger.Level_3);
+        Debugger.setDebugMode(Debugger.Level_1);
         Debugger.enableCrashReporting(false);
 
         mHandler = new Handler(Looper.getMainLooper());
@@ -54,8 +58,8 @@ public class SomaMopubAdapterInterstitial extends CustomEventInterstitial implem
         new CrashReportTemplate<Void>() {
             @Override
             public Void process() throws Exception {
-                int publisherId = Integer.parseInt((String) serverExtras.get("publisherId"));
-                int adSpaceId = Integer.parseInt((String) serverExtras.get("adSpaceId"));
+                int publisherId = Integer.parseInt((String) finalServerExtras.get("publisherId"));
+                int adSpaceId = Integer.parseInt((String) finalServerExtras.get("adSpaceId"));
                 interstitial.getAdSettings().setPublisherId(publisherId);
                 interstitial.getAdSettings().setAdspaceId(adSpaceId);
 
@@ -75,6 +79,11 @@ public class SomaMopubAdapterInterstitial extends CustomEventInterstitial implem
             interstitial.destroy();
             interstitial = null;
         }
+    }
+
+    @Override
+    protected MoPubInterstitial.AdType getAdType() {
+        return MoPubInterstitial.AdType.SMATO_INTERSTITIAL;
     }
 
     @Override

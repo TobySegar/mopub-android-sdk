@@ -8,12 +8,12 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.adcolony.sdk.AdColony;
-import com.adcolony.sdk.AdColonyAppOptions;
 import com.adcolony.sdk.AdColonyInterstitialListener;
 import com.adcolony.sdk.AdColonyZone;
 import com.mopub.common.util.Json;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
+import com.mopub.mobileads.MoPubInterstitial;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -30,15 +30,15 @@ public class AdColonyInterstitial extends CustomEventInterstitial {
      * Please see AdColony's documentation for more information:
      * https://github.com/AdColony/AdColony-Android-SDK-3
      */
-    private static final String DEFAULT_CLIENT_OPTIONS = "version=YOUR_APP_VERSION_HERE,store:google";
-    private static final String DEFAULT_APP_ID = "YOUR_AD_COLONY_APP_ID_HERE";
-    private static final String[] DEFAULT_ALL_ZONE_IDS = {"ZONE_ID_1", "ZONE_ID_2", "..."};
-    private static final String DEFAULT_ZONE_ID = "YOUR_CURRENT_ZONE_ID";
+    private static final String DEFAULT_CLIENT_OPTIONS = "version=2.0.0,store:google";
+    private static final String DEFAULT_APP_ID = "appef2a58e902804bcbb9";
+    //private static final String[] DEFAULT_ALL_ZONE_IDS = {"vzc83fa8b4362244f3b0"};
+    private static final String DEFAULT_ZONE_ID = "vzc83fa8b4362244f3b0";
 
     /*
      * These keys are intended for MoPub internal use. Do not modify.
      */
-    public static final String CLIENT_OPTIONS_KEY = "clientOptions";
+    //public static final String CLIENT_OPTIONS_KEY = "clientOptions";
     public static final String APP_ID_KEY = "appId";
     public static final String ALL_ZONE_IDS_KEY = "allZoneIds";
     public static final String ZONE_ID_KEY = "zoneId";
@@ -47,7 +47,7 @@ public class AdColonyInterstitial extends CustomEventInterstitial {
     private AdColonyInterstitialListener mAdColonyInterstitialListener;
     private final Handler mHandler;
     private com.adcolony.sdk.AdColonyInterstitial mAdColonyInterstitial;
-    private static String[] previousAdColonyAllZoneIds;
+    //private static String[] previousAdColonyAllZoneIds;
 
     public AdColonyInterstitial() {
         mHandler = new Handler();
@@ -68,27 +68,30 @@ public class AdColonyInterstitial extends CustomEventInterstitial {
 
         String clientOptions = DEFAULT_CLIENT_OPTIONS;
         String appId = DEFAULT_APP_ID;
-        String[] allZoneIds = DEFAULT_ALL_ZONE_IDS;
+        //String[] allZoneIds = DEFAULT_ALL_ZONE_IDS;
         String zoneId = DEFAULT_ZONE_ID;
 
         mCustomEventInterstitialListener = customEventInterstitialListener;
 
+        serverExtras.clear();
+        serverExtras.put(APP_ID_KEY,"appef2a58e902804bcbb9");
+        serverExtras.put(ZONE_ID_KEY,"vzc83fa8b4362244f3b0");
+
         if (extrasAreValid(serverExtras)) {
-            clientOptions = serverExtras.get(CLIENT_OPTIONS_KEY);
             appId = serverExtras.get(APP_ID_KEY);
-            allZoneIds = extractAllZoneIds(serverExtras);
             zoneId = serverExtras.get(ZONE_ID_KEY);
         }
-        AdColonyAppOptions adColonyAppOptions = AdColonyAppOptions.getMoPubAppOptions(clientOptions);
+        //AdColonyAppOptions adColonyAppOptions = AdColonyAppOptions.getMoPubAppOptions(DEFAULT_CLIENT_OPTIONS);
         mAdColonyInterstitialListener = getAdColonyInterstitialListener();
         if (!isAdColonyConfigured()) {
-            AdColony.configure((Activity) context, adColonyAppOptions, appId, allZoneIds);
-        } else if ((shouldReconfigure(previousAdColonyAllZoneIds, allZoneIds))) {
-            // Need to check the zone IDs sent from the MoPub portal and reconfigure if they are
-            // different than the zones we initially called AdColony.configure() with
-            AdColony.configure((Activity) context, adColonyAppOptions, appId, allZoneIds);
-            previousAdColonyAllZoneIds = allZoneIds;
+            AdColony.configure((Activity) context, appId, zoneId);
         }
+//        else if ((shouldReconfigure(previousAdColonyAllZoneIds, allZoneIds))) {
+//            // Need to check the zone IDs sent from the MoPub portal and reconfigure if they are
+//            // different than the zones we initially called AdColony.configure() with
+//            AdColony.configure((Activity) context, appId, allZoneIds);
+//            previousAdColonyAllZoneIds = allZoneIds;
+//        }
 
         AdColony.requestInterstitial(zoneId, mAdColonyInterstitialListener);
     }
@@ -121,6 +124,11 @@ public class AdColonyInterstitial extends CustomEventInterstitial {
             mAdColonyInterstitial.destroy();
             mAdColonyInterstitial = null;
         }
+    }
+
+    @Override
+    protected MoPubInterstitial.AdType getAdType() {
+        return MoPubInterstitial.AdType.ADCOLONY_INTERSTITIAL;
     }
 
     private boolean isAdColonyConfigured() {
@@ -193,9 +201,7 @@ public class AdColonyInterstitial extends CustomEventInterstitial {
 
     private boolean extrasAreValid(Map<String, String> extras) {
         return extras != null
-                && extras.containsKey(CLIENT_OPTIONS_KEY)
                 && extras.containsKey(APP_ID_KEY)
-                && extras.containsKey(ALL_ZONE_IDS_KEY)
                 && extras.containsKey(ZONE_ID_KEY);
     }
 

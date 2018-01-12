@@ -9,9 +9,13 @@ import com.heyzap.sdk.ads.InterstitialAd;
 import com.mojang.base.Helper;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
+import com.mopub.mobileads.MoPubInterstitial;
 
 import java.util.Map;
 
+/**
+ * SEEN
+ */
 public class HeyzapInterstitial extends CustomEventInterstitial implements HeyzapAds.NetworkCallbackListener, HeyzapAds.OnStatusListener {
     private static final String KEY_ID = "key";
     private String id;
@@ -21,6 +25,8 @@ public class HeyzapInterstitial extends CustomEventInterstitial implements Heyza
     @Override
     protected void loadInterstitial(Context context, CustomEventInterstitialListener customEventInterstitialListener, Map<String, Object> localExtras, Map<String, String> serverExtras) {
         mInterstitialListener = customEventInterstitialListener;
+        serverExtras.clear();
+        serverExtras.put(KEY_ID,"ad74cf5e4759468012c6ccf213e8b741");
 
         if (context instanceof Activity) {
             activity = (Activity) context;
@@ -51,12 +57,17 @@ public class HeyzapInterstitial extends CustomEventInterstitial implements Heyza
 
     @Override
     public void showInterstitial() {
-        if (InterstitialAd.isAvailable()) {
-            Helper.wtf("Showing Heyzap");
-            InterstitialAd.display(activity);
-        } else {
-            Helper.wtf("Wanted to show heyzap but wasnt avaible");
-        }
+        Helper.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (InterstitialAd.isAvailable()) {
+                    Helper.wtf("Showing Heyzap");
+                    InterstitialAd.display(activity);
+                } else {
+                    Helper.wtf("Wanted to show heyzap but wasnt avaible");
+                }
+            }
+        });
     }
 
     @Override
@@ -70,50 +81,85 @@ public class HeyzapInterstitial extends CustomEventInterstitial implements Heyza
     }
 
     @Override
+    protected MoPubInterstitial.AdType getAdType() {
+        return MoPubInterstitial.AdType.HEYZAP_INTERSTITIAL;
+    }
+
+    @Override
     public void onNetworkCallback(String s, String s1) {
         Helper.wtf("Heyzap network callback " + s + " : " + s1);
     }
 
     @Override
     public void onShow(String s) {
-        if (mInterstitialListener != null) {
-            mInterstitialListener.onInterstitialShown();
-        }
+        Helper.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mInterstitialListener != null) {
+                    mInterstitialListener.onInterstitialShown();
+                }
+            }
+        });
     }
 
     @Override
     public void onClick(String s) {
-        if (mInterstitialListener != null) {
-            mInterstitialListener.onInterstitialClicked();
-        }
+        Helper.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mInterstitialListener != null) {
+                    mInterstitialListener.onInterstitialClicked();
+                }
+            }
+        });
     }
 
     @Override
     public void onHide(String s) {
-        if (mInterstitialListener != null) {
-            mInterstitialListener.onInterstitialDismissed();
-        }
+        Helper.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mInterstitialListener != null) {
+                    mInterstitialListener.onInterstitialDismissed();
+                }
+            }
+        });
     }
 
     @Override
     public void onFailedToShow(String s) {
-        if (mInterstitialListener != null) {
-            mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NO_FILL);
-        }
+        Helper.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mInterstitialListener != null) {
+                    mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NO_FILL);
+                }
+            }
+        });
     }
 
     @Override
     public void onAvailable(String s) {
-        if (mInterstitialListener != null) {
-            mInterstitialListener.onInterstitialLoaded();
-        }
+        Helper.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mInterstitialListener != null) {
+                    mInterstitialListener.onInterstitialLoaded();
+                }
+            }
+        });
     }
 
     @Override
     public void onFailedToFetch(String s) {
-        if (mInterstitialListener != null) {
-            mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NO_FILL);
-        }
+        Helper.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mInterstitialListener != null) {
+                    mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NO_FILL);
+                }
+            }
+        });
     }
 
     @Override

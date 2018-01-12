@@ -9,7 +9,6 @@ import com.mopub.ads.Proxy;
 import com.mopub.common.AdReport;
 import com.mopub.common.Constants;
 import com.mopub.common.Preconditions;
-import com.mopub.common.VisibleForTesting;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.mobileads.CustomEventInterstitial.CustomEventInterstitialListener;
 import com.mopub.mobileads.factories.CustomEventInterstitialFactory;
@@ -163,6 +162,10 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         return mMoPubInterstitial.getAdTimeoutDelay() * 1000;
     }
 
+    MoPubInterstitial.AdType getAdType() {
+        return mCustomEventInterstitial.getAdType();
+    }
+
     interface CustomEventInterstitialAdapterListener {
         void onCustomEventInterstitialLoaded();
         void onCustomEventInterstitialFailed(MoPubErrorCode errorCode);
@@ -242,11 +245,6 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         if(mProxy != null) {
             mProxy.Finish();
         }
-    }
-
-    @VisibleForTesting
-    void setProxy(Proxy proxy){
-        mProxy = proxy;
     }
 
     @Deprecated

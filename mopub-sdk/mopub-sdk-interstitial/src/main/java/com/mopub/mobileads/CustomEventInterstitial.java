@@ -2,8 +2,6 @@ package com.mopub.mobileads;
 
 import android.content.Context;
 
-import com.mopub.ads.Proxy;
-
 import java.util.Map;
 
 /*
@@ -52,7 +50,12 @@ public abstract class CustomEventInterstitial implements Interstitial {
      * Called when a Custom Event is being invalidated or destroyed. Perform any final cleanup here.
      */
     protected abstract void onInvalidate();
-    
+
+    /*
+    Bojo added used to know what ad type is going to be showed next
+     */
+    protected abstract MoPubInterstitial.AdType getAdType();
+
     public interface CustomEventInterstitialListener {
         /*
          * Your custom event subclass must call this method when it successfully loads an ad.

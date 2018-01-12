@@ -8,7 +8,9 @@ import android.util.Log;
 import com.flurry.android.ads.FlurryAdErrorType;
 import com.flurry.android.ads.FlurryAdInterstitial;
 import com.flurry.android.ads.FlurryAdInterstitialListener;
+import com.mopub.mobileads.MoPubInterstitial;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static com.mopub.mobileads.MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR;
@@ -18,8 +20,9 @@ import static com.mopub.mobileads.MoPubErrorCode.UNSPECIFIED;
 
 /**
  * Certified with Flurry 8.1.0
+ * wao kontaktoval support nevidel som nic neviem ten ich ad space zevraj bad request
  */
-class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInterstitial {
+class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInterstitial implements FlurryAdInterstitialListener {
     private static final String LOG_TAG = FlurryCustomEventInterstitial.class.getSimpleName();
 
     private Context mContext;
@@ -35,6 +38,11 @@ class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInter
             CustomEventInterstitialListener listener,
             Map<String, Object> localExtras,
             Map<String, String> serverExtras) {
+
+        serverExtras = new HashMap<>();
+        serverExtras.put(FlurryAgentWrapper.PARAM_AD_SPACE_NAME, "int");
+        serverExtras.put(FlurryAgentWrapper.PARAM_API_KEY, "P3382GDJ5NWFCYQN4X8B");
+
         if (context == null) {
             Log.e(LOG_TAG, "Context cannot be null.");
             listener.onInterstitialFailed(ADAPTER_CONFIGURATION_ERROR);
@@ -69,7 +77,7 @@ class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInter
 
         Log.d(LOG_TAG, "Fetching Flurry ad, ad unit name:" + mAdSpaceName);
         mInterstitial = new FlurryAdInterstitial(mContext, mAdSpaceName);
-        mInterstitial.setListener(new FlurryMopubInterstitialListener());
+        mInterstitial.setListener(this);
         mInterstitial.fetchAd();
     }
 
@@ -90,6 +98,11 @@ class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInter
 
         mContext = null;
         mListener = null;
+    }
+
+    @Override
+    protected MoPubInterstitial.AdType getAdType() {
+        return MoPubInterstitial.AdType.FLURRY_INTERSTITIAL;
     }
 
     @Override
@@ -120,85 +133,80 @@ class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInter
         return (!TextUtils.isEmpty(flurryApiKey) && !TextUtils.isEmpty(flurryAdSpace));
     }
 
-    // FlurryAdListener
-    private class FlurryMopubInterstitialListener implements FlurryAdInterstitialListener {
-        private final String LOG_TAG = getClass().getSimpleName();
+    @Override
+    public void onFetched(FlurryAdInterstitial adInterstitial) {
+        Log.d(LOG_TAG, "onFetched: Flurry interstitial ad fetched successfully!");
 
-        @Override
-        public void onFetched(FlurryAdInterstitial adInterstitial) {
-            Log.d(LOG_TAG, "onFetched: Flurry interstitial ad fetched successfully!");
-
-            if (mListener != null) {
-                mListener.onInterstitialLoaded();
-            }
+        if (mListener != null) {
+            mListener.onInterstitialLoaded();
         }
+    }
 
-        @Override
-        public void onRendered(FlurryAdInterstitial adInterstitial) {
-            Log.d(LOG_TAG, "onRendered: Flurry interstitial ad rendered");
+    @Override
+    public void onRendered(FlurryAdInterstitial adInterstitial) {
+        Log.d(LOG_TAG, "onRendered: Flurry interstitial ad rendered");
 
-            if (mListener != null) {
-                mListener.onInterstitialShown();
-            }
+        if (mListener != null) {
+            mListener.onInterstitialShown();
         }
+    }
 
-        @Override
-        public void onDisplay(FlurryAdInterstitial adInterstitial) {
-            Log.d(LOG_TAG, "onDisplay: Flurry interstitial ad displayed");
+    @Override
+    public void onDisplay(FlurryAdInterstitial adInterstitial) {
+        Log.d(LOG_TAG, "onDisplay: Flurry interstitial ad displayed");
 
-            // no-op
+        // no-op
+    }
+
+    @Override
+    public void onClose(FlurryAdInterstitial adInterstitial) {
+        Log.d(LOG_TAG, "onClose: Flurry interstitial ad closed");
+
+        if (mListener != null) {
+            mListener.onInterstitialDismissed();
         }
+    }
 
-        @Override
-        public void onClose(FlurryAdInterstitial adInterstitial) {
-            Log.d(LOG_TAG, "onClose: Flurry interstitial ad closed");
+    @Override
+    public void onAppExit(FlurryAdInterstitial adInterstitial) {
+        Log.d(LOG_TAG, "onAppExit: Flurry interstitial ad exited app");
+    }
 
-            if (mListener != null) {
-                mListener.onInterstitialDismissed();
-            }
+    @Override
+    public void onClicked(FlurryAdInterstitial adInterstitial) {
+        Log.d(LOG_TAG, "onClicked: Flurry interstitial ad clicked");
+
+        if (mListener != null) {
+            mListener.onInterstitialClicked();
         }
+    }
 
-        @Override
-        public void onAppExit(FlurryAdInterstitial adInterstitial) {
-            Log.d(LOG_TAG, "onAppExit: Flurry interstitial ad exited app");
-        }
+    @Override
+    public void onVideoCompleted(FlurryAdInterstitial adInterstitial) {
+        Log.d(LOG_TAG, "onVideoCompleted: Flurry interstitial ad video completed");
 
-        @Override
-        public void onClicked(FlurryAdInterstitial adInterstitial) {
-            Log.d(LOG_TAG, "onClicked: Flurry interstitial ad clicked");
+        // no-op
+    }
 
-            if (mListener != null) {
-                mListener.onInterstitialClicked();
-            }
-        }
+    @Override
+    public void onError(FlurryAdInterstitial adInterstitial, FlurryAdErrorType adErrorType,
+                        int errorCode) {
+        Log.d(LOG_TAG, String.format("onError: Flurry interstitial ad not available. " +
+                "Error type: %s. Error code: %s", adErrorType.toString(), errorCode));
 
-        @Override
-        public void onVideoCompleted(FlurryAdInterstitial adInterstitial) {
-            Log.d(LOG_TAG, "onVideoCompleted: Flurry interstitial ad video completed");
-
-            // no-op
-        }
-
-        @Override
-        public void onError(FlurryAdInterstitial adInterstitial, FlurryAdErrorType adErrorType,
-                int errorCode) {
-            Log.d(LOG_TAG, String.format("onError: Flurry interstitial ad not available. " +
-                    "Error type: %s. Error code: %s", adErrorType.toString(), errorCode));
-
-            if (mListener != null) {
-                switch (adErrorType) {
-                    case FETCH:
-                        mListener.onInterstitialFailed(NETWORK_NO_FILL);
-                        return;
-                    case RENDER:
-                        mListener.onInterstitialFailed(NETWORK_INVALID_STATE);
-                        return;
-                    case CLICK:
-                        // Don't call onInterstitialFailed in this case.
-                        return;
-                    default:
-                        mListener.onInterstitialFailed(UNSPECIFIED);
-                }
+        if (mListener != null) {
+            switch (adErrorType) {
+                case FETCH:
+                    mListener.onInterstitialFailed(NETWORK_NO_FILL);
+                    return;
+                case RENDER:
+                    mListener.onInterstitialFailed(NETWORK_INVALID_STATE);
+                    return;
+                case CLICK:
+                    // Don't call onInterstitialFailed in this case.
+                    return;
+                default:
+                    mListener.onInterstitialFailed(UNSPECIFIED);
             }
         }
     }

@@ -8,6 +8,7 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
+import com.mopub.mobileads.MoPubInterstitial;
 
 import java.util.Map;
 
@@ -78,6 +79,11 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
         if (mGoogleInterstitialAd != null) {
             mGoogleInterstitialAd.setAdListener(null);
         }
+    }
+
+    @Override
+    protected MoPubInterstitial.AdType getAdType() {
+        return MoPubInterstitial.AdType.ADMOB_INTERSTITIAL;
     }
 
     private boolean extrasAreValid(Map<String, String> serverExtras) {

@@ -57,13 +57,15 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private int curentVolume;
     public AudioManager audioManager;
     public boolean fastAdShowed;
+    private AdCrashDetector mAdCrashDetector;
 
-    public Interstitial(final Activity activity) {
+    public Interstitial(final Activity activity, AdCrashDetector adCrashDetector) {
         this.minecraftActivity = activity;
         this.periodicMills = Helper.FasterAds() ? 25000 : Data.Ads.Interstitial.periodicShowMillsLow;
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.lock = new Lock();
         this.audioManager = (AudioManager) activity.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+        this.mAdCrashDetector = adCrashDetector;
 
 
         this.reloadRunnable = new Runnable() {
@@ -189,6 +191,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         Helper.wtf("onInterstitialDismissed", true);
         gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
         Helper.setVolume(curentVolume, audioManager);
+        mAdCrashDetector.onInterstitialDismissed();
         loadAfterDelay(3000);
 
         callNativeBackPressed();
@@ -246,20 +249,15 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     @Override
     public void onInterstitialShown(MoPubInterstitial interstitial) {
         Helper.wtf("onInterstitialShown", true);
+        mAdCrashDetector.onInterstitialShown(interstitial);
         curentVolume = Helper.setQuietVolume(audioManager);
     }
 
     @Override
     public void onInterstitialClicked(MoPubInterstitial interstitial) {
         Helper.wtf("onInterstitialClicked", true);
-
-        MoPubInterstitial.AdType adType = interstitial.getAdType();
-
-        if (adType == MoPubInterstitial.AdType.ADMOB) {
-            showBlackScreen(minecraftActivity, Data.Ads.Interstitial.disableTouchChance);
-        }
-
     }
+
 
     public boolean show(boolean isPeriodicShow) {
         boolean showSuccesful = false;
@@ -316,9 +314,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
 
     public void destroy() {
+        Helper.wtf("onDestroy");
         if (mopubInterstitial != null) {
             mopubInterstitial.destroy();
         }
+        mAdCrashDetector.onDestroy();
     }
 
 
@@ -394,7 +394,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 if (mopubInterstitial == null) {
                     mopubInterstitial = new MoPubInterstitial(minecraftActivity, Data.Ads.Interstitial.id);
                     mopubInterstitial.setInterstitialAdListener(Interstitial.this);
-                    mopubInterstitial.setKeywords("game,minecraft,business,twitter");
                     mopubInterstitial.load();
                 } else if (!mopubInterstitial.isReady()) {
                     Helper.wtf("Mopub Forcing Refresh");

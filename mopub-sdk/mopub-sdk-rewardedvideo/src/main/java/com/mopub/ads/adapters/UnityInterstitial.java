@@ -6,6 +6,7 @@ import android.content.Context;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
+import com.mopub.mobileads.MoPubInterstitial;
 import com.unity3d.ads.UnityAds;
 import com.unity3d.ads.mediation.IUnityAdsExtendedListener;
 
@@ -26,6 +27,9 @@ public class UnityInterstitial extends CustomEventInterstitial implements IUnity
             CustomEventInterstitialListener customEventInterstitialListener,
             Map<String, Object> localExtras,
             Map<String, String> serverExtras) {
+
+        serverExtras.clear();
+        serverExtras.put("gameId","69633");
 
         mPlacementId = UnityRouter.placementIdForServerExtras(serverExtras, mPlacementId);
         mCustomEventInterstitialListener = customEventInterstitialListener;
@@ -71,6 +75,11 @@ public class UnityInterstitial extends CustomEventInterstitial implements IUnity
     @Override
     protected void onInvalidate() {
         UnityRouter.removeListener(mPlacementId);
+    }
+
+    @Override
+    protected MoPubInterstitial.AdType getAdType() {
+        return MoPubInterstitial.AdType.UNITY_INTERSTITIAL;
     }
 
     @Override

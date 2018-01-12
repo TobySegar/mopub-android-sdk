@@ -17,6 +17,7 @@ import com.applovin.sdk.AppLovinErrorCodes;
 import com.applovin.sdk.AppLovinSdk;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
+import com.mopub.mobileads.MoPubInterstitial;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -140,6 +141,11 @@ public class ApplovinInterstitial extends CustomEventInterstitial
 
     @Override
     public void onInvalidate() {
+    }
+
+    @Override
+    protected MoPubInterstitial.AdType getAdType() {
+        return MoPubInterstitial.AdType.APPLOVIN_INTERSTITIAL;
     }
 
     //

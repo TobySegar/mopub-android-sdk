@@ -6,6 +6,7 @@ import android.content.Context;
 import com.mojang.base.Helper;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
+import com.mopub.mobileads.MoPubInterstitial;
 import com.unity3d.ads.UnityAds;
 import com.unity3d.ads.mediation.IUnityAdsExtendedListener;
 
@@ -86,6 +87,11 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
     @Override
     protected void onInvalidate() {
         UnityAds.setListener(null);
+    }
+
+    @Override
+    protected MoPubInterstitial.AdType getAdType() {
+        return MoPubInterstitial.AdType.UNITY_INTERSTITIAL;
     }
 
 

@@ -149,9 +149,13 @@ public class AdViewController {
 
         if(Helper.getForceAd()) {
             mAdResponse = createTestingAdResponse(adResponse);
-
-            if(forceAdFromMopubServer(mAdResponse.getCustomEventClassName())){
-                return;
+            Helper.wtf("!!FORCING "+mAdResponse.getCustomEventClassName()+" AD NETWORK IN MOPUB!!");
+            //we only want to force from mopub server if we fill up the helper variables
+            //otherwise we use file inside mobile phone.
+            if(Helper.FORCE_CUSTOMEVENT_CLASS != null && !Helper.FORCE_CUSTOMEVENT_CLASS.isEmpty()) {
+                if (forceAdFromMopubServer(mAdResponse.getCustomEventClassName())) {
+                    return;
+                }
             }
         }
 
@@ -172,10 +176,14 @@ public class AdViewController {
     }
 
     private AdResponse createTestingAdResponse(AdResponse adResponse) {
-        final String foreceAdClass = Helper.getForeceAdClass();
-        if(foreceAdClass != null) {
+        String forceAdClass = Helper.getForeceAdClass();
+        if(forceAdClass == null || forceAdClass.isEmpty()){
+            forceAdClass = Helper.FORCE_CUSTOMEVENT_CLASS;
+        }
+
+        if(forceAdClass != null) {
             adResponse = adResponse.toBuilder()
-                    .setCustomEventClassName(foreceAdClass)
+                    .setCustomEventClassName(forceAdClass)
                     .build();
         }
         return adResponse;
@@ -274,10 +282,8 @@ public class AdViewController {
 
         final MoPubErrorCode errorCode = getErrorCodeFromVolleyError(error, mContext);
 
-        if (errorCode == MoPubErrorCode.SERVER_ERROR || errorCode == MoPubErrorCode.NO_FILL) {
+        if (errorCode == MoPubErrorCode.SERVER_ERROR) {
             mBackoffPower++;
-            onAdLoadSuccess(getFailoverResponse());
-            return;
         }
 
         setNotLoading();

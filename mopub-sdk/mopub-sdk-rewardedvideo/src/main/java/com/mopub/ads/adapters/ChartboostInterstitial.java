@@ -10,6 +10,7 @@ import com.chartboost.sdk.Chartboost;
 import com.mopub.common.Preconditions;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
+import com.mopub.mobileads.MoPubInterstitial;
 
 import java.util.Map;
 
@@ -94,5 +95,10 @@ class ChartboostInterstitial extends CustomEventInterstitial {
     @Override
     protected void onInvalidate() {
         ChartboostShared.getDelegate().unregisterInterstitialListener(mLocation);
+    }
+
+    @Override
+    protected MoPubInterstitial.AdType getAdType() {
+        return MoPubInterstitial.AdType.CHARTBOOST_INTERSTITIAL;
     }
 }

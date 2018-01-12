@@ -4,6 +4,7 @@ package com.mopub.mraid;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.mopub.mobileads.MoPubInterstitial;
 import com.mopub.mobileads.MraidActivity;
 import com.mopub.mobileads.ResponseBodyInterstitial;
 
@@ -34,5 +35,10 @@ class MraidInterstitial extends ResponseBodyInterstitial {
     @Override
     protected boolean usesProxy() {
         return false;
+    }
+
+    @Override
+    protected MoPubInterstitial.AdType getAdType() {
+        return MoPubInterstitial.AdType.MOPUB_INTERSTITIAL;
     }
 }

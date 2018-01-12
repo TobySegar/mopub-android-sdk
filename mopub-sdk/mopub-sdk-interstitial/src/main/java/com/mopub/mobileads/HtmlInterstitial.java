@@ -46,4 +46,9 @@ public class HtmlInterstitial extends ResponseBodyInterstitial {
     protected boolean usesProxy() {
         return false;
     }
+
+    @Override
+    protected MoPubInterstitial.AdType getAdType() {
+        return MoPubInterstitial.AdType.MOPUB_HTML;
+    }
 }
