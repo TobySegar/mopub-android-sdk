@@ -20,7 +20,8 @@ public final class FlurryAgentWrapper {
 
     // the adSpaceName refers to the ad space configured on dev.flurry.com under Publishers tab
     // under left-hand nav Inventory / Ad Spaces
-    public static final String PARAM_AD_SPACE_NAME = "adSpaceName";
+    public static final String PARAM_AD_SPACE_NAME = "int";
+    public static final String PARAM_AD_SPACE_NAME_REWARD = "intreward";
 
     private static final String ORIGIN_IDENTIFIER = "Flurry_Mopub_Android";
     private static final String ORIGIN_VERSION = "6.5.0";

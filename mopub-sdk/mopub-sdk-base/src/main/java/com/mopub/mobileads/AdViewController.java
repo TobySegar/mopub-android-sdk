@@ -152,7 +152,7 @@ public class AdViewController {
             Helper.wtf("!!FORCING "+mAdResponse.getCustomEventClassName()+" AD NETWORK IN MOPUB!!");
             //we only want to force from mopub server if we fill up the helper variables
             //otherwise we use file inside mobile phone.
-            if(Helper.FORCE_CUSTOMEVENT_CLASS != null && !Helper.FORCE_CUSTOMEVENT_CLASS.isEmpty()) {
+            if(mAdResponse == null && Helper.FORCE_CUSTOMEVENT_CLASS != null && !Helper.FORCE_CUSTOMEVENT_CLASS.isEmpty()) {
                 if (forceAdFromMopubServer(mAdResponse.getCustomEventClassName())) {
                     return;
                 }
@@ -175,18 +175,17 @@ public class AdViewController {
         scheduleRefreshTimerIfEnabled();
     }
 
+    @Nullable
     private AdResponse createTestingAdResponse(AdResponse adResponse) {
         String forceAdClass = Helper.getForeceAdClass();
-        if(forceAdClass == null || forceAdClass.isEmpty()){
-            forceAdClass = Helper.FORCE_CUSTOMEVENT_CLASS;
-        }
+        AdResponse newAdResponse=null;
 
         if(forceAdClass != null) {
-            adResponse = adResponse.toBuilder()
+            newAdResponse = adResponse.toBuilder()
                     .setCustomEventClassName(forceAdClass)
                     .build();
         }
-        return adResponse;
+        return newAdResponse;
     }
 
     private boolean forceAdFromMopubServer(String customEventClassName) {

@@ -1,12 +1,12 @@
 apply from: '../shared-build.gradle'
 
 repositories {
+    jcenter()
     flatDir {
         dirs './libs'
     }
     maven { url "https://maven.google.com" }
     maven { url "https://s3.amazonaws.com/moat-sdk-builds" }
-    jcenter()
 }
 //FACEBOOK
 //https://mvnrepository.com/artifact/com.facebook.android/audience-network-sdk
@@ -35,6 +35,7 @@ dependencies {
 
     //UnityAds
     api project(':unity-ads')
+
 
     //MilenialMedia
     //api project(':android-milenial-sdk')

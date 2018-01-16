@@ -30,18 +30,15 @@ public class AdColonyInterstitial extends CustomEventInterstitial {
      * Please see AdColony's documentation for more information:
      * https://github.com/AdColony/AdColony-Android-SDK-3
      */
-    private static final String DEFAULT_CLIENT_OPTIONS = "version=2.0.0,store:google";
-    private static final String DEFAULT_APP_ID = "appef2a58e902804bcbb9";
-    //private static final String[] DEFAULT_ALL_ZONE_IDS = {"vzc83fa8b4362244f3b0"};
-    private static final String DEFAULT_ZONE_ID = "vzc83fa8b4362244f3b0";
+
 
     /*
      * These keys are intended for MoPub internal use. Do not modify.
      */
     //public static final String CLIENT_OPTIONS_KEY = "clientOptions";
     public static final String APP_ID_KEY = "appId";
-    public static final String ALL_ZONE_IDS_KEY = "allZoneIds";
-    public static final String ZONE_ID_KEY = "zoneId";
+    public static final String ALL_ZONE_IDS_KEY = "allZoneIds"; //useless
+    public static final String ZONE_ID_KEY = "zoneID";
 
     private CustomEventInterstitialListener mCustomEventInterstitialListener;
     private AdColonyInterstitialListener mAdColonyInterstitialListener;
@@ -66,16 +63,13 @@ public class AdColonyInterstitial extends CustomEventInterstitial {
             return;
         }
 
-        String clientOptions = DEFAULT_CLIENT_OPTIONS;
-        String appId = DEFAULT_APP_ID;
-        //String[] allZoneIds = DEFAULT_ALL_ZONE_IDS;
-        String zoneId = DEFAULT_ZONE_ID;
-
+        String appId="";
+        String zoneId="";
         mCustomEventInterstitialListener = customEventInterstitialListener;
 
-        serverExtras.clear();
-        serverExtras.put(APP_ID_KEY,"appef2a58e902804bcbb9");
-        serverExtras.put(ZONE_ID_KEY,"vzc83fa8b4362244f3b0");
+        //serverExtras.clear();
+        //serverExtras.put(APP_ID_KEY,"appef2a58e902804bcbb9");
+        //serverExtras.put(ZONE_ID_KEY,"vzc83fa8b4362244f3b0");
 
         if (extrasAreValid(serverExtras)) {
             appId = serverExtras.get(APP_ID_KEY);

@@ -18,25 +18,23 @@ import static com.mopub.mobileads.MoPubErrorCode.NETWORK_NO_FILL;
 import static com.mopub.mobileads.MoPubErrorCode.UNSPECIFIED;
 
 /**
- * Certified with Flurry 8.1.0
- *
+ * Created by Wao on 1/15/2018.
  */
-class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInterstitial implements FlurryAdInterstitialListener {
-    private static final String LOG_TAG = FlurryCustomEventInterstitial.class.getSimpleName();
 
+public class FlurryCustomEventRewarded extends com.mopub.mobileads.CustomEventInterstitial implements FlurryAdInterstitialListener {
+    private static final String LOG_TAG = FlurryCustomEventInterstitial.class.getSimpleName();
     private Context mContext;
     private CustomEventInterstitialListener mListener;
 
     private String mAdSpaceName;
 
     private FlurryAdInterstitial mInterstitial;
-
     // CustomEventInterstitial
     @Override
     protected void loadInterstitial(Context context,
-            CustomEventInterstitialListener listener,
-            Map<String, Object> localExtras,
-            Map<String, String> serverExtras) {
+                                    CustomEventInterstitialListener listener,
+                                    Map<String, Object> localExtras,
+                                    Map<String, String> serverExtras) {
 
         mListener = listener;
         //serverExtras = new HashMap<>();
@@ -71,7 +69,7 @@ class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInter
         mListener = listener;
 
         String apiKey = serverExtras.get(FlurryAgentWrapper.PARAM_API_KEY);
-        mAdSpaceName = serverExtras.get(FlurryAgentWrapper.PARAM_AD_SPACE_NAME);
+        mAdSpaceName = serverExtras.get(FlurryAgentWrapper.PARAM_AD_SPACE_NAME_REWARD);
 
         FlurryAgentWrapper.getInstance().startSession(context, apiKey, null);
 
@@ -107,7 +105,7 @@ class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInter
 
     @Override
     public void showInterstitial() {
-        Log.d(LOG_TAG, "MoPub issued showInterstitial (" + mAdSpaceName + ")");
+        Log.d(LOG_TAG, "MoPub issued showRewarded (" + mAdSpaceName + ")");
 
         if (mInterstitial != null) {
             mInterstitial.displayAd();
@@ -125,9 +123,9 @@ class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInter
         }
 
         final String flurryApiKey = serverExtras.get(FlurryAgentWrapper.PARAM_API_KEY);
-        final String flurryAdSpace = serverExtras.get(FlurryAgentWrapper.PARAM_AD_SPACE_NAME);
+        final String flurryAdSpace = serverExtras.get(FlurryAgentWrapper.PARAM_AD_SPACE_NAME_REWARD);
         Log.i(LOG_TAG, "ServerInfo fetched from Mopub " + FlurryAgentWrapper.PARAM_API_KEY + " : "
-                + flurryApiKey + " and " + FlurryAgentWrapper.PARAM_AD_SPACE_NAME + " :" +
+                + flurryApiKey + " and " + FlurryAgentWrapper.PARAM_AD_SPACE_NAME_REWARD + " :" +
                 flurryAdSpace);
 
         return (!TextUtils.isEmpty(flurryApiKey) && !TextUtils.isEmpty(flurryAdSpace));
@@ -135,7 +133,7 @@ class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInter
 
     @Override
     public void onFetched(FlurryAdInterstitial adInterstitial) {
-        Log.d(LOG_TAG, "onFetched: Flurry interstitial ad fetched successfully!");
+        Log.d(LOG_TAG, "onFetched: Flurry Rewarded ad fetched successfully!");
 
         if (mListener != null) {
             mListener.onInterstitialLoaded();
@@ -144,7 +142,7 @@ class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInter
 
     @Override
     public void onRendered(FlurryAdInterstitial adInterstitial) {
-        Log.d(LOG_TAG, "onRendered: Flurry interstitial ad rendered");
+        Log.d(LOG_TAG, "onRendered: Flurry Rewarded ad rendered");
 
         if (mListener != null) {
             mListener.onInterstitialShown();
@@ -153,14 +151,14 @@ class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInter
 
     @Override
     public void onDisplay(FlurryAdInterstitial adInterstitial) {
-        Log.d(LOG_TAG, "onDisplay: Flurry interstitial ad displayed");
+        Log.d(LOG_TAG, "onDisplay: Flurry Rewarded ad displayed");
 
         // no-op
     }
 
     @Override
     public void onClose(FlurryAdInterstitial adInterstitial) {
-        Log.d(LOG_TAG, "onClose: Flurry interstitial ad closed");
+        Log.d(LOG_TAG, "onClose: Flurry Rewarded ad closed");
 
         if (mListener != null) {
             mListener.onInterstitialDismissed();
@@ -169,12 +167,12 @@ class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInter
 
     @Override
     public void onAppExit(FlurryAdInterstitial adInterstitial) {
-        Log.d(LOG_TAG, "onAppExit: Flurry interstitial ad exited app");
+        Log.d(LOG_TAG, "onAppExit: Flurry Rewarded ad exited app");
     }
 
     @Override
     public void onClicked(FlurryAdInterstitial adInterstitial) {
-        Log.d(LOG_TAG, "onClicked: Flurry interstitial ad clicked");
+        Log.d(LOG_TAG, "onClicked: Flurry Rewarded ad clicked");
 
         if (mListener != null) {
             mListener.onInterstitialClicked();
@@ -183,7 +181,7 @@ class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInter
 
     @Override
     public void onVideoCompleted(FlurryAdInterstitial adInterstitial) {
-        Log.d(LOG_TAG, "onVideoCompleted: Flurry interstitial ad video completed");
+        Log.d(LOG_TAG, "onVideoCompleted: Flurry Rewarded ad video completed");
 
         // no-op
     }
@@ -191,7 +189,7 @@ class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInter
     @Override
     public void onError(FlurryAdInterstitial adInterstitial, FlurryAdErrorType adErrorType,
                         int errorCode) {
-        Log.d(LOG_TAG, String.format("onError: Flurry interstitial ad not available. " +
+        Log.d(LOG_TAG, String.format("onError: Flurry Rewarded ad not available. " +
                 "Error type: %s. Error code: %s", adErrorType.toString(), errorCode));
 
         if (mListener != null) {
