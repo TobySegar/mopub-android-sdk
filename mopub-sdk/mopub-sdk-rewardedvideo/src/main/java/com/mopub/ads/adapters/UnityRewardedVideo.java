@@ -51,8 +51,8 @@ public class UnityRewardedVideo extends CustomEventRewardedVideo {
 
     @Override
     public boolean checkAndInitializeSdk(@NonNull final Activity launcherActivity,
-            @NonNull final Map<String, Object> localExtras,
-            @NonNull final Map<String, String> serverExtras) throws Exception {
+                                         @NonNull final Map<String, Object> localExtras,
+                                         @NonNull final Map<String, String> serverExtras) throws Exception {
         synchronized (UnityRewardedVideo.class) {
             if (UnityAds.isInitialized()) {
                 return false;
@@ -72,14 +72,14 @@ public class UnityRewardedVideo extends CustomEventRewardedVideo {
 
     @Override
     protected void loadWithSdkInitialized(@NonNull Activity activity,
-            @NonNull Map<String, Object> localExtras,
-            @NonNull Map<String, String> serverExtras) throws Exception {
+                                          @NonNull Map<String, Object> localExtras,
+                                          @NonNull Map<String, String> serverExtras) throws Exception {
 
         sPlacementId = UnityRouter.placementIdForServerExtras(serverExtras, sPlacementId);
         mLauncherActivity = activity;
 
         UnityRouter.addListener(sPlacementId, sUnityAdsListener);
-        if (UnityAds.isReady()) {
+        if (UnityAds.isReady(sPlacementId)) {
             MoPubRewardedVideoManager.onRewardedVideoLoadSuccess(UnityRewardedVideo.class, sPlacementId);
         }
     }

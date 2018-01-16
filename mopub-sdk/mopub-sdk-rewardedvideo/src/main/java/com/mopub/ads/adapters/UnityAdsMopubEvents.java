@@ -3,7 +3,7 @@ package com.mopub.ads.adapters;
 import android.app.Activity;
 import android.content.Context;
 
-import com.mojang.base.Helper;
+import com.mopub.common.logging.MoPubLog;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.mobileads.MoPubInterstitial;
@@ -12,70 +12,55 @@ import com.unity3d.ads.mediation.IUnityAdsExtendedListener;
 
 import java.util.Map;
 
-
+/**
+ * Certified with Unity Ads 2.1.1
+ */
 public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUnityAdsExtendedListener {
 
-    private CustomEventInterstitialListener mopubListener;
-    private static boolean sInitialized = false;
-    private Activity mLauncherActivity;
-    private boolean sAdCached;
-
+    private CustomEventInterstitialListener mCustomEventInterstitialListener;
+    private Context mContext;
+    private String mPlacementId = "video";
+    private boolean loadRequested = false;
 
     @Override
     protected void loadInterstitial(Context context,
-                                    CustomEventInterstitialListener customEventInterstitialListener,
+                                    CustomEventInterstitial.CustomEventInterstitialListener customEventInterstitialListener,
                                     Map<String, Object> localExtras,
                                     Map<String, String> serverExtras) {
 
-        Helper.wtf("Loading Unity Ads");
-        final String mGameId = serverExtras.get("gameId");
+        mPlacementId = UnityRouter.placementIdForServerExtras(serverExtras, mPlacementId);
+        mCustomEventInterstitialListener = customEventInterstitialListener;
+        mContext = context;
+        loadRequested = true;
 
-        if(mGameId == null || mGameId.isEmpty()){
-            Helper.wtf("No game id bailing out",true);
-            mopubListener.onInterstitialFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
-            return;
-        }
-
-        if (context == null || !(context instanceof Activity)) {
-            mopubListener.onInterstitialFailed(MoPubErrorCode.NETWORK_INVALID_STATE);
-            return;
-        }
-
-        mLauncherActivity = (Activity) context;
-        mopubListener = customEventInterstitialListener;
-
-        if (!sInitialized || !UnityAds.isInitialized()) {
-            Helper.wtf("Unity Debug");
-            Helper.runOnWorkerThread(new Runnable() {
-                @Override
-                public void run() {
-                    UnityAds.setDebugMode(true);
-                    UnityAds.initialize(mLauncherActivity, mGameId, UnityAdsMopubEvents.this, Helper.USE_UNITY_TEST_ADS);
-                }
-            });
-            UnityAds.setListener(this);
-
-            sInitialized = true;
-        } else {
-            UnityAds.setListener(this);
-
+        try {
+            UnityRouter.addListener(mPlacementId, this);
+            initializeUnityAdsSdk(serverExtras);
             if (UnityAds.isReady()) {
-                mopubListener.onInterstitialLoaded();
-            } else {
-                sAdCached = false;
+                mCustomEventInterstitialListener.onInterstitialLoaded();
+                loadRequested = false;
             }
+        } catch (UnityRouter.UnityAdsException e) {
+            mCustomEventInterstitialListener.onInterstitialFailed(UnityRouter.UnityAdsUtils.getMoPubErrorCode(e.getErrorCode()));
+        }
+    }
+
+    private void initializeUnityAdsSdk(Map<String, String> serverExtras) {
+        if (!UnityAds.isInitialized()) {
+            if (!(mContext instanceof Activity)) {
+                throw new UnityRouter.UnityAdsException(UnityAds.UnityAdsError.INVALID_ARGUMENT, "Context is null or is not an instanceof Activity.");
+            }
+            UnityRouter.initUnityAds(serverExtras, (Activity) mContext);
         }
     }
 
 
     @Override
     public void showInterstitial() {
-        if (UnityAds.isReady() && mLauncherActivity != null) {
-            Helper.wtf("Showing Unity Ads", true);
-            UnityAds.show(mLauncherActivity);
+        if (UnityAds.isReady(mPlacementId) && mContext != null) {
+            UnityAds.show((Activity) mContext, mPlacementId);
         } else {
-            Helper.wtf("Failed to show unity ads isReady = " + UnityAds.isReady() + "activity null = " + mLauncherActivity);
-            mopubListener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
+            MoPubLog.d("Attempted to show Unity interstitial video before it was available.");
         }
     }
 
@@ -86,7 +71,7 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
 
     @Override
     protected void onInvalidate() {
-        UnityAds.setListener(null);
+        UnityRouter.removeListener(mPlacementId);
     }
 
     @Override
@@ -94,43 +79,47 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
         return MoPubInterstitial.AdType.UNITY_INTERSTITIAL;
     }
 
-
     @Override
     public void onUnityAdsReady(String placementId) {
-        Helper.wtf("onUnityAdsReady");
-        if (!sAdCached) {
-            sAdCached = true;
-            mopubListener.onInterstitialLoaded();
+        if (loadRequested) {
+            mCustomEventInterstitialListener.onInterstitialLoaded();
+            loadRequested = false;
         }
     }
 
     @Override
     public void onUnityAdsStart(String placementId) {
-        Helper.wtf("onUnityAdsStart");
-        mopubListener.onInterstitialShown();
+        mCustomEventInterstitialListener.onInterstitialShown();
     }
 
     @Override
-    public void onUnityAdsFinish(String placementId, UnityAds.FinishState result) {
-        Helper.wtf("onUnityAdsFinish");
-        mopubListener.onInterstitialDismissed();
-    }
+    public void onUnityAdsFinish(String placementId, UnityAds.FinishState finishState) {
+        if (finishState == UnityAds.FinishState.ERROR) {
+            MoPubLog.d("Unity interstitial video encountered a playback error for placement " + placementId);
+            mCustomEventInterstitialListener.onInterstitialFailed(MoPubErrorCode.VIDEO_PLAYBACK_ERROR);
+        } else {
+            MoPubLog.d("Unity interstitial video completed for placement " + placementId);
+            mCustomEventInterstitialListener.onInterstitialDismissed();
+        }
 
-    @Override
-    public void onUnityAdsError(UnityAds.UnityAdsError error, String message) {
-        Helper.wtf("onUnityAdsError + "+ error +" message:"+ message);
-        mopubListener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
+        UnityRouter.removeListener(placementId);
     }
 
     @Override
     public void onUnityAdsClick(String placementId) {
-        Helper.wtf("onUnityAdsClick + " + placementId);
-        mopubListener.onInterstitialClicked();
+        mCustomEventInterstitialListener.onInterstitialClicked();
     }
 
-    @Override
+
+    // @Override
     public void onUnityAdsPlacementStateChanged(String placementId, UnityAds.PlacementState oldState, UnityAds.PlacementState newState) {
 
     }
 
+    @Override
+    public void onUnityAdsError(UnityAds.UnityAdsError unityAdsError, String message) {
+        MoPubLog.d("Unity interstitial video cache failed for placement " + mPlacementId + ".");
+        MoPubErrorCode errorCode = UnityRouter.UnityAdsUtils.getMoPubErrorCode(unityAdsError);
+        mCustomEventInterstitialListener.onInterstitialFailed(errorCode);
+    }
 }

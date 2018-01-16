@@ -5,9 +5,9 @@ import android.app.Activity;
 import android.os.Handler;
 import android.widget.Toast;
 
+import com.mojang.base.AdsListener;
 import com.mojang.base.Analytics;
 import com.mojang.base.Helper;
-import com.mojang.base.InternetObserver;
 import com.mojang.base.events.AppEvent;
 import com.mojang.base.events.GameEvent;
 
@@ -15,11 +15,14 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import static com.mojang.base.events.AppEvent.Create;
 import static com.mojang.base.events.AppEvent.Destroy;
 import static com.mojang.base.events.AppEvent.OfflineAccepted;
 import static com.mojang.base.events.AppEvent.OnlineAccepted;
 import static com.mojang.base.events.AppEvent.Pause;
+import static com.mojang.base.events.AppEvent.Restart;
 import static com.mojang.base.events.AppEvent.Resume;
+import static com.mojang.base.events.AppEvent.Start;
 import static com.mojang.base.events.AppEvent.Stop;
 import static com.mojang.base.events.GameEvent.BlockChanged;
 import static com.mojang.base.events.GameEvent.GamePlayStart;
@@ -33,62 +36,61 @@ import static com.mojang.base.events.GameEvent.StartSleepInBed;
 /**
  * Controlls how ads are showed
  */
-public class Ads {
-    private Interstitial interstitial;
+public class Ads implements AdsListener {
+    private AdCrashDetector mAdCrashDetector;
+    private Interstitial mInterstitial;
+    private RewardedVideo mRewardedVideo;
     private int numOfPlayers;
     private int timesBlockChanged;
-    private static Ads instance;
+    private static Ads mInstance;
 
 
-    public Ads(Interstitial interstitial) {
-        this.interstitial = interstitial;
-        this.numOfPlayers = 0;
-        if (Ads.instance == null) {
-            Ads.instance = this;
-        }
-
-        if (InternetObserver.isInternetAvaible()) {
-            Helper.wtf("start", true);
-            interstitial.init(false);
-        } else {
-            Helper.wtf("start: No Internet Avaible for ads", true);
-        }
+    public Ads(Activity activity) {
+        mAdCrashDetector = new AdCrashDetector(activity.getApplicationContext());
+        mInterstitial = new Interstitial(activity, this);
+        mRewardedVideo = new RewardedVideo(activity, this);
+        Ads.mInstance = this;
 
         EventBus.getDefault().register(this);
     }
 
-    public static Ads getInstance() {
-        return instance;
+    public static Ads i() {
+        return mInstance;
     }
 
-    public Interstitial getInterstitial() {
-        return interstitial;
-    }
 
     @Subscribe(priority = 1, threadMode = ThreadMode.MAIN)
     public void onAppEvent(AppEvent appEvent) {
         switch (appEvent.event) {
             case Destroy:
-                interstitial.destroy();
+                mRewardedVideo.onDestroy();
+                mInterstitial.destroy();
                 break;
             case Pause:
+                mRewardedVideo.onPause();
                 break;
             case Stop:
-                interstitial.lock.stopLock();
+                mRewardedVideo.onStop();
+                mInterstitial.onStop();
+                break;
+            case Create:
+                mRewardedVideo.onCreate();
                 break;
             case Resume:
-                interstitial.lock.unlockStop();
+                mRewardedVideo.onResume();
+                mInterstitial.onResume();
                 break;
             case OfflineAccepted:
-                if (!InternetObserver.isInternetAvaible()) {
-                    interstitial.lock.internetLock();
-                }
+                mInterstitial.onOfflineAccepted();
                 break;
             case OnlineAccepted:
-                if (InternetObserver.isInternetAvaible()) {
-                    interstitial.lock.internetUnlock();
-                    interstitial.init(true);
-                }
+                mInterstitial.onOnlineAccepted();
+                break;
+            case Restart:
+                mRewardedVideo.onRestart();
+                break;
+            case Start:
+                mRewardedVideo.onStart();
                 break;
 
         }
@@ -99,36 +101,31 @@ public class Ads {
     public void onGameEvent(GameEvent gameEvent) {
         switch (gameEvent.event) {
             case PlayerConnected:
-                numOfPlayers++;
-                Helper.wtf("Number of players in game = " + numOfPlayers);
-                if (numOfPlayers > 1) interstitial.lock.lockLocalMultiplayer();
+                onPlayerConnected();
                 break;
             case PlayerDisconnected:
-                if (numOfPlayers > 0) {
-                    numOfPlayers--;
-                    Helper.wtf("Number of players in game = " + numOfPlayers);
-                }
-                if (numOfPlayers == 1) interstitial.lock.unlockLocalMultiplayer();
+                onPlayerDisconnected();
                 break;
             case PlayerJoinedMultiplayer:
                 interstitial.lock.lockMultiplayer();
                 break;
             case GamePlayStart:
                 interstitial.lock.gameUnlock();
-                interstitial.show(5000,false);
+                interstitial.show(5000, false);
                 break;
             case LeaveLevel:
                 numOfPlayers = 0;
-                showAfterLeftMultiplayerServer();
                 interstitial.lock.gameLock();
                 interstitial.lock.unlockOnlineMultiplayer();
                 interstitial.lock.unlockLocalMultiplayer();
                 break;
             case StartSleepInBed:
-                interstitial.showUnityAdsVideo();
+                if (!interstitial.lock.isHardLocked()) {
+                    rewardedVideo.show();
+                }
                 break;
             case PauseScreenPushed:
-                interstitial.pauseScreenShowed = true;
+                interstitial.setPauseScreenShowed(true);
                 break;
             case BlockChanged:
                 timesBlockChanged++;
@@ -140,22 +137,46 @@ public class Ads {
         }
     }
 
-    private void showAfterLeftMultiplayerServer() {
-        boolean isOnlyMultiplayerLocked = false;
-        if(interstitial.lock.isOnlineMultiplayerLocked()){
-            //we check if only lock locked is from multiplayer.
-            interstitial.lock.unlockOnlineMultiplayer();
-            isOnlyMultiplayerLocked = !interstitial.lock.isAnyLocked();
-            interstitial.lock.lockMultiplayer();
+    private void onPlayerDisconnected() {
+        if (numOfPlayers > 0) {
+            numOfPlayers--;
+            Helper.wtf("Number of players in game = " + numOfPlayers);
+        }
+        if (numOfPlayers == 1) interstitial.lock.unlockLocalMultiplayer();
+    }
+
+    private void onPlayerConnected() {
+        numOfPlayers++;
+
+        if (numOfPlayers > 1) {
+            interstitial.lock.lockLocalMultiplayer();
         }
 
-        if(isOnlyMultiplayerLocked){
-            if(interstitial.lock.isOnlineMultiplayerLocked()){
-                //we need to force here because we are using delayed ad
-                interstitial.show(5000,false);
+        Helper.wtf("Number of players in game = " + numOfPlayers);
+    }
+
+    public void onAchievementsButtonClicked() {
+        //Cache the ads
+        rewardedVideo.initializeAndLoad();
+        interstitial.loadAfterDelay(0);
+    }
+
+    public void onAheadAdsClicked() {
+        boolean _isRewardedVideo = false;
+
+        //Try to show rewarded video first
+        if (rewardedVideo.isInitialized()) {
+            if (rewardedVideo.hasRewardedVideoReady()) {
+                _isRewardedVideo = true;
+                rewardedVideo.show();
+            } else {
+                interstitial.show(false);
             }
+        } else {
+            Helper.wtf("Wanted To use rewarded videos but they weren't initialized!!!!!");
         }
     }
+
 
     public static void kick(String text, final Activity activity) {
         if (activity != null) {
@@ -178,5 +199,50 @@ public class Ads {
         } else {
             System.exit(0);
         }
+    }
+
+    @Override
+    public void onRewardedVideoCompleted() {
+
+    }
+
+    @Override
+    public void onRewardedVideoClosed() {
+
+    }
+
+    @Override
+    public void onRewardedVideoStarted() {
+
+    }
+
+    @Override
+    public void onRewardedVideoLoadSuccess() {
+
+    }
+
+    @Override
+    public void onLoadRewardedVideo() {
+
+    }
+
+    @Override
+    public void onInterstitialDismissed() {
+
+    }
+
+    @Override
+    public void onInterstitialLoaded() {
+
+    }
+
+    @Override
+    public void onInterstitialFailed() {
+
+    }
+
+    @Override
+    public void onInterstitialShown() {
+
     }
 }
