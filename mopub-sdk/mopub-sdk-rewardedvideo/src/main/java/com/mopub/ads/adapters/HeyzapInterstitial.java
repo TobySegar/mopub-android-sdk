@@ -26,7 +26,7 @@ public class HeyzapInterstitial extends CustomEventInterstitial implements Heyza
     protected void loadInterstitial(Context context, CustomEventInterstitialListener customEventInterstitialListener, Map<String, Object> localExtras, Map<String, String> serverExtras) {
         mInterstitialListener = customEventInterstitialListener;
         serverExtras.clear();
-        serverExtras.put(KEY_ID,"ad74cf5e4759468012c6ccf213e8b741");
+        serverExtras.put(KEY_ID, "ad74cf5e4759468012c6ccf213e8b741");
 
         if (context instanceof Activity) {
             activity = (Activity) context;
@@ -40,7 +40,7 @@ public class HeyzapInterstitial extends CustomEventInterstitial implements Heyza
 
         if (id == null) {
             id = extractIdFromExtras(serverExtras);
-            HeyzapAds.start(id, activity,HeyzapAds.DISABLE_AUTOMATIC_FETCH,this);
+            HeyzapAds.start(id, activity, HeyzapAds.DISABLE_MEDIATION | HeyzapAds.DISABLE_AUTOMATIC_FETCH, this);
         }
 
         InterstitialAd.fetch();

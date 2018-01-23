@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
-import com.mojang.base.AdsListener;
 import com.mojang.base.Helper;
 import com.mojang.base.json.Data;
 import com.mopub.common.MoPub;
@@ -21,7 +20,7 @@ public class RewardedVideo implements MoPubRewardedVideoListener {
     private final Activity mActivity;
     private static boolean mIsInitialized;
     private final String FREE_DAY_KEY = "FREE_DAY";
-    private final AdsListener mAdsListener;
+    private final MoPubRewardedVideoListener mAdsListener;
     private SharedPreferences mSharedPreferences;
     private int mCurrentDateInYear;
     private final String NUM_OF_WATCHED_VID_KEY = "NUM_OF_WATCHED_VID";
@@ -34,7 +33,7 @@ public class RewardedVideo implements MoPubRewardedVideoListener {
 //        mUI = ui;
 //    }
 
-    public RewardedVideo(Activity activity,AdsListener listener) {
+    public RewardedVideo(Activity activity, MoPubRewardedVideoListener listener) {
         mActivity = activity;
         mAdsListener = listener;
     }
@@ -42,17 +41,17 @@ public class RewardedVideo implements MoPubRewardedVideoListener {
     private int setAndGetCurrentDayInYear() {
         int currentDay = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
         final String CURRENT_DAY_KEY = "CURRENT_DAY";
-        int lastCurrentDay = mSharedPreferences.getInt(CURRENT_DAY_KEY,0);
+        int lastCurrentDay = mSharedPreferences.getInt(CURRENT_DAY_KEY, 0);
 
         //Check if day changed
-        if(currentDay != lastCurrentDay){
-            mSharedPreferences.edit().putInt(CURRENT_DAY_KEY,currentDay).apply();
+        if (currentDay != lastCurrentDay) {
+            mSharedPreferences.edit().putInt(CURRENT_DAY_KEY, currentDay).apply();
             resetNumberOfWatchedVideosForToday();
         }
         return currentDay;
     }
 
-    public void init() {
+    private void init() {
         if (!mIsInitialized) {
             //final List<Class<? extends CustomEventRewardedVideo>> sNetworksToInit = Arrays.asList(
             //        AdColonyRewardedVideo.class,
@@ -68,24 +67,23 @@ public class RewardedVideo implements MoPubRewardedVideoListener {
 
             mIsInitialized = true;
         } else {
-            Helper.wtf("Trying to initialize already initialized RewardedVideos");
+            Helper.wtf("Trying to init already initialized RewardedVideos");
         }
     }
 
-    public void initializeAndLoad() {
+    public void loadAfterDelay(int delay) {
         if (!mIsInitialized) {
             init();
         }
+        if (MoPubRewardedVideos.hasRewardedVideo(Data.Ads.RewardedVideo.id)) return;
 
-        load();
-    }
-
-    public void load() {
-        if(MoPubRewardedVideos.hasRewardedVideo(Data.Ads.RewardedVideo.id)) return;
-
-        Helper.wtf("Rewarded video -> load()");
-        MoPubRewardedVideos.loadRewardedVideo(Data.Ads.RewardedVideo.id);
-        mAdsListener.onLoadRewardedVideo();
+        Helper.runOnWorkerThread(new Runnable() {
+            @Override
+            public void run() {
+                Helper.wtf("Rewarded video -> reload()");
+                MoPubRewardedVideos.loadRewardedVideo(Data.Ads.RewardedVideo.id);
+            }
+        });
     }
 
     public void show() {
@@ -95,9 +93,9 @@ public class RewardedVideo implements MoPubRewardedVideoListener {
 
     @Override
     public void onRewardedVideoLoadSuccess(@NonNull String adUnitId) {
-        if(!MoPubRewardedVideos.hasRewardedVideo(adUnitId)) return;
+        if (!MoPubRewardedVideos.hasRewardedVideo(adUnitId)) return;
         Helper.wtf("onRewardedVideoLoadSuccess");
-        mAdsListener.onRewardedVideoLoadSuccess();
+        mAdsListener.onRewardedVideoLoadSuccess(adUnitId);
     }
 
     @Override
@@ -108,7 +106,7 @@ public class RewardedVideo implements MoPubRewardedVideoListener {
     @Override
     public void onRewardedVideoStarted(@NonNull String adUnitId) {
         Helper.wtf("onRewardedVideoStarted");
-        mAdsListener.onRewardedVideoStarted();
+        mAdsListener.onRewardedVideoStarted(adUnitId);
     }
 
     @Override
@@ -124,49 +122,49 @@ public class RewardedVideo implements MoPubRewardedVideoListener {
     @Override
     public void onRewardedVideoClosed(@NonNull String adUnitId) {
         Helper.wtf("onRewardedVideoClosed");
-        mAdsListener.onRewardedVideoClosed();
+        mAdsListener.onRewardedVideoClosed(adUnitId);
 
-        if(getNumberOfWatchedVideosForToday() != MAX_NUM_OF_VIDS_PER_DAY){
-            load();
+        if (getNumberOfWatchedVideosForToday() != MAX_NUM_OF_VIDS_PER_DAY) {
+            loadAfterDelay(0);
         }
     }
 
     @Override
     public void onRewardedVideoCompleted(@NonNull Set<String> adUnitIds, @NonNull MoPubReward reward) {
         Helper.wtf("onRewardedVideoCompleted");
-        mAdsListener.onRewardedVideoCompleted();
+        mAdsListener.onRewardedVideoCompleted(adUnitIds, reward);
         incrementNumberOfWatchedVideosForToday();
 
-        if(getNumberOfWatchedVideosForToday() == MAX_NUM_OF_VIDS_PER_DAY) {
+        if (getNumberOfWatchedVideosForToday() == MAX_NUM_OF_VIDS_PER_DAY) {
             reward();
         }
     }
 
     private void reward() {
-        mSharedPreferences.edit().putInt(FREE_DAY_KEY,mCurrentDateInYear).apply();
-        Ads.i().onFreeDayEarned();
+        mSharedPreferences.edit().putInt(FREE_DAY_KEY, mCurrentDateInYear).apply();
+        //Ads.i().onFreeDayEarned();
     }
 
-    public boolean hasFreeDayActive(){
-        int freeDay = mSharedPreferences.getInt(FREE_DAY_KEY,0);
+    public boolean hasFreeDayActive() {
+        int freeDay = mSharedPreferences.getInt(FREE_DAY_KEY, 0);
         return mCurrentDateInYear == freeDay;
     }
 
-    private int getNumberOfWatchedVideosForToday(){
-        return mSharedPreferences.getInt(NUM_OF_WATCHED_VID_KEY,0);
+    private int getNumberOfWatchedVideosForToday() {
+        return mSharedPreferences.getInt(NUM_OF_WATCHED_VID_KEY, 0);
     }
 
-    private void incrementNumberOfWatchedVideosForToday(){
+    private void incrementNumberOfWatchedVideosForToday() {
         int currentNumOfVids = mSharedPreferences.getInt(NUM_OF_WATCHED_VID_KEY, 0);
-        if(currentNumOfVids < MAX_NUM_OF_VIDS_PER_DAY) {
+        if (currentNumOfVids < MAX_NUM_OF_VIDS_PER_DAY) {
             mSharedPreferences.edit().putInt(NUM_OF_WATCHED_VID_KEY, (currentNumOfVids + 1)).apply();
-        }else{
+        } else {
             Helper.wtf("Cant increment number of videos past maximum " + MAX_NUM_OF_VIDS_PER_DAY);
         }
     }
 
-    private void resetNumberOfWatchedVideosForToday(){
-        mSharedPreferences.edit().putInt(NUM_OF_WATCHED_VID_KEY,0).apply();
+    private void resetNumberOfWatchedVideosForToday() {
+        mSharedPreferences.edit().putInt(NUM_OF_WATCHED_VID_KEY, 0).apply();
     }
 
     public Activity getActivity() {
@@ -208,12 +206,13 @@ public class RewardedVideo implements MoPubRewardedVideoListener {
         return mIsInitialized;
     }
 
-    public boolean hasRewardedVideoReady(){
+    public boolean isReady() {
         return MoPubRewardedVideos.hasRewardedVideo(Data.Ads.RewardedVideo.id);
     }
 
     public interface UI {
         void onVideoLoading();
+
         void showOnVidSuccess();
     }
 }

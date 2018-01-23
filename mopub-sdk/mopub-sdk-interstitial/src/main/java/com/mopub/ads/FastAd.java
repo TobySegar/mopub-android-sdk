@@ -1,4 +1,4 @@
-package com.mopub.ads.adapters;
+package com.mopub.ads;
 
 import android.app.Activity;
 import android.content.Context;
@@ -12,7 +12,6 @@ import com.applovin.sdk.AppLovinAdSize;
 import com.applovin.sdk.AppLovinSdk;
 import com.mojang.base.Helper;
 import com.mojang.base.json.Data;
-import com.mopub.ads.Interstitial;
 import com.mopub.mobileads.MoPubInterstitial;
 
 
@@ -44,7 +43,7 @@ public class FastAd {
                     loadApplovin();
                 }
                 //WE ALSO INIT MOPUB HERE SO WE CAN TRY IT TO SHOW IF USER WAITS
-                interstitial._initDelayed(300);
+                //interstitial.init(300);
             }
         });
 
@@ -63,7 +62,7 @@ public class FastAd {
     }
 
     private void loadApplovin() {
-        Helper.wtf("loading Applovin fastad", true);
+        Helper.wtf("loading Applovin fastad");
         sdk = AppLovinSdk.getInstance(this.activity);
         sdk.getAdService().loadNextAd(AppLovinAdSize.INTERSTITIAL, new AppLovinAdLoadListener() {
             @Override
@@ -83,11 +82,11 @@ public class FastAd {
 
     public boolean show(MoPubInterstitial mopubInterstitial) {
         Helper.wtf("FastAd", "show() called with: FastAd");
-        interstitial.fastAdShowed = true;
+        //interstitial.fastAdShowed = true;
         if (Data.isActivityRunning) {
             //WE TRY MOPUB IF WE CAN
             if(mopubInterstitial.isReady()){
-                interstitial.show(false);
+                interstitial.show();
             }else if (useApplovin) {
                 if (AppLovinInterstitialAd.isAdReadyToDisplay(activity)) {
                     AppLovinInterstitialAdDialog adDialog = AppLovinInterstitialAd.create(sdk, this.activity);
