@@ -32,12 +32,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private double backOffPower = 1;
     private Method nativeBackPressedMethod;
     private boolean mPauseScreenShowed;
-    private int curentVolume;
-    private AudioManager mAudioManager;
 
     public Interstitial(Activity activity, MoPubInterstitial.InterstitialAdListener listener) {
         mActivity = activity;
-        mAudioManager = (AudioManager) activity.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         mAdListener = listener;
         mLoadRunnable = new Runnable() {
             @Override
@@ -134,7 +131,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
         mAdListener.onInterstitialDismissed(interstitial);
 
-        Helper.setVolume(curentVolume, mAudioManager);
 
         callNativeBackPressed();
 
@@ -180,8 +176,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         Helper.wtf("onInterstitialShown");
 
         mAdListener.onInterstitialShown(interstitial);
-
-        curentVolume = Helper.setQuietVolume(mAudioManager);
     }
 
     @Override
