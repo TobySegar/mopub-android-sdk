@@ -3,11 +3,11 @@ package com.mopub.ads.adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.flurry.android.ads.FlurryAdErrorType;
 import com.flurry.android.ads.FlurryAdInterstitial;
 import com.flurry.android.ads.FlurryAdInterstitialListener;
+import com.mojang.base.Helper;
 import com.mopub.mobileads.MoPubInterstitial;
 
 import java.util.Map;
@@ -21,14 +21,14 @@ import static com.mopub.mobileads.MoPubErrorCode.UNSPECIFIED;
  * Created by Wao on 1/15/2018.
  */
 
+//todo toto nieje rewarded video man
 public class FlurryCustomEventRewarded extends com.mopub.mobileads.CustomEventInterstitial implements FlurryAdInterstitialListener {
-    private static final String LOG_TAG = FlurryCustomEventInterstitial.class.getSimpleName();
     private Context mContext;
     private CustomEventInterstitialListener mListener;
-
     private String mAdSpaceName;
 
     private FlurryAdInterstitial mInterstitial;
+
     // CustomEventInterstitial
     @Override
     protected void loadInterstitial(Context context,
@@ -42,24 +42,24 @@ public class FlurryCustomEventRewarded extends com.mopub.mobileads.CustomEventIn
         //serverExtras.put(FlurryAgentWrapper.PARAM_API_KEY, "P3382GDJ5NWFCYQN4X8B");
 
         if (context == null) {
-            Log.e(LOG_TAG, "Context cannot be null.");
+            Helper.wtf("Context cannot be null.");
             listener.onInterstitialFailed(ADAPTER_CONFIGURATION_ERROR);
             return;
         }
 
         if (listener == null) {
-            Log.e(LOG_TAG, "CustomEventInterstitialListener cannot be null.");
+            Helper.wtf("CustomEventInterstitialListener cannot be null.");
             return;
         }
 
         if (!(context instanceof Activity)) {
-            Log.e(LOG_TAG, "Ad can be rendered only in Activity context.");
+            Helper.wtf("Ad can be rendered only in Activity context.");
             listener.onInterstitialFailed(ADAPTER_CONFIGURATION_ERROR);
             return;
         }
 
         if (!validateExtras(serverExtras)) {
-            Log.e(LOG_TAG, "Failed interstitial ad fetch: Missing required server extras" +
+            Helper.wtf("Failed interstitial ad fetch: Missing required server extras" +
                     " [FLURRY_APIKEY and/or FLURRY_ADSPACE].");
             listener.onInterstitialFailed(ADAPTER_CONFIGURATION_ERROR);
             return;
@@ -73,7 +73,7 @@ public class FlurryCustomEventRewarded extends com.mopub.mobileads.CustomEventIn
 
         FlurryAgentWrapper.getInstance().startSession(context, apiKey, null);
 
-        Log.d(LOG_TAG, "Fetching Flurry ad, ad unit name:" + mAdSpaceName);
+        Helper.wtf( "Fetching Flurry ad, ad unit name:" + mAdSpaceName);
         mInterstitial = new FlurryAdInterstitial(mContext, mAdSpaceName);
         mInterstitial.setListener(this);
         mInterstitial.fetchAd();
@@ -85,7 +85,7 @@ public class FlurryCustomEventRewarded extends com.mopub.mobileads.CustomEventIn
             return;
         }
 
-        Log.d(LOG_TAG, "MoPub issued onInvalidate (" + mAdSpaceName + ")");
+        Helper.wtf("MoPub issued onInvalidate (" + mAdSpaceName + ")");
 
         if (mInterstitial != null) {
             mInterstitial.destroy();
@@ -105,7 +105,7 @@ public class FlurryCustomEventRewarded extends com.mopub.mobileads.CustomEventIn
 
     @Override
     public void showInterstitial() {
-        Log.d(LOG_TAG, "MoPub issued showRewarded (" + mAdSpaceName + ")");
+        Helper.wtf( "MoPub issued showRewarded (" + mAdSpaceName + ")");
 
         if (mInterstitial != null) {
             mInterstitial.displayAd();
@@ -124,7 +124,7 @@ public class FlurryCustomEventRewarded extends com.mopub.mobileads.CustomEventIn
 
         final String flurryApiKey = serverExtras.get(FlurryAgentWrapper.PARAM_API_KEY);
         final String flurryAdSpace = serverExtras.get(FlurryAgentWrapper.PARAM_AD_SPACE_NAME_REWARD);
-        Log.i(LOG_TAG, "ServerInfo fetched from Mopub " + FlurryAgentWrapper.PARAM_API_KEY + " : "
+        Helper.wtf( "ServerInfo fetched from Mopub " + FlurryAgentWrapper.PARAM_API_KEY + " : "
                 + flurryApiKey + " and " + FlurryAgentWrapper.PARAM_AD_SPACE_NAME_REWARD + " :" +
                 flurryAdSpace);
 
@@ -133,7 +133,7 @@ public class FlurryCustomEventRewarded extends com.mopub.mobileads.CustomEventIn
 
     @Override
     public void onFetched(FlurryAdInterstitial adInterstitial) {
-        Log.d(LOG_TAG, "onFetched: Flurry Rewarded ad fetched successfully!");
+        Helper.wtf( "onFetched: Flurry Rewarded ad fetched successfully!");
 
         if (mListener != null) {
             mListener.onInterstitialLoaded();
@@ -142,7 +142,7 @@ public class FlurryCustomEventRewarded extends com.mopub.mobileads.CustomEventIn
 
     @Override
     public void onRendered(FlurryAdInterstitial adInterstitial) {
-        Log.d(LOG_TAG, "onRendered: Flurry Rewarded ad rendered");
+        Helper.wtf( "onRendered: Flurry Rewarded ad rendered");
 
         if (mListener != null) {
             mListener.onInterstitialShown();
@@ -151,14 +151,14 @@ public class FlurryCustomEventRewarded extends com.mopub.mobileads.CustomEventIn
 
     @Override
     public void onDisplay(FlurryAdInterstitial adInterstitial) {
-        Log.d(LOG_TAG, "onDisplay: Flurry Rewarded ad displayed");
+        Helper.wtf( "onDisplay: Flurry Rewarded ad displayed");
 
         // no-op
     }
 
     @Override
     public void onClose(FlurryAdInterstitial adInterstitial) {
-        Log.d(LOG_TAG, "onClose: Flurry Rewarded ad closed");
+        Helper.wtf( "onClose: Flurry Rewarded ad closed");
 
         if (mListener != null) {
             mListener.onInterstitialDismissed();
@@ -167,12 +167,12 @@ public class FlurryCustomEventRewarded extends com.mopub.mobileads.CustomEventIn
 
     @Override
     public void onAppExit(FlurryAdInterstitial adInterstitial) {
-        Log.d(LOG_TAG, "onAppExit: Flurry Rewarded ad exited app");
+        Helper.wtf( "onAppExit: Flurry Rewarded ad exited app");
     }
 
     @Override
     public void onClicked(FlurryAdInterstitial adInterstitial) {
-        Log.d(LOG_TAG, "onClicked: Flurry Rewarded ad clicked");
+        Helper.wtf( "onClicked: Flurry Rewarded ad clicked");
 
         if (mListener != null) {
             mListener.onInterstitialClicked();
@@ -181,7 +181,7 @@ public class FlurryCustomEventRewarded extends com.mopub.mobileads.CustomEventIn
 
     @Override
     public void onVideoCompleted(FlurryAdInterstitial adInterstitial) {
-        Log.d(LOG_TAG, "onVideoCompleted: Flurry Rewarded ad video completed");
+        Helper.wtf( "onVideoCompleted: Flurry Rewarded ad video completed");
 
         // no-op
     }
@@ -189,7 +189,7 @@ public class FlurryCustomEventRewarded extends com.mopub.mobileads.CustomEventIn
     @Override
     public void onError(FlurryAdInterstitial adInterstitial, FlurryAdErrorType adErrorType,
                         int errorCode) {
-        Log.d(LOG_TAG, String.format("onError: Flurry Rewarded ad not available. " +
+        Helper.wtf( String.format("onError: Flurry Rewarded ad not available. " +
                 "Error type: %s. Error code: %s", adErrorType.toString(), errorCode));
 
         if (mListener != null) {

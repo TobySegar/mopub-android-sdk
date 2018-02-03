@@ -38,7 +38,7 @@ public class AdColonyInterstitial extends CustomEventInterstitial {
     //public static final String CLIENT_OPTIONS_KEY = "clientOptions";
     public static final String APP_ID_KEY = "appId";
     public static final String ALL_ZONE_IDS_KEY = "allZoneIds"; //useless
-    public static final String ZONE_ID_KEY = "zoneID";
+    public static final String ZONE_ID_KEY = "zoneId";
 
     private CustomEventInterstitialListener mCustomEventInterstitialListener;
     private AdColonyInterstitialListener mAdColonyInterstitialListener;

@@ -10,6 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.mojang.base.Helper;
 import com.mopub.common.AdFormat;
 import com.mopub.common.AdReport;
 import com.mopub.common.AdUrlGenerator;
@@ -705,6 +706,7 @@ public class MoPubRewardedVideoManager {
      */
     public static <T extends CustomEventRewardedAd>
     void onRewardedVideoLoadSuccess(@NonNull final Class<T> customEventClass, @NonNull final String thirdPartyId) {
+        Helper.wtf("onRewardedVideoLoadSuccess -> " + customEventClass);
         postToInstance(new ForEachMoPubIdRunnable(customEventClass, thirdPartyId) {
             @Override
             protected void forEach(@NonNull final String moPubId) {
@@ -718,6 +720,7 @@ public class MoPubRewardedVideoManager {
 
     public static <T extends CustomEventRewardedAd>
     void onRewardedVideoLoadFailure(@NonNull final Class<T> customEventClass, final String thirdPartyId, final MoPubErrorCode errorCode) {
+        Helper.wtf("onRewardedVideoLoadFailure -> " + customEventClass);
         postToInstance(new ForEachMoPubIdRunnable(customEventClass, thirdPartyId) {
             @Override
             protected void forEach(@NonNull final String moPubId) {

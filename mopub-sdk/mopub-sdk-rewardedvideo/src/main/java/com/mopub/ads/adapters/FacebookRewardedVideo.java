@@ -1,4 +1,4 @@
-package com.mopub.mobileads;
+package com.mopub.ads.adapters;
 
 import android.app.Activity;
 import android.support.annotation.NonNull;
@@ -6,12 +6,15 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.facebook.ads.Ad;
 import com.facebook.ads.AdError;
 import com.facebook.ads.RewardedVideoAd;
 import com.facebook.ads.RewardedVideoAdListener;
 import com.mopub.common.LifecycleListener;
-import com.facebook.ads.Ad;
 import com.mopub.common.MoPubReward;
+import com.mopub.mobileads.CustomEventRewardedVideo;
+import com.mopub.mobileads.MoPubErrorCode;
+import com.mopub.mobileads.MoPubRewardedVideoManager;
 
 import java.util.Map;
 

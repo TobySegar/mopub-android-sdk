@@ -26,7 +26,7 @@ public class UnityRewardedVideo extends CustomEventRewardedVideo {
     private static final String GAME_ID_KEY = "gameId";
     private static final LifecycleListener sLifecycleListener = new UnityLifecycleListener();
     private static final UnityAdsListener sUnityAdsListener = new UnityAdsListener();
-    private static String sPlacementId = "";
+    private static String sPlacementId = "rewardedVideoZone";
 
     @Nullable
     private Activity mLauncherActivity;
