@@ -39,9 +39,6 @@ class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInter
             Map<String, String> serverExtras) {
 
         mListener = listener;
-        //serverExtras = new HashMap<>();
-        //serverExtras.put(FlurryAgentWrapper.PARAM_AD_SPACE_NAME, "int");
-        //serverExtras.put(FlurryAgentWrapper.PARAM_API_KEY, "P3382GDJ5NWFCYQN4X8B");
 
         if (context == null) {
             Log.e(LOG_TAG, "Context cannot be null.");
