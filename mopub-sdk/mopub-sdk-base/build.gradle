@@ -25,10 +25,10 @@ dependencies {
     api project(':base')
 
     //Locodoco
-    api 'com.google.android.gms:play-services-ads:10.0.0'
-    api 'com.google.android.gms:play-services-location:10.0.0'
-    api 'com.inlocomedia.android:android-sdk-ads:3.4.0' //Ads SDK
-    api 'com.inlocomedia.android:android-sdk-location:3.4.0' //Location SDK
+    //api 'com.google.android.gms:play-services-ads:10.0.0'
+    //api 'com.google.android.gms:play-services-location:10.0.0'
+    //api 'com.inlocomedia.android:android-sdk-ads:3.4.0' //Ads SDK
+    //api 'com.inlocomedia.android:android-sdk-location:3.4.0' //Location SDK
 
     //Facebook
     api project(':audience-network-sdk-4.26.1')
