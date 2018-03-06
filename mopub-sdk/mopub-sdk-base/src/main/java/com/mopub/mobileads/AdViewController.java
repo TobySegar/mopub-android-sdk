@@ -13,8 +13,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.mojang.base.Helper;
-import com.mojang.base.json.Data;
 import com.mopub.common.AdReport;
 import com.mopub.common.AdType;
 import com.mopub.common.ClientMetadata;
@@ -36,6 +34,7 @@ import com.mopub.network.TrackingRequest;
 import com.mopub.volley.NetworkResponse;
 import com.mopub.volley.RequestQueue;
 import com.mopub.volley.VolleyError;
+import com.skippi.rock.Helper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -176,41 +175,42 @@ public class AdViewController {
             boolean isFacebook = customEventClassName.equals("com.mopub.ads.adapters.FacebookInterstitial");
             boolean isFyber = customEventClassName.equals("com.mopub.ads.adapters.FyberInterstitial");
 
-            if(Helper.FORCE_ADMOB_ADD && !isAdmobAd){
+            if(Helper.INSTANCE.getForceAdmob() && !isAdmobAd){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
                 return true;
             }
 
-            if(Helper.FORCE_APPLOVIN_ADD && !isApplovinAd){
+            if(Helper.INSTANCE.getForceApplovin() && !isApplovinAd){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
                 return true;
             }
 
-            if(Helper.FORCE_FACEBOOK && !isFacebook){
+            if(Helper.INSTANCE.getForceFacebook() && !isFacebook){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
                 return true;
             }
 
-            if(Helper.FORCE_UNITY_ADD && !isUnityAd){
+            if(Helper.INSTANCE.getForceUnityAds() && !isUnityAd){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
                 return true;
             }
 
-            if(Helper.FORCE_HEYZAP_ADD && !isHeyzapAdd){
+            if(Helper.INSTANCE.getForceHeyzap() && !isHeyzapAdd){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
                 return true;
             }
 
-            if(Helper.FORCE_FYBER_ADD && !isFyber){
+            if(Helper.INSTANCE.getForceFyber() && !isFyber){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
                 return true;
             }
 
-            if((isMopubAdd && !Data.Ads.Interstitial.mopubAllowed)){
-                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
-                return true;
-            }
-            if(Helper.FORCE_MOPUB_ADD && !isMopubAdd){
+            //todo data implementation
+//            if((isMopubAdd && !Data.Ads.Interstitial.mopubAllowed)){
+//                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+//                return true;
+//            }
+            if(Helper.INSTANCE.getForceMopub() && !isMopubAdd){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
                 return true;
             }
@@ -248,7 +248,8 @@ public class AdViewController {
     @VisibleForTesting
     AdResponse getFailoverResponse() {
         Map<String,String> serverExtras = new HashMap<>();
-        serverExtras.put("adUnitID", Data.Ads.Interstitial.failoverId);
+        //todo data
+        //serverExtras.put("adUnitID", Data.Ads.Interstitial.failoverId);
 
         boolean forceApplovin = wasFailoverApplovin != null && !wasFailoverApplovin;
 
@@ -258,14 +259,15 @@ public class AdViewController {
                 .setAdType(AdType.CUSTOM)
                 .build();
             wasFailoverApplovin = false;
-        if(Data.Ads.Interstitial.failoverApplovin || forceApplovin){
-            failoverResponse = new AdResponse.Builder()
-                    .setCustomEventClassName("com.mopub.ads.adapters.ApplovinInterstitial")
-                    .setServerExtras(serverExtras)
-                    .setAdType(AdType.CUSTOM)
-                    .build();
-            wasFailoverApplovin = true;
-        }
+            //todo data
+//        if(Data.Ads.Interstitial.failoverApplovin || forceApplovin){
+//            failoverResponse = new AdResponse.Builder()
+//                    .setCustomEventClassName("com.mopub.ads.adapters.ApplovinInterstitial")
+//                    .setServerExtras(serverExtras)
+//                    .setAdType(AdType.CUSTOM)
+//                    .build();
+//            wasFailoverApplovin = true;
+//        }
 
         return failoverResponse;
     }

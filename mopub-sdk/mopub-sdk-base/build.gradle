@@ -11,19 +11,18 @@ repositories {
 //https://mvnrepository.com/artifact/com.facebook.android/audience-network-sdk
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    def avidEnabled = project.hasProperty("mopub.avidEnabled") ? project.getProperty("mopub.avidEnabled").toBoolean() : true
-    if (avidEnabled) {
-        compile('com.mopub:libAvid-mopub:3.6.4')
-    }
-    def moatEnabled = project.hasProperty("mopub.moatEnabled") ? project.getProperty("mopub.moatEnabled").toBoolean() : true
-    if (moatEnabled) {
-        compile 'com.moat.analytics.mobile.mpub:moat-mobile-app-kit:2.1.0'
-    }
-    compile 'com.mopub.volley:mopub-volley:1.1.0'
-    compile project(':base')
-    compile 'com.google.android.gms:play-services-ads:10.0.0'
-    //compile project(':unity-ads')
-    //compile project(':audience-network-sdk-4.26.1')
+    compile project(':rock')
+    //def avidEnabled = false
+    //project.hasProperty("mopub.avidEnabled") ? project.getProperty("mopub.avidEnabled").toBoolean() : true
+    //if (avidEnabled) {
+    //    compile('com.mopub:libAvid-mopub:3.6.4')
+    //}
+    //def moatEnabled = false
+    // false for now project.hasProperty("mopub.moatEnabled") ? project.getProperty("mopub.moatEnabled").toBoolean() : true
+    //if (moatEnabled) {
+    //    compile 'com.moat.analytics.mobile.mpub:moat-mobile-app-kit:2.1.0'
+    //}
+    //compile 'com.mopub.volley:mopub-volley:2.0.0'
 }
 
 project.description = 'MoPub Android SDK - Base'

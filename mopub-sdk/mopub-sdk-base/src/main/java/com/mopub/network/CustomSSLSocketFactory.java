@@ -118,7 +118,7 @@ public class CustomSSLSocketFactory extends SSLSocketFactory {
 
         // There is a bug in Android before version 6.0 where SNI does not work, so we try to do
         // it manually here.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT < 23) {
             // Don't use the original socket and create a new one. This closes the original socket
             // if the autoClose flag is set.
             if (autoClose && socketParam != null) {

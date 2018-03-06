@@ -5,11 +5,9 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.mopub.ads.Proxy;
 import com.mopub.common.AdReport;
 import com.mopub.common.Constants;
 import com.mopub.common.Preconditions;
-import com.mopub.common.VisibleForTesting;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.mobileads.CustomEventInterstitial.CustomEventInterstitialListener;
 import com.mopub.mobileads.factories.CustomEventInterstitialFactory;
@@ -36,7 +34,7 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
     private long mBroadcastIdentifier;
     private final Handler mHandler;
     private final Runnable mTimeout;
-    private Proxy mProxy;
+    //private Proxy mProxy;
 
     public CustomEventInterstitialAdapter(@NonNull final MoPubInterstitial moPubInterstitial,
             @NonNull final String className,
@@ -98,13 +96,13 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         }
 
         //We use proxy activity for some ad networks
-        if(mCustomEventInterstitial.usesProxy()){
-            if (mProxy == null) {
-                mProxy = new Proxy();
-            }
-            mProxy.startProxyActivity(mContext,mCustomEventInterstitial);
-            return;
-        }
+//        if(mCustomEventInterstitial.usesProxy()){
+//            if (mProxy == null) {
+//                mProxy = new Proxy();
+//            }
+//            mProxy.startProxyActivity(mContext,mCustomEventInterstitial);
+//            return;
+//        }
 
         // Custom event classes can be developed by any third party and may not be tested.
         // We catch all exceptions here to prevent crashes from untested code.
@@ -238,15 +236,11 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         if (mCustomEventInterstitialAdapterListener != null) {
             mCustomEventInterstitialAdapterListener.onCustomEventInterstitialDismissed();
         }
-
-        if(mProxy != null) {
-            mProxy.Finish();
-        }
-    }
-
-    @VisibleForTesting
-    void setProxy(Proxy proxy){
-        mProxy = proxy;
+        //Proxy
+//
+//        if(mProxy != null) {
+//            mProxy.Finish();
+//        }
     }
 
     @Deprecated

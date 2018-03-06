@@ -6,7 +6,6 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Point;
 import android.net.ConnectivityManager;
@@ -15,7 +14,6 @@ import android.os.Build;
 import android.os.StatFs;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.Surface;
@@ -248,8 +246,19 @@ public class DeviceUtils {
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(permission);
 
-        return ContextCompat.checkSelfPermission(context, permission) ==
-                PackageManager.PERMISSION_GRANTED;
+
+        /*
+          bojo change we dont have this method so we return true instead and make sure we have all the necesarry permisions
+
+           ACCESS_NETWORK_STATE
+           INTERNET
+           ACCESS_FINE_LOCATION
+           ACCESS_COARSE_LOCATION
+           WRITE_EXTERNAL_STORAGE
+         */
+//        return ContextCompat.checkSelfPermission(context, permission) ==
+//                PackageManager.PERMISSION_GRANTED;
+        return true;
     }
 
     /**

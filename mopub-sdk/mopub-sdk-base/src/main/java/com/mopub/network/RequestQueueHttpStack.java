@@ -8,8 +8,6 @@ import com.mopub.volley.AuthFailureError;
 import com.mopub.volley.Request;
 import com.mopub.volley.toolbox.HurlStack;
 
-import org.apache.http.HttpResponse;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
@@ -41,14 +39,24 @@ public class RequestQueueHttpStack extends HurlStack {
     }
 
     @Override
-    public HttpResponse performRequest(@NonNull final Request<?> request,
-            @Nullable Map<String, String> additionalHeaders) throws IOException, AuthFailureError {
+    public com.mopub.volley.toolbox.HttpResponse executeRequest(Request<?> request, Map<String, String> additionalHeaders) throws IOException, AuthFailureError {
         if (additionalHeaders == null) {
             additionalHeaders = new TreeMap<String, String>();
         }
 
         additionalHeaders.put(ResponseHeader.USER_AGENT.getKey(), mUserAgent);
 
-        return super.performRequest(request, additionalHeaders);
+        return super.executeRequest(request, additionalHeaders);
     }
+
+//    @Override
+//    public HttpResponse performRequest(@NonNull final Request<?> request, @Nullable Map<String, String> additionalHeaders) throws IOException, AuthFailureError {
+//        if (additionalHeaders == null) {
+//            additionalHeaders = new TreeMap<String, String>();
+//        }
+//
+//        additionalHeaders.put(ResponseHeader.USER_AGENT.getKey(), mUserAgent);
+//
+//        return super.performRequest(request, additionalHeaders);
+//    }
 }

@@ -2,7 +2,7 @@ package com.mopub.mobileads;
 
 import android.content.Context;
 
-import com.mopub.ads.Proxy;
+
 
 import java.util.Map;
 
