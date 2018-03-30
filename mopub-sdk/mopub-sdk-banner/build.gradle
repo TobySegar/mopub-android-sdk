@@ -9,3 +9,7 @@ project.ext.displayName = 'MoPub Android SDK - Banner'
 project.ext.projectName = 'mopub-sdk-banner'
 project.ext.uploadName = 'mopub-android-sdk-banner'
 //apply from: '../publisher.gradle'
+
+android {
+    buildToolsVersion '27.0.3'
+}

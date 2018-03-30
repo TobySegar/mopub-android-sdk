@@ -1,21 +1,22 @@
 apply plugin: 'com.android.library'
 
 repositories {
+    google()
     mavenCentral()
     jcenter()
     flatDir {
         dirs project(':mopub-sdk').file('../libs')
     }
-    maven { url "https://s3.amazonaws.com/moat-sdk-builds" }
     maven { url 'https://maven.google.com' }
+    maven { url "https://s3.amazonaws.com/moat-sdk-builds" }
 }
 
 project.group = 'com.mopub'
 project.version = '4.19.0'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    compileSdkVersion 23
+    buildToolsVersion '27.0.3'
     lintOptions { abortOnError false }
     useLibrary 'org.apache.http.legacy'
 
@@ -23,7 +24,7 @@ android {
         versionCode 57
         versionName version
         minSdkVersion 16
-        targetSdkVersion 26
+        targetSdkVersion 23
         consumerProguardFiles project(':mopub-sdk').file('proguard.txt')
     }
 

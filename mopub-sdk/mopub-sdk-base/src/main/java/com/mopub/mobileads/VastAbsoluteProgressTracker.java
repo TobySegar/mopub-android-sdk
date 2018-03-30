@@ -24,9 +24,9 @@ public class VastAbsoluteProgressTracker extends VastTracker
          * This is video time tracker that can be triggered or not base on it
          * its tracket if video was seen and you will get icon to close the vid??
          */
-        //todo test this code when you can get intertitial
+
         if(trackingMilliseconds <= 0){
-            trackingMilliseconds = 300;
+            trackingMilliseconds = 20;
         }
         Preconditions.checkArgument(trackingMilliseconds >= 0);
         mTrackingMilliseconds = trackingMilliseconds;
