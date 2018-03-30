@@ -30,4 +30,9 @@ class MraidInterstitial extends ResponseBodyInterstitial {
     public void showInterstitial() {
         MraidActivity.start(mContext, mAdReport, mHtmlData, mBroadcastIdentifier);
     }
+
+    @Override
+    protected boolean usesProxy() {
+        return false;
+    }
 }

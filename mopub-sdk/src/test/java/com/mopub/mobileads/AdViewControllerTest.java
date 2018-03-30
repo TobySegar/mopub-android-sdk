@@ -21,6 +21,7 @@ import com.mopub.network.Networking;
 import com.mopub.volley.NetworkResponse;
 import com.mopub.volley.NoConnectionError;
 import com.mopub.volley.Request;
+import com.mopub.volley.ServerError;
 import com.mopub.volley.VolleyError;
 
 import org.junit.After;
@@ -583,6 +584,18 @@ public class AdViewControllerTest {
         }
         verify(mockMoPubView, times(HTML_ERROR_CODES.length)).adFailed(MoPubErrorCode.SERVER_ERROR);
     }
+
+    @Test
+    public void onAdLoadError_withInvalidServerResponse_shouldReturnErrorCodeServerError_shouldCallOnLoadSuccess_withFaioverResponse() {
+        final AdResponse failoverResponse = subject.getFailoverResponse();
+        final NetworkResponse errorNetworkResponse = new NetworkResponse(400, null, null, true, 0);
+        final VolleyError volleyError = new VolleyError(errorNetworkResponse);
+
+        subject.onAdLoadError(volleyError);
+
+        verify(mockMoPubView).loadCustomEvent(failoverResponse.getCustomEventClassName(), failoverResponse.getServerExtras());
+    }
+
 
     @Test
     public void loadCustomEvent_shouldCallMoPubViewLoadCustomEvent() throws Exception {

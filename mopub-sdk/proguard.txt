@@ -38,6 +38,7 @@
 }
 
 -keepnames @com.google.android.gms.common.annotation.KeepName class *
+-dontwarn com.google.android.gms.**
 -keepclassmembernames class * {
     @com.google.android.gms.common.annotation.KeepName *;
 }
@@ -45,3 +46,10 @@
 -keepnames class * implements android.os.Parcelable {
     public static final ** CREATOR;
 }
+
+# Mopub-Filter out warnings that refer to legacy Code.
+-dontwarn org.apache.http.**
+-dontwarn com.mopub.volley.toolbox.**
+
+# Mopub-Exoplayer api 22
+-dontwarn com.google.android.exoplayer.**

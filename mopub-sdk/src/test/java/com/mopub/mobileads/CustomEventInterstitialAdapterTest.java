@@ -3,6 +3,7 @@ package com.mopub.mobileads;
 import android.content.Context;
 import android.location.Location;
 
+import com.mopub.ads.Proxy;
 import com.mopub.common.AdReport;
 import com.mopub.common.DataKeys;
 import com.mopub.common.test.support.SdkTestRunner;
@@ -11,6 +12,7 @@ import com.mopub.mobileads.factories.CustomEventInterstitialFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -29,12 +31,14 @@ import static com.mopub.mobileads.MoPubErrorCode.NETWORK_TIMEOUT;
 import static com.mopub.mobileads.MoPubErrorCode.UNSPECIFIED;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.stub;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(SdkTestRunner.class)
 @Config(constants = BuildConfig.class)
@@ -243,6 +247,18 @@ public class CustomEventInterstitialAdapterTest {
         subject.showInterstitial();
 
         verify(interstitial).showInterstitial();
+    }
+
+    @Test
+    public void showInterstitial_shouldStartProxyActivity_whenCustomEventInterstitialUsesProxy() throws Exception {
+        when(interstitial.usesProxy()).thenReturn(true);
+        Proxy proxyMock = mock(Proxy.class);
+        subject.setProxy(proxyMock);
+
+
+        subject.showInterstitial();
+
+        verify(proxyMock).startProxyActivity(null,interstitial);
     }
 
     @Test

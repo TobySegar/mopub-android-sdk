@@ -5,11 +5,12 @@ repositories {
         dirs './libs'
     }
     maven { url "https://s3.amazonaws.com/moat-sdk-builds" }
+    maven { url "https://maven.google.com" }
 }
-
+//FACEBOOK
+//https://mvnrepository.com/artifact/com.facebook.android/audience-network-sdk
 dependencies {
-    compile 'com.mopub.volley:mopub-volley:1.1.0'
-
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     def avidEnabled = project.hasProperty("mopub.avidEnabled") ? project.getProperty("mopub.avidEnabled").toBoolean() : true
     if (avidEnabled) {
         compile('com.mopub:libAvid-mopub:3.6.4')
@@ -18,10 +19,15 @@ dependencies {
     if (moatEnabled) {
         compile 'com.moat.analytics.mobile.mpub:moat-mobile-app-kit:2.1.0'
     }
+    compile 'com.mopub.volley:mopub-volley:1.1.0'
+    compile project(':base')
+    //compile 'com.google.android.gms:play-services-ads:10.0.0'
+    compile project(':unity-ads')
+    //compile project(':audience-network-sdk-4.26.1')
 }
 
 project.description = 'MoPub Android SDK - Base'
 project.ext.displayName = 'MoPub Android SDK - Base'
 project.ext.projectName = 'mopub-sdk-base'
 project.ext.uploadName = 'mopub-android-sdk-base'
-apply from: '../publisher.gradle'
+//apply from: '../publisher.gradle'

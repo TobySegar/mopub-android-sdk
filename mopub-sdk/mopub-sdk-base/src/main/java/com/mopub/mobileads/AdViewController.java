@@ -13,9 +13,13 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import com.mojang.base.Helper;
+import com.mojang.base.json.Data;
 import com.mopub.common.AdReport;
+import com.mopub.common.AdType;
 import com.mopub.common.ClientMetadata;
 import com.mopub.common.Constants;
+import com.mopub.common.DataKeys;
 import com.mopub.common.Preconditions;
 import com.mopub.common.VisibleForTesting;
 import com.mopub.common.event.BaseEvent;
@@ -37,6 +41,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 
@@ -94,6 +100,7 @@ public class AdViewController {
     private int mTimeoutMilliseconds;
     @Nullable private AdRequest mActiveRequest;
     @Nullable private Integer mRefreshTimeMillis;
+    public Boolean wasFailoverApplovin;
 
     public static void setShouldHonorServerDimensions(View view) {
         sViewShouldHonorServerDimensions.put(view, true);
@@ -138,19 +145,77 @@ public class AdViewController {
     @VisibleForTesting
     void onAdLoadSuccess(@NonNull final AdResponse adResponse) {
         mBackoffPower = 1;
-        mAdResponse = adResponse;
-        mCustomEventClassName = adResponse.getCustomEventClassName();
+        mAdResponse = changeResponseCustomClassPath(adResponse);
+
+
+        String customEventClassName = mAdResponse.getCustomEventClassName();
+
+        if (forceAdFromMopubServer(customEventClassName)) return;
+
         // Do other ad loading setup. See AdFetcher & AdLoadTask.
         mTimeoutMilliseconds = mAdResponse.getAdTimeoutMillis() == null
                 ? mTimeoutMilliseconds
                 : mAdResponse.getAdTimeoutMillis();
         mRefreshTimeMillis = mAdResponse.getRefreshTimeMillis();
+
         setNotLoading();
 
-        loadCustomEvent(mMoPubView, adResponse.getCustomEventClassName(),
+        loadCustomEvent(mMoPubView, customEventClassName,
                 adResponse.getServerExtras());
 
         scheduleRefreshTimerIfEnabled();
+    }
+
+    private boolean forceAdFromMopubServer(String customEventClassName) {
+        if(customEventClassName != null) {
+            boolean isMopubAdd = customEventClassName.equals("com.mopub.mobileads.HtmlInterstitial") || customEventClassName.equals("com.mopub.mobileads.VastVideoInterstitial") || customEventClassName.equals("com.mopub.mraid.MraidInterstitial");
+            boolean isUnityAd = customEventClassName.equals("com.mopub.ads.adapters.UnityAdsMopubEvents");
+            boolean isHeyzapAdd = customEventClassName.equals("com.mopub.ads.adapters.HeyzapInterstitial");
+            boolean isApplovinAd = customEventClassName.equals("com.mopub.ads.adapters.ApplovinInterstitial");
+            boolean isAdmobAd = customEventClassName.equals("com.mopub.ads.adapters.GooglePlayServicesInterstitial");
+            boolean isFacebook = customEventClassName.equals("com.mopub.ads.adapters.FacebookInterstitial");
+            boolean isFyber = customEventClassName.equals("com.mopub.ads.adapters.FyberInterstitial");
+
+            if(Helper.FORCE_ADMOB_ADD && !isAdmobAd){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return true;
+            }
+
+            if(Helper.FORCE_APPLOVIN_ADD && !isApplovinAd){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return true;
+            }
+
+            if(Helper.FORCE_FACEBOOK && !isFacebook){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return true;
+            }
+
+            if(Helper.FORCE_UNITY_ADD && !isUnityAd){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return true;
+            }
+
+            if(Helper.FORCE_HEYZAP_ADD && !isHeyzapAdd){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return true;
+            }
+
+            if(Helper.FORCE_FYBER_ADD && !isFyber){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return true;
+            }
+
+            if((isMopubAdd && !Data.Ads.Interstitial.mopubAllowed)){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return true;
+            }
+            if(Helper.FORCE_MOPUB_ADD && !isMopubAdd){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return true;
+            }
+        }
+        return false;
     }
 
     @VisibleForTesting
@@ -169,12 +234,40 @@ public class AdViewController {
         }
 
         final MoPubErrorCode errorCode = getErrorCodeFromVolleyError(error, mContext);
-        if (errorCode == MoPubErrorCode.SERVER_ERROR) {
+
+        if (errorCode == MoPubErrorCode.SERVER_ERROR || errorCode == MoPubErrorCode.NO_FILL) {
             mBackoffPower++;
+            onAdLoadSuccess(getFailoverResponse());
+            return;
         }
 
         setNotLoading();
         adDidFail(errorCode);
+    }
+
+    @VisibleForTesting
+    AdResponse getFailoverResponse() {
+        Map<String,String> serverExtras = new HashMap<>();
+        serverExtras.put("adUnitID", Data.Ads.Interstitial.failoverId);
+
+        boolean forceApplovin = wasFailoverApplovin != null && !wasFailoverApplovin;
+
+        AdResponse failoverResponse = new AdResponse.Builder()
+                .setCustomEventClassName("com.mopub.ads.adapters.GooglePlayServicesInterstitial")
+                .setServerExtras(serverExtras)
+                .setAdType(AdType.CUSTOM)
+                .build();
+            wasFailoverApplovin = false;
+        if(Data.Ads.Interstitial.failoverApplovin || forceApplovin){
+            failoverResponse = new AdResponse.Builder()
+                    .setCustomEventClassName("com.mopub.ads.adapters.ApplovinInterstitial")
+                    .setServerExtras(serverExtras)
+                    .setAdType(AdType.CUSTOM)
+                    .build();
+            wasFailoverApplovin = true;
+        }
+
+        return failoverResponse;
     }
 
     @VisibleForTesting
@@ -188,7 +281,40 @@ public class AdViewController {
             return;
         }
 
+        extractCountryFromExtras(serverExtras);
+
         moPubView.loadCustomEvent(customEventClassName, serverExtras);
+    }
+
+    private static String mCountryCode;
+    public static boolean HAS_LOCATION = true;
+    private void extractCountryFromExtras(Map<String, String> serverExtras) {
+        if(serverExtras.containsKey(DataKeys.CLICKTHROUGH_URL_KEY) && mCountryCode == null){
+            String url = serverExtras.get(DataKeys.CLICKTHROUGH_URL_KEY);
+            Pattern p = Pattern.compile("(?<=&country_code=).*?(?=&)");
+            Matcher m = p.matcher(url);
+            if(m.find() && mCountryCode == null){
+                mCountryCode = m.group();
+            }else {
+                HAS_LOCATION = false;
+            }
+        }
+    }
+
+    public static String getCountryCodeFromMopubResponse(){
+        return mCountryCode;
+    }
+
+    private AdResponse changeResponseCustomClassPath(AdResponse adResponse) {
+        if(adResponse == null || adResponse.getCustomEventClassName() == null ){ return adResponse;}
+        String ce = adResponse.getCustomEventClassName();
+        if(ce.contains("VastVideoInterstitial") || ce.contains("MraidInterstitial") || ce.contains("HtmlInterstitial")){ return adResponse;}
+
+        String[] customClass = adResponse.getCustomEventClassName().split("\\.");
+        if(customClass[2].equals("mobileads")){
+            return adResponse.toBuilder().setCustomEventClassName("com.mopub.ads.adapters." + customClass[3]).build();
+        }
+        return adResponse;
     }
 
     @VisibleForTesting

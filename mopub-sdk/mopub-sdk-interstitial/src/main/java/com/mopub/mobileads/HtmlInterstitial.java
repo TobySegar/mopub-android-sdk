@@ -41,4 +41,9 @@ public class HtmlInterstitial extends ResponseBodyInterstitial {
                 mRedirectUrl, mClickthroughUrl, mOrientation,
                 mBroadcastIdentifier);
     }
+
+    @Override
+    protected boolean usesProxy() {
+        return false;
+    }
 }

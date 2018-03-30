@@ -14,7 +14,7 @@ import org.json.JSONObject;
 
 import java.util.Map;
 
-class VastVideoInterstitial extends ResponseBodyInterstitial implements VastManager.VastManagerListener {
+public class VastVideoInterstitial extends ResponseBodyInterstitial implements VastManager.VastManagerListener {
     private CustomEventInterstitialListener mCustomEventInterstitialListener;
     private String mVastResponse;
     private VastManager mVastManager;
@@ -64,6 +64,11 @@ class VastVideoInterstitial extends ResponseBodyInterstitial implements VastMana
     @Override
     public void showInterstitial() {
         MraidVideoPlayerActivity.startVast(mContext, mVastVideoConfig, mBroadcastIdentifier);
+    }
+
+    @Override
+    protected boolean usesProxy() {
+        return false;
     }
 
     @Override

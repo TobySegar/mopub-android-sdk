@@ -82,7 +82,7 @@ public class CacheServiceTest {
     @Test
     public void getDiskLruCacheDirectory_shouldReturnValidCacheDirectory() throws Exception {
         File file = CacheService.getDiskCacheDirectory(context);
-        String expectedPath = context.getCacheDir().toString() + "/mopub-cache";
+        String expectedPath = context.getCacheDir().toString() + "\\mopub-cache";
         assertThat(file.getAbsolutePath()).isEqualTo(expectedPath);
     }
 
