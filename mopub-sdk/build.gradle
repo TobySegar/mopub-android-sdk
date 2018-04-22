@@ -1,12 +1,12 @@
 apply from: 'shared-build.gradle'
 
 dependencies {
-    testCompile project(':mopub-sdk-base')
-    testCompile project(':mopub-sdk-banner')
-    testCompile project(':mopub-sdk-interstitial')
-    testCompile project(':mopub-sdk-rewardedvideo')
-    testCompile project(':mopub-sdk-native-static')
-    testCompile project(':mopub-sdk-native-video')
+//    testCompile project(':mopub-sdk-base')
+//    testCompile project(':mopub-sdk-banner')
+//    testCompile project(':mopub-sdk-interstitial')
+//    testCompile project(':mopub-sdk-rewardedvideo')
+//    testCompile project(':mopub-sdk-native-static')
+//    testCompile project(':mopub-sdk-native-video')
 
     testCompile 'junit:junit:4.10'
     testCompile 'org.robolectric:robolectric:3.0'

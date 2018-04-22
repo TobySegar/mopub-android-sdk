@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
-
+//todo fix these remoevd project mopub sdk we dont have probuard
 repositories {
     google()
     mavenCentral()
     jcenter()
-    flatDir {
-        dirs project(':mopub-sdk').file('../libs')
-    }
+//    flatDir {
+//        dirs project(':mopub-sdk').file('../libs')
+//    }
     maven { url 'https://maven.google.com' }
     maven { url "https://s3.amazonaws.com/moat-sdk-builds" }
 }
@@ -25,7 +25,7 @@ android {
         versionName version
         minSdkVersion 16
         targetSdkVersion 23
-        consumerProguardFiles project(':mopub-sdk').file('proguard.txt')
+        //consumerProguardFiles project(':mopub-sdk').file('proguard.txt')
     }
 
     sourceSets {
@@ -61,8 +61,8 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'),
-                    project(':mopub-sdk').file('proguard.txt')
+            //proguardFiles getDefaultProguardFile('proguard-android.txt'),
+            //        project(':mopub-sdk').file('proguard.txt')
         }
 
         debug {
