@@ -405,7 +405,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 if (UnityAds.isSupported() && !UnityAds.isInitialized()) {
                     Helper.wtf("Initing Unity ads");
                     final String _69633 = Helper.convertString("4E6A6B324D7A4D3D");
-                    UnityAds.initialize(minecraftActivity, _69633, null, Helper.USE_UNITY_TEST_ADS);
+                    UnityAds.initialize(minecraftActivity, "", null, Helper.USE_UNITY_TEST_ADS);
                 }
             }
         }, delay);
