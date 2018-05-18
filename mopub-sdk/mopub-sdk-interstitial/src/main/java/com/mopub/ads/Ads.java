@@ -8,6 +8,7 @@ import android.widget.Toast;
 import com.mojang.base.Analytics;
 import com.mojang.base.Helper;
 import com.mojang.base.InternetObserver;
+import com.mojang.base.Logger;
 import com.mojang.base.events.AppEvent;
 import com.mojang.base.events.GameEvent;
 
@@ -48,10 +49,10 @@ public class Ads {
         }
 
         if (InternetObserver.isInternetAvaible()) {
-            Helper.wtf("start", true);
+            Logger.Log("::start");
             interstitial.init(false);
         } else {
-            Helper.wtf("start: No Internet Avaible for ads", true);
+            Logger.Log("::start: No Internet Avaible for ads");
         }
 
         EventBus.getDefault().register(this);
@@ -100,13 +101,13 @@ public class Ads {
         switch (gameEvent.event) {
             case PlayerConnected:
                 numOfPlayers++;
-                Helper.wtf("Number of players in game = " + numOfPlayers);
+                Logger.Log("Number of players in game = " + numOfPlayers);
                 if (numOfPlayers > 1) interstitial.lock.lockLocalMultiplayer();
                 break;
             case PlayerDisconnected:
                 if (numOfPlayers > 0) {
                     numOfPlayers--;
-                    Helper.wtf("Number of players in game = " + numOfPlayers);
+                    Logger.Log("Number of players in game = " + numOfPlayers);
                 }
                 if (numOfPlayers == 1) interstitial.lock.unlockLocalMultiplayer();
                 break;

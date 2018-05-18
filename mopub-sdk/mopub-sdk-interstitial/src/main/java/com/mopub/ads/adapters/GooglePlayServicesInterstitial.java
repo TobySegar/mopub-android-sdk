@@ -45,7 +45,7 @@
 //        mInterstitialListener = customEventInterstitialListener;
 //        final String adUnitId;
 //
-//        Helper.wtf("Admob Load");
+//        Logger.Log("Admob Load");
 //        setSharedPreferences(context);
 //        mContext = context;
 //
@@ -93,7 +93,7 @@
 //
 //        if((numOfClickToday+1) >= Data.Ads.Interstitial.maximumClicksPerDay){
 //            sharedPreferences.edit().putInt(DISABLED_DAY_KEY,currentDayNumber).apply();
-//            Helper.wtf("DISABLING ADMOB");
+//            Logger.Log("DISABLING ADMOB");
 //            Analytics.i().sendOther("Admob","Disabled");
 //        }
 //    }
@@ -108,7 +108,7 @@
 //        int disabledDay = sharedPreferences.getInt(DISABLED_DAY_KEY, -1);
 //        boolean isDisabled = disabledDay == currentDayNumber;
 //        if(isDisabled){
-//            Helper.wtf("ADMOB DISABLED",true);
+//            Logger.Log("ADMOB DISABLED",true);
 //        }
 //        return isDisabled;
 //    }
@@ -116,11 +116,11 @@
 //    @Override
 //    public void showInterstitial() {
 //        if (mGoogleInterstitialAd.isLoaded()) {
-//            Helper.wtf("Showing Admob",true);
+//            Logger.Log("Showing Admob",true);
 //            Interstitial.FAST_BACK_PRESS = true;
 //            mGoogleInterstitialAd.show();
 //        } else {
-//            Helper.wtf("MoPub", "Tried to show a Google Play Services interstitial ad before it finished loading. Please try again.");
+//            Logger.Log("MoPub", "Tried to show a Google Play Services interstitial ad before it finished loading. Please try again.");
 //        }
 //    }
 //
@@ -146,7 +146,7 @@
 //    	 */
 //        @Override
 //        public void onAdClosed() {
-//            Helper.wtf("MoPub", "Google Play Services interstitial ad dismissed.");
+//            Logger.Log("MoPub", "Google Play Services interstitial ad dismissed.");
 //            if (mInterstitialListener != null) {
 //                mInterstitialListener.onInterstitialDismissed();
 //            }
@@ -154,8 +154,8 @@
 //
 //        @Override
 //        public void onAdFailedToLoad(int errorCode) {
-//            Helper.wtf("MoPub", "Google Play Services interstitial ad failed to load.");
-//            Helper.wtf("Admob Failed");
+//            Logger.Log("MoPub", "Google Play Services interstitial ad failed to load.");
+//            Logger.Log("Admob Failed");
 //            if (mInterstitialListener != null) {
 //                mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
 //            }
@@ -163,7 +163,7 @@
 //
 //        @Override
 //        public void onAdLeftApplication() {
-//            Helper.wtf("MoPub", "Google Play Services interstitial ad clicked.");
+//            Logger.Log("MoPub", "Google Play Services interstitial ad clicked.");
 //            if (mInterstitialListener != null) {
 //                mInterstitialListener.onInterstitialClicked();
 //            }
@@ -172,7 +172,7 @@
 //
 //        @Override
 //        public void onAdLoaded() {
-//            Helper.wtf("MoPub", "Google Play Services interstitial ad loaded successfully.");
+//            Logger.Log("MoPub", "Google Play Services interstitial ad loaded successfully.");
 //            if (mInterstitialListener != null) {
 //                mInterstitialListener.onInterstitialLoaded();
 //            }
@@ -180,7 +180,7 @@
 //
 //        @Override
 //        public void onAdOpened() {
-//            Helper.wtf("MoPub", "Showing Google Play Services interstitial ad.");
+//            Logger.Log("MoPub", "Showing Google Play Services interstitial ad.");
 //            if (mInterstitialListener != null) {
 //                mInterstitialListener.onInterstitialShown();
 //            }

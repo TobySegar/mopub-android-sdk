@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.mojang.base.Helper;
+import com.mojang.base.Logger;
 import com.mopub.common.AdFormat;
 import com.mopub.common.Preconditions;
 import com.mopub.common.VisibleForTesting;
@@ -109,7 +110,7 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
                 mAdType = AdType.UNKNOWN;
                 break;
         }
-        Helper.wtf("adType set to: " + className);
+        Logger.Log("::adType set to: " + className);
     }
 
     public interface InterstitialAdListener {

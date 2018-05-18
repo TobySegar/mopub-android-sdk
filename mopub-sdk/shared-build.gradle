@@ -15,7 +15,7 @@ project.group = 'com.mopub'
 project.version = '4.19.0'
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 27
     buildToolsVersion '27.0.3'
     lintOptions { abortOnError false }
     useLibrary 'org.apache.http.legacy'
@@ -24,7 +24,7 @@ android {
         versionCode 57
         versionName version
         minSdkVersion 16
-        targetSdkVersion 23
+        targetSdkVersion 27
         //consumerProguardFiles project(':mopub-sdk').file('proguard.txt')
     }
 

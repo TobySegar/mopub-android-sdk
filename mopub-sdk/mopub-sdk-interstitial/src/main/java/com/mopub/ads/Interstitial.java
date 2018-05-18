@@ -14,10 +14,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 
-import com.mojang.base.Analytics;
-import com.mojang.base.FileManager;
-import com.mojang.base.Helper;
-import com.mojang.base.Screen;
+import com.mojang.base.*;
 import com.mojang.base.json.Data;
 import com.mopub.ads.adapters.FastAd;
 import com.mopub.common.ClientMetadata;
@@ -89,7 +86,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.showRunnable = new Runnable() {
             @Override
             public void run() {
-                Helper.wtf("PeriodicShowRunnable", "isLocked: " + "multiplayerLocalOnline [" + lock.localMultiplayer + " "+lock.onlineMultiplayer+ "]" + " " + "internet [" + lock.internet + "]" + " " + "gap [" + lock.gap + "]" + " " + "stop [" + lock.stop + "] " + "game [" + lock.game + "]");
+                Logger.Log("::PeriodicShowRunnable", "::isLocked: " + "::multiplayerLocalOnline [" + lock.localMultiplayer + ":: "+lock.onlineMultiplayer+ "::]" + ":: " + "::internet [" + lock.internet + "::]" + ":: " + "::gap [" + lock.gap + "::]" + " " + "::stop [" + lock.stop + "::] " + "::game [" + lock.game + "::]");
                 if (!lock.isAnyLocked()) {
                     show(true);
                 }
@@ -109,9 +106,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private void getNativeBackPressed() {
         try {
             nativeBackPressedMethod = minecraftActivity.getClass().getMethod("callNativeBackPressed");
-            Helper.wtf("got nativeBackPressed");
+            Logger.Log("::got nativeBackPressed");
         } catch (NoSuchMethodException e) {
-            Helper.wtf("----NATIVE BACK PRESS MISSING----", true);
+            Logger.Log("::----NATIVE BACK PRESS MISSING----");
         }
     }
 
@@ -125,7 +122,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 try {
                     boolean hasMenuKey = ViewConfiguration.get(activity).hasPermanentMenuKey();
                     boolean hasBackKey = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_BACK);
-                    Helper.wtf("hasMenuKey(false) = " + hasMenuKey + " hasBackKey(false) =" + hasBackKey);
+                    Logger.Log("::hasMenuKey(false) = " + hasMenuKey + ":: hasBackKey(false) =" + hasBackKey);
                     if (!hasMenuKey && !hasBackKey) {
                         // Do whatever you need to do, this device has a navigation bar
                         hideNavBar(activity);
@@ -148,8 +145,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                     | View.SYSTEM_UI_FLAG_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_LOW_PROFILE
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-            Helper.wtf("Curent visibility " + currentVis + " hiddenVisibility " + hidenVisibility);
-            Helper.wtf("HIDING NAVBAR", true);
+            Logger.Log("::Curent visibility " + currentVis + ":: hiddenVisibility " + hidenVisibility);
+            Logger.Log("::HIDING NAVBAR");
 
             decorView.setSystemUiVisibility(hidenVisibility);
         }
@@ -166,15 +163,15 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                         if (nativeBackPressedMethod != null && !dontBackPress) {
                             nativeBackPressedMethod.invoke(minecraftActivity);
                             dontBackPress = false;
-                            Helper.wtf("called -- NativeBackPressed");
+                            Logger.Log("::called -- NativeBackPressed");
                         }else{
-                            Helper.wtf("nativeBackPressedMethod != null = "+ (nativeBackPressedMethod != null) + " dontBackPress = " + dontBackPress);
+                            Logger.Log("::nativeBackPressedMethod != null = "+ (nativeBackPressedMethod != null) + ":: dontBackPress = " + dontBackPress);
                         }
                     } catch (InvocationTargetException e) {
-                        Helper.wtf("failed back press");
+                        Logger.Log("::failed back press");
                         e.printStackTrace();
                     } catch (IllegalAccessException e) {
-                        Helper.wtf("failed back press");
+                        Logger.Log("::failed back press");
                         e.printStackTrace();
                     }
                     pauseScreenShowed = false;
@@ -186,7 +183,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     @Override
     public void onInterstitialDismissed(MoPubInterstitial interstitial) {
-        Helper.wtf("onInterstitialDismissed", true);
+        Logger.Log("::onInterstitialDismissed");
         gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
         Helper.setVolume(curentVolume, audioManager);
         loadAfterDelay(3000);
@@ -199,7 +196,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     @Override
     public void onInterstitialLoaded(MoPubInterstitial interstitial) {
-        Helper.wtf("Interstitial: onInterstitialLoaded", true);
+        Logger.Log("::::Interstitial: onInterstitialLoaded");
 
         if (!onLoadedOnce) {
             String country = getCountryCode();
@@ -232,27 +229,27 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     @Override
     public void onInterstitialFailed(MoPubInterstitial interstitial, MoPubErrorCode errorCode) {
-        Helper.wtf(TAG, "onInterstitialFailed: " + errorCode);
+        Logger.Log(TAG, "::onInterstitialFailed: " + errorCode);
 
         if (errorCode.equals(MoPubErrorCode.NO_FILL) || errorCode.equals(MoPubErrorCode.UNSPECIFIED)) {
             final double BACKOFF_FACTOR = 1.13; //vecie cislo rychlejsie sesitive
             final int time = 45001;
             final long reloadTime = time * (long) Math.pow(BACKOFF_FACTOR, backOffPower);
             backOffPower++;
-            Helper.wtf("Loading again in " + reloadTime);
+            Logger.Log("::Loading again in " + reloadTime);
             loadAfterDelay(reloadTime);
         }
     }
 
     @Override
     public void onInterstitialShown(MoPubInterstitial interstitial) {
-        Helper.wtf("onInterstitialShown", true);
+        Logger.Log("::onInterstitialShown");
         curentVolume = Helper.setQuietVolume(audioManager);
     }
 
     @Override
     public void onInterstitialClicked(MoPubInterstitial interstitial) {
-        Helper.wtf("onInterstitialClicked", true);
+        Logger.Log("::onInterstitialClicked");
 
         MoPubInterstitial.AdType adType = interstitial.getAdType();
 
@@ -265,16 +262,16 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public boolean show(boolean isPeriodicShow) {
         boolean showSuccesful = false;
         boolean isMopubNull = mopubInterstitial == null;
-        Helper.wtf("I", "isLocked: " + "multiplayerLocalOnline [" + lock.localMultiplayer + " "+lock.onlineMultiplayer+ "]" + " " + "internet [" + lock.internet + "]" + " " + "gap [" + lock.gap + "]" + " " + "stop [" + lock.stop + "] " + "game [" + lock.game + "]");
+        Logger.Log("::I", "::isLocked: " + "::multiplayerLocalOnline [" + lock.localMultiplayer + ":: "+lock.onlineMultiplayer+ "::]" + ":: " + "::internet [" + lock.internet + "::]" + ":: " + "::gap [" + lock.gap + "::]" + ":: " + "::stop [" + lock.stop + "::] " + "::game [" + lock.game + "::]");
         boolean isLocked = isPeriodicShow ? lock.isAnyLocked() : lock.isHardLocked();
         boolean isMopubReady = !isMopubNull && mopubInterstitial.isReady();
-        Helper.wtf("[isMopubNull(false) = " + isMopubNull + "] " + "[isSoftLocked(false) = " + lock.isSoftLocked() + "] " +  "[isHardLocked(false) = " + lock.isHardLocked() + "] " +"[isMopubReady(true) = " + isMopubReady + "]");
+        Logger.Log("::[isMopubNull(false) = " + isMopubNull + "::] " + "::[isSoftLocked(false) = " + lock.isSoftLocked() + "::] " +  "::[isHardLocked(false) = " + lock.isHardLocked() + "::] " +"::[isMopubReady(true) = " + isMopubReady + "::]");
         if (!fastAdShowed && fastAd != null && !isLocked) {
             nesmrtelnost(true);
             fastAd.show(mopubInterstitial);
             fastAd = null;
         } else if (!isMopubNull && !isLocked && isMopubReady) {
-            Helper.wtf("Showing mopubInterstitial", true);
+            Logger.Log("::Showing mopubInterstitial");
             nesmrtelnost(true);
             showSuccesful = mopubInterstitial.show();
         }
@@ -295,10 +292,10 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             if (zapnut) nesmrtelnostON();
             else nesmrtelnostOFF();
         } catch (UnsatisfiedLinkError ignored) {
-            Helper.wtf("!Failed to zapnut nesmrtelnost");
+            Logger.Log("::!Failed to zapnut nesmrtelnost");
         }
         if(Data.hasMinecraft) {
-            Helper.wtf("Nesmrtelnos = " + zapnut);
+            Logger.Log("::Nesmrtelnos = " + zapnut);
         }
     }
 
@@ -330,7 +327,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         } else if (Data.hasMinecraft) {
             //We are using fast ad if we have minecraft game
             if (!fastAdShowed) {
-                Helper.wtf(TAG, "Interstitial init and load fast ad");
+                Logger.Log(TAG, "::Interstitial init and load fast ad");
                 fastAd = new FastAd(Data.Ads.Interstitial.failoverId, this);
                 fastAd.load(minecraftActivity, new Runnable() {
                     @Override
@@ -355,32 +352,32 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public void showUnityAdsVideo() {
         if (!lock.isOnlineMultiplayerLocked() && !lock.isHardLocked()) {
             if (!UnityAds.isReady()) {
-                Helper.wtf(TAG, "showUnityAdsVideo: show false");
+                Logger.Log(TAG, "::showUnityAdsVideo: show false");
                 show(true);
             } else {
                 gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
                 UnityAds.show(minecraftActivity);
             }
         } else {
-            Helper.wtf(TAG, "showUnityAdsVideo: show false multiplayer locked or hard locked");
+            Logger.Log(TAG, "::showUnityAdsVideo: show false multiplayer locked or hard locked");
         }
     }
 
 
     public void schedulePeriodicShows() {
         if (!periodicScheduled) {
-            Helper.wtf("schedulePeriodicShows: Scheduled za " + String.valueOf(periodicMills));
+            Logger.Log("::schedulePeriodicShows: Scheduled za " + String.valueOf(periodicMills));
             mainHandler.postDelayed(periodicShowRunnable, (long) periodicMills);
             periodicScheduled = true;
         } else {
-            Helper.wtf("Not scheduling periodic cause already scheduled");
+            Logger.Log("::Not scheduling periodic cause already scheduled");
         }
     }
 
     public void unschedulePeriodicShows() {
         if (periodicScheduled) {
-            Helper.wtf(TAG, "unschedulePeriodicshows");
-            Helper.wtf(TAG, String.valueOf(periodicMills));
+            Logger.Log(TAG, "::unschedulePeriodicshows");
+            Logger.Log(TAG, String.valueOf(periodicMills));
             mainHandler.removeCallbacks(periodicShowRunnable);
             periodicScheduled = false;
         }
@@ -388,7 +385,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
 
     public void _initDelayed(int delay) {
-        Helper.wtf("Initing Mopub in 4 sec...");
+        Logger.Log("::Initing Mopub in 4 sec...");
         Helper.runOnWorkerThread(new Runnable() {
             @Override
             public void run() {
@@ -398,12 +395,12 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                     mopubInterstitial.setKeywords("game,minecraft,business,twitter");
                     mopubInterstitial.load();
                 } else if (!mopubInterstitial.isReady()) {
-                    Helper.wtf("Mopub Forcing Refresh");
+                    Logger.Log("::Mopub Forcing Refresh");
                     mopubInterstitial.forceRefresh();
                 }
 
                 if (UnityAds.isSupported() && !UnityAds.isInitialized()) {
-                    Helper.wtf("Initing Unity ads");
+                    Logger.Log("::Initing Unity ads");
                     //final String _69633 = Helper.convertString("4E6A6B324D7A4D3D");
                     UnityAds.initialize(minecraftActivity, null, null, Helper.USE_UNITY_TEST_ADS);
                 }
@@ -420,7 +417,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
         //create file
         FileManager.i().put(FileManager.SE, null);
-        Helper.wtf("Crating SE file");
+        Logger.Log("::Crating SE file");
         //clear firewall result so he can go through check again
         SharedPreferences LromSP = minecraftActivity.getApplicationContext().getSharedPreferences("vic", Context.MODE_PRIVATE);
         LromSP.edit().clear().apply();
@@ -450,7 +447,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     private void gapLockForTime(long minimalAdGapMills) {
         lock.gapLock();
-        Helper.wtf(TAG, "lockForTime: scheduling unlock runnable za sec " + minimalAdGapMills / 1000);
+        Logger.Log(TAG, "::lockForTime: scheduling unlock runnable za sec " + minimalAdGapMills / 1000);
         mainHandler.removeCallbacks(gapUnlockRunnable);
         mainHandler.postDelayed(gapUnlockRunnable, minimalAdGapMills);
     }
@@ -502,63 +499,63 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         }
 
         public void unlockStop() {
-            Helper.wtf("I", "unlockStop: ");
+            Logger.Log("::I", "::unlockStop: ");
             stop = false;
         }
 
         public void stopLock() {
-            Helper.wtf("I", "stopLock: ");
+            Logger.Log("::I", "::stopLock: ");
             stop = true;
         }
 
 
         public void unlockGap() {
-            Helper.wtf("I", "unlockGap: ");
+            Logger.Log("::I", "::unlockGap: ");
             gap = false;
         }
 
         public void gapLock() {
-            Helper.wtf("I", "gapLock: ");
+            Logger.Log("::I", "::gapLock: ");
             gap = true;
         }
 
         public void lockMultiplayer() {
-            Helper.wtf("I", "lockMultiplayer: ");
+            Logger.Log("::I", "::lockMultiplayer: ");
             onlineMultiplayer = true;
         }
 
         public void unlockOnlineMultiplayer() {
-            Helper.wtf("I", "unlockOnlineMultiplayer: ");
+            Logger.Log("::I", "::unlockOnlineMultiplayer: ");
             onlineMultiplayer = false;
         }
 
         public void gameUnlock() {
-            Helper.wtf("I", "gameUnlock: ");
+            Logger.Log("::I", "::gameUnlock: ");
             game = false;
         }
 
         public void gameLock() {
-            Helper.wtf("I", "gameLock: ");
+            Logger.Log("::I", "::gameLock: ");
             game = true;
         }
 
         public void internetLock() {
-            Helper.wtf("I", "internetLock: ");
+            Logger.Log("::I", "::internetLock: ");
             internet = true;
         }
 
         public void internetUnlock() {
-            Helper.wtf("I", "internetUnlock: ");
+            Logger.Log("::I", "::internetUnlock: ");
             internet = false;
         }
 
         public void unlockLocalMultiplayer() {
-            Helper.wtf("I", "unlockLocalMultiplayer: ");
+            Logger.Log("::I", "::unlockLocalMultiplayer: ");
             localMultiplayer = false;
         }
 
         public void lockLocalMultiplayer() {
-            Helper.wtf("I", "lockLocalMultiplayer: ");
+            Logger.Log("::I", "::lockLocalMultiplayer: ");
             localMultiplayer = true;
         }
 

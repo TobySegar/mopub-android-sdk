@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 
 import com.mojang.base.Helper;
+import com.mojang.base.Logger;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.unity3d.ads.UnityAds;
@@ -26,11 +27,11 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
                                     Map<String, Object> localExtras,
                                     Map<String, String> serverExtras) {
 
-        Helper.wtf("Loading Unity Ads");
+        Logger.Log("::Loading Unity Ads");
         final String mGameId = serverExtras.get("gameId");
 
         if(mGameId == null || mGameId.isEmpty()){
-            Helper.wtf("No game id bailing out",true);
+            Logger.Log("::No game id bailing out");
             mopubListener.onInterstitialFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
             return;
         }
@@ -44,7 +45,7 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
         mopubListener = customEventInterstitialListener;
 
         if (!sInitialized || !UnityAds.isInitialized()) {
-            Helper.wtf("Unity Debug");
+            Logger.Log("::Unity Debug");
             Helper.runOnWorkerThread(new Runnable() {
                 @Override
                 public void run() {
@@ -70,10 +71,10 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
     @Override
     public void showInterstitial() {
         if (UnityAds.isReady() && mLauncherActivity != null) {
-            Helper.wtf("Showing Unity Ads", true);
+            Logger.Log("::Showing Unity Ads");
             UnityAds.show(mLauncherActivity);
         } else {
-            Helper.wtf("Failed to show unity ads isReady = " + UnityAds.isReady() + "activity null = " + mLauncherActivity);
+            Logger.Log("::Failed to show unity ads isReady = " + UnityAds.isReady() + "::activity null = " + mLauncherActivity);
             mopubListener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
         }
     }
@@ -91,7 +92,7 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
 
     @Override
     public void onUnityAdsReady(String placementId) {
-        Helper.wtf("onUnityAdsReady");
+        Logger.Log("::onUnityAdsReady");
         if (!sAdCached) {
             sAdCached = true;
             mopubListener.onInterstitialLoaded();
@@ -100,25 +101,25 @@ public class UnityAdsMopubEvents extends CustomEventInterstitial implements IUni
 
     @Override
     public void onUnityAdsStart(String placementId) {
-        Helper.wtf("onUnityAdsStart");
+        Logger.Log("::onUnityAdsStart");
         mopubListener.onInterstitialShown();
     }
 
     @Override
     public void onUnityAdsFinish(String placementId, UnityAds.FinishState result) {
-        Helper.wtf("onUnityAdsFinish");
+        Logger.Log("::onUnityAdsFinish");
         mopubListener.onInterstitialDismissed();
     }
 
     @Override
     public void onUnityAdsError(UnityAds.UnityAdsError error, String message) {
-        Helper.wtf("onUnityAdsError + "+ error +" message:"+ message);
+        Logger.Log("::onUnityAdsError + "+ error +":: message:"+ message);
         mopubListener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
     }
 
     @Override
     public void onUnityAdsClick(String placementId) {
-        Helper.wtf("onUnityAdsClick + " + placementId);
+        Logger.Log("::onUnityAdsClick + " + placementId);
         mopubListener.onInterstitialClicked();
     }
 

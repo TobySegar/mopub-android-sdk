@@ -14,6 +14,7 @@ import com.applovin.sdk.AppLovinSdk;
 //import com.google.android.gms.ads.AdRequest;
 //import com.google.android.gms.ads.InterstitialAd;
 import com.mojang.base.Helper;
+import com.mojang.base.Logger;
 import com.mojang.base.json.Data;
 import com.mopub.ads.Ads;
 import com.mopub.ads.Interstitial;
@@ -39,7 +40,7 @@ public class FastAd {
     }
 
     public void load(final Context context, final Runnable initMopubRunnable) {
-        Helper.wtf("FastAd", "load: LOADING FAST AD");
+        Logger.Log("::FastAd", "::load: LOADING FAST AD");
         this.activity = (Activity) context;
         this.initMopubRunnable = initMopubRunnable;
         this.useApplovin = Data.Ads.Interstitial.fastAdApplovin | hasCountryForApplovin(context);
@@ -73,7 +74,7 @@ public class FastAd {
     }
 
     private void loadApplovin() {
-        Helper.wtf("loading Applovin fastad", true);
+        Logger.Log("::loading Applovin fastad");
         sdk = AppLovinSdk.getInstance(this.activity);
         sdk.getAdService().loadNextAd(AppLovinAdSize.INTERSTITIAL, new AppLovinAdLoadListener() {
             @Override
@@ -83,7 +84,7 @@ public class FastAd {
 
             @Override
             public void failedToReceiveAd(int i) {
-                Helper.wtf("Fast Ads applovin failed init mopub");
+                Logger.Log("::Fast Ads applovin failed init mopub");
                 initMopubRunnable.run();
             }
         });
@@ -91,7 +92,7 @@ public class FastAd {
 
 
 //    private void loadAdmob() {
-//        Helper.wtf("loading Admob fastad", true);
+//        Logger.Log("loading Admob fastad", true);
 //        mGoogleInterstitialAd = new InterstitialAd(activity);
 //        mGoogleInterstitialAd.setAdUnitId(admobId);
 //        mGoogleInterstitialAd.setAdListener(new AdListener() {
@@ -133,7 +134,7 @@ public class FastAd {
 //    }
 
     public boolean show(MoPubInterstitial mopubInterstitial) {
-        Helper.wtf("FastAd", "show() called with: FastAd");
+        Logger.Log("::FastAd", "::show() called with: FastAd");
         interstitial.fastAdShowed = true;
         if (Data.isActivityRunning) {
             //WE TRY MOPUB IF WE CAN
@@ -151,7 +152,7 @@ public class FastAd {
 
                         @Override
                         public void adHidden(AppLovinAd appLovinAd) {
-                            Helper.wtf("Fast Ads applovin hidden init mopub");
+                            Logger.Log("::Fast Ads applovin hidden init mopub");
                             initMopubRunnable.run();
                             interstitial.onInterstitialDismissed(null);
                         }
@@ -165,7 +166,7 @@ public class FastAd {
 //                return true;
             }
         }
-        Helper.wtf("Failed to show fastad");
+        Logger.Log("::Failed to show fastad");
         initMopubRunnable.run();
         return false;
     }

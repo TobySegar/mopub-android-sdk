@@ -25,7 +25,7 @@
 //        if (context instanceof Activity) {
 //            activity = (Activity) context;
 //        } else {
-//            Helper.wtf("Cound not load heyzap because context is not instance of activity");
+//            Logger.Log("Cound not load heyzap because context is not instance of activity");
 //            if (mInterstitialListener != null) {
 //                mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NO_FILL);
 //            }
@@ -44,7 +44,7 @@
 //        if (serverExtras.containsKey(KEY_ID)) {
 //            return serverExtras.get(KEY_ID);
 //        } else {
-//            Helper.wtf("Failed to extract key from heyzap server extrass");
+//            Logger.Log("Failed to extract key from heyzap server extrass");
 //            return null;
 //        }
 //    }
@@ -52,10 +52,10 @@
 //    @Override
 //    public void showInterstitial() {
 //        if (InterstitialAd.isAvailable()) {
-//            Helper.wtf("Showing Heyzap");
+//            Logger.Log("Showing Heyzap");
 //            InterstitialAd.display(activity);
 //        } else {
-//            Helper.wtf("Wanted to show heyzap but wasnt avaible");
+//            Logger.Log("Wanted to show heyzap but wasnt avaible");
 //        }
 //    }
 //
@@ -71,7 +71,7 @@
 //
 //    @Override
 //    public void onNetworkCallback(String s, String s1) {
-//        Helper.wtf("Heyzap network callback " + s + " : " + s1);
+//        Logger.Log("Heyzap network callback " + s + " : " + s1);
 //    }
 //
 //    @Override
