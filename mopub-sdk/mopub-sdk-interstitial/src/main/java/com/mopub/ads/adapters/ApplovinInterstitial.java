@@ -39,8 +39,7 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
      * Abstract methods from CustomEventInterstitial
      */
     @Override
-    public void loadInterstitial(Context context, CustomEventInterstitial.CustomEventInterstitialListener interstitialListener, Map<String, Object> localExtras, Map<String, String> serverExtras)
-    {
+    public void loadInterstitial(Context context, CustomEventInterstitial.CustomEventInterstitialListener interstitialListener, Map<String, Object> localExtras, Map<String, String> serverExtras) {
         Logger.Log("::Applovin Load");
 
         mInterstitialListener = interstitialListener;
@@ -52,7 +51,7 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
             return;
         }
 
-        Logger.Log("::Applovin: Request received for new interstitial." );
+        Logger.Log("::Applovin: Request received for new interstitial.");
 
         AppLovinSdkSettings setting = new AppLovinSdkSettings();
         setting.setVerboseLogging(Helper.canLog);
@@ -63,15 +62,15 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
             key = getKeyFromExtras(serverExtras);
         }
 
-        sdk = AppLovinSdk.getInstance(key,setting, context);
+        sdk = AppLovinSdk.getInstance(key, setting, context);
         sdk.getAdService().loadNextAd(AppLovinAdSize.INTERSTITIAL, this);
 
     }
 
     private String getKeyFromExtras(Map<String, String> serverExtras) {
-        if (serverExtras.containsKey(EXTRAS_KEY)){
+        if (serverExtras.containsKey(EXTRAS_KEY)) {
             serverExtras.get(EXTRAS_KEY);
-        }else if (mInterstitialListener != null){
+        } else if (mInterstitialListener != null) {
             mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NO_FILL);
         }
         return null;
@@ -81,8 +80,7 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
     public void showInterstitial() {
         final AppLovinAd adToRender = lastReceived;
 
-        if ( adToRender != null )
-        {
+        if (adToRender != null) {
             Logger.Log("::Showing AppLovin interstitial ad...");
 
 
@@ -112,18 +110,17 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
 
                     inter.showAndRender(adToRender);
                 }
-                    } );
-
-                    inter.showAndRender( adToRender );
-                }
-            } );
-        }else{Logger.Log("::Showing AppLovin failed adToRender null" );}
+            });
+        } else {
+            Logger.Log("::Showing AppLovin failed adToRender null");
+        }
     }
 
     @Override
     protected boolean usesProxy() {
         return false;
     }
+
 
     @Override
     public void onInvalidate() {
@@ -132,9 +129,8 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
     }
 
     @Override
-    public void adReceived(AppLovinAd ad)
-    {
-        Logger.Log("::AppLovin interstitial loaded successfully." );
+    public void adReceived(AppLovinAd ad) {
+        Logger.Log("::AppLovin interstitial loaded successfully.");
 
         lastReceived = ad;
 
@@ -150,7 +146,7 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
         parentActivity.runOnUiThread(new Runnable() {
             public void run() {
                 Logger.Log("::Applovin Fail");
-                    mInterstitialListener.onInterstitialFailed( MoPubErrorCode.NETWORK_NO_FILL );
+                mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
             }
         });
     }
