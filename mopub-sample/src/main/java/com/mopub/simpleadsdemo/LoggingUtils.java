@@ -33,11 +33,8 @@ public class LoggingUtils {
             return;
         }
 
-        // This makes sure the static block in MoPubLog is executed before
-        // LogManager#getLogManager is called.
-        MoPubLog.c("Canary level logging enabled");
-
         final Handler handler = new SampleAppLogHandler(context.getApplicationContext());
+        MoPubLog.c("Setting up MoPubLog");
         final Logger logger = getLogger();
         logger.addHandler(handler);
 

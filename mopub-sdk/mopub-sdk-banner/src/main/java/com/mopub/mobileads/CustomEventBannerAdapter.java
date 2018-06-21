@@ -23,6 +23,7 @@ import java.util.TreeMap;
 import static com.mopub.common.DataKeys.AD_HEIGHT;
 import static com.mopub.common.DataKeys.AD_REPORT_KEY;
 import static com.mopub.common.DataKeys.AD_WIDTH;
+import static com.mopub.common.DataKeys.BANNER_IMPRESSION_PIXEL_COUNT_ENABLED;
 import static com.mopub.common.DataKeys.BROADCAST_IDENTIFIER_KEY;
 import static com.mopub.mobileads.MoPubErrorCode.ADAPTER_NOT_FOUND;
 import static com.mopub.mobileads.MoPubErrorCode.NETWORK_TIMEOUT;
@@ -39,7 +40,6 @@ public class CustomEventBannerAdapter implements CustomEventBannerListener {
 
     private final Handler mHandler;
     private final Runnable mTimeout;
-    private boolean mStoredAutorefresh;
 
     private int mImpressionMinVisibleDips = Integer.MIN_VALUE;
     private int mImpressionMinVisibleMs = Integer.MIN_VALUE;
@@ -87,6 +87,7 @@ public class CustomEventBannerAdapter implements CustomEventBannerListener {
         mLocalExtras.put(AD_REPORT_KEY, adReport);
         mLocalExtras.put(AD_WIDTH, mMoPubView.getAdWidth());
         mLocalExtras.put(AD_HEIGHT, mMoPubView.getAdHeight());
+        mLocalExtras.put(BANNER_IMPRESSION_PIXEL_COUNT_ENABLED, mIsVisibilityImpressionTrackingEnabled);
     }
 
     @ReflectionTarget
@@ -224,6 +225,8 @@ public class CustomEventBannerAdapter implements CustomEventBannerListener {
             // Else, retain old behavior of firing AdServer impression tracking URL if and only if
             // banner is not HTML.
             if (mIsVisibilityImpressionTrackingEnabled) {
+                // Disable autorefresh temporarily until an impression happens.
+                mMoPubView.pauseAutorefresh();
                 // Set up visibility tracker and listener if in experiment
                 mVisibilityTracker = new BannerVisibilityTracker(mContext, mMoPubView, bannerView,
                         mImpressionMinVisibleDips, mImpressionMinVisibleMs);
@@ -235,6 +238,7 @@ public class CustomEventBannerAdapter implements CustomEventBannerListener {
                         if (mCustomEventBanner != null) {
                             mCustomEventBanner.trackMpxAndThirdPartyImpressions();
                         }
+                        mMoPubView.resumeAutorefresh();
                     }
                 });
             }
@@ -271,8 +275,7 @@ public class CustomEventBannerAdapter implements CustomEventBannerListener {
             return;
         }
 
-        mStoredAutorefresh = mMoPubView.getAutorefreshEnabled();
-        mMoPubView.setAutorefreshEnabled(false);
+        mMoPubView.expand();
         mMoPubView.adPresentedOverlay();
     }
 
@@ -282,7 +285,7 @@ public class CustomEventBannerAdapter implements CustomEventBannerListener {
             return;
         }
 
-        mMoPubView.setAutorefreshEnabled(mStoredAutorefresh);
+        mMoPubView.collapse();
         mMoPubView.adClosed();
     }
 

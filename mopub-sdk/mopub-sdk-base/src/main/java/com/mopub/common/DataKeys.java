@@ -20,6 +20,7 @@ public class DataKeys {
     // Banner imp tracking fields
     public static final String BANNER_IMPRESSION_MIN_VISIBLE_DIPS = "Banner-Impression-Min-Pixels";
     public static final String BANNER_IMPRESSION_MIN_VISIBLE_MS = "Banner-Impression-Min-Ms";
+    public static final String BANNER_IMPRESSION_PIXEL_COUNT_ENABLED = "Banner-Impression-Pixel-Count-Enabled";
 
     // Native fields
     public static final String IMPRESSION_MIN_VISIBLE_PERCENT = "Impression-Min-Visible-Percent";
@@ -30,7 +31,6 @@ public class DataKeys {
     public static final String PLAY_VISIBLE_PERCENT = "Play-Visible-Percent";
     public static final String PAUSE_VISIBLE_PERCENT = "Pause-Visible-Percent";
     public static final String MAX_BUFFER_MS = "Max-Buffer-Ms";
-    public static final String EVENT_DETAILS = "Event-Details";
 
     // Rewarded Ad fields
     public static final String REWARDED_AD_CURRENCY_NAME_KEY = "Rewarded-Ad-Currency-Name";
@@ -41,6 +41,9 @@ public class DataKeys {
 
     // Viewability fields
     public static final String EXTERNAL_VIDEO_VIEWABILITY_TRACKERS_KEY = "External-Video-Viewability-Trackers";
+
+    // Advanced bidding fields
+    public static final String ADM_KEY = "Adm";
 
     /**
      * @deprecated as of 4.12, replaced by {@link #REWARDED_AD_CUSTOMER_ID_KEY}

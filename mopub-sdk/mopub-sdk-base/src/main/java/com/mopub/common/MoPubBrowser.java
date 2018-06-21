@@ -3,6 +3,7 @@ package com.mopub.common;
 import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.Gravity;
@@ -17,16 +18,11 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
-import com.mopub.common.event.Event;
-import com.mopub.common.event.MoPubEvents;
 import com.mopub.mobileads.BaseWebView;
 import com.mopub.mobileads.util.WebViews;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
-import static com.mopub.common.event.BaseEvent.Category;
-import static com.mopub.common.event.BaseEvent.Name;
-import static com.mopub.common.event.BaseEvent.SamplingRate;
 import static com.mopub.common.util.Drawables.BACKGROUND;
 import static com.mopub.common.util.Drawables.CLOSE;
 import static com.mopub.common.util.Drawables.REFRESH;
@@ -45,8 +41,7 @@ public class MoPubBrowser extends Activity {
     private ImageButton mRefreshButton;
     private ImageButton mCloseButton;
 
-    private DoubleTimeTracker dwellTimeTracker;
-    private String mDspCreativeId;
+    private boolean mProgressBarAvailable;
 
     @NonNull
     public ImageButton getBackButton() {
@@ -79,12 +74,12 @@ public class MoPubBrowser extends Activity {
 
         setResult(Activity.RESULT_OK);
 
-        getWindow().requestFeature(Window.FEATURE_PROGRESS);
-        getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_VISIBILITY_ON);
+        mProgressBarAvailable = getWindow().requestFeature(Window.FEATURE_PROGRESS);
+        if (mProgressBarAvailable) {
+            getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_VISIBILITY_ON);
+        }
 
         setContentView(getMoPubBrowserView());
-
-        dwellTimeTracker = new DoubleTimeTracker();
 
         initializeWebView();
         initializeButtons();
@@ -96,7 +91,7 @@ public class MoPubBrowser extends Activity {
 
         webSettings.setJavaScriptEnabled(true);
 
-        /**
+        /*
          * Pinch to zoom is apparently not enabled by default on all devices, so
          * declare zoom support explicitly.
          * https://stackoverflow.com/questions/5125851/enable-disable-zoom-in-android-webview
@@ -105,24 +100,9 @@ public class MoPubBrowser extends Activity {
         webSettings.setBuiltInZoomControls(true);
         webSettings.setUseWideViewPort(true);
 
-        mDspCreativeId = getIntent().getStringExtra(DSP_CREATIVE_ID);
-
         mWebView.loadUrl(getIntent().getStringExtra(DESTINATION_URL_KEY));
 
         mWebView.setWebViewClient(new BrowserWebViewClient(this));
-
-        mWebView.setWebChromeClient(new WebChromeClient() {
-            public void onProgressChanged(WebView webView, int progress) {
-                try{
-                    //try catch lebo som tu videl jeden error
-                    setTitle("Loading...");
-                    setProgress(progress * 100);
-                    if (progress == 100) {
-                        setTitle(webView.getUrl());
-                    }
-                }catch (Exception ignored){}
-            }
-        });
     }
 
     private void initializeButtons() {
@@ -168,18 +148,29 @@ public class MoPubBrowser extends Activity {
     protected void onPause() {
         super.onPause();
         CookieSyncManager.getInstance().stopSync();
+        mWebView.setWebChromeClient(null);
         WebViews.onPause(mWebView, isFinishing());
-        // Pause dwell time counting.
-        dwellTimeTracker.pause();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         CookieSyncManager.getInstance().startSync();
-        mWebView.onResume();
+        mWebView.setWebChromeClient(new WebChromeClient() {
+            public void onProgressChanged(WebView webView, int progress) {
+                if (progress == 100) {
+                    setTitle(webView.getUrl());
+                } else {
+                    setTitle("Loading...");
+                }
 
-        dwellTimeTracker.start();
+                if (mProgressBarAvailable && Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                    setProgress(progress * 100);
+                }
+            }
+        });
+
+        mWebView.onResume();
     }
 
     @Override
@@ -196,13 +187,6 @@ public class MoPubBrowser extends Activity {
         super.onDestroy();
         mWebView.destroy();
         mWebView = null;
-        // Log dwell time value.
-        MoPubEvents.log(new Event.Builder(Name.AD_DWELL_TIME,
-                Category.AD_INTERACTIONS,
-                SamplingRate.AD_INTERACTIONS.getSamplingRate())
-                .withDspCreativeId(mDspCreativeId)
-                .withPerformanceDurationMs(dwellTimeTracker.getInterval())
-                .build());
     }
 
     @SuppressWarnings("ResourceType") // Using XML resources causes issues in Unity

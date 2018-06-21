@@ -26,6 +26,9 @@ public enum MoPubErrorCode {
     REWARDED_CURRENCIES_PARSING_ERROR("Error parsing rewarded currencies JSON header."),
     REWARD_NOT_SELECTED("Reward not selected for rewarded ad."),
 
+    DO_NOT_TRACK("Do not track is enabled."),
+    GDPR_DOES_NOT_APPLY("GDPR does not apply. Ignoring consent-related actions."),
+
     UNSPECIFIED("Unspecified error.");
 
     private final String message;

@@ -1,3 +1,25 @@
+## Version 5.1.0 (June 5, 2018)
+- Upgraded Moat dependency to 2.4.5.
+- Banners now only refresh after an impression is made.
+- Added `PersonalInfoManager.forceGdprApplies()` in order to let MoPub know that this app should always apply GDPR rules.
+- Loading MoPub's consent dialog is only possible when GDPR rules applies to the app.
+- Bug fixes.
+
+## Version 5.0.0 (May 14, 2018)
+- General Data Protection Regulation (GDPR) update to support a way for publishers to determine GDPR applicability and to obtain and manage consent from users in European Economic Area, the United Kingdom, or Switzerland to serve personalized ads.
+- New SDK initialization method to initialize consent management and rewarded video ad networks. Required for receiving personalized ads. In future versions of the SDK, initialization will be required to receive ads.
+- Updated network stack to MoPub-Volley-2.0.0.
+- Updated ad requests to use POST instead of GET.
+- All communication with MoPub servers is now made via HTTPS.
+
+## Version 4.20.0 (February 20, 2018)
+- Upgraded Gradle dependency to 4.3.1.
+- Upgraded Moat dependency to 2.4.1. This fixes the AAPT2 manifest merge error.
+- Fixed a viewability bug for video ads where ViewGroups were not being properly added to the list of known obstructions.
+- We are formally separating network adapters from our MoPub SDK. This is to enable an independent release cadence resulting in faster updates and certification cycles. New mediation location is accessible [here](https://github.com/mopub/mopub-android-mediation).  
+We have also added an additional tool, making it easy for publishers to get up and running with the mediation integration. Check out https://developers.mopub.com/docs/mediation/integrate/ and integration instructions at https://developers.mopub.com/docs/android/integrating-networks/.
+- Bug fixes.
+
 ## Version 4.19.0 (December 11, 2017)
 - Updated Facebook Audience Network adapters to 4.26.1.
 - Updated Flurry adapters to 8.1.0.

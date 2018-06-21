@@ -15,7 +15,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
-import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import static org.fest.assertions.api.Assertions.assertThat;
@@ -26,6 +25,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.robolectric.Shadows.shadowOf;
 
 @RunWith(SdkTestRunner.class)
 @Config(constants = BuildConfig.class)
@@ -97,7 +97,7 @@ public class BrowserWebViewClientTest {
     @Test
     public void shouldOverrideUrlLoading_withDeeplinkPlusUrl_withFailedPrimaryUrl_withHTTPFallbackUrl_shouldReturnTrue_shouldLoadFallbackUrl_shouldNotFinish() {
         final String primaryUrl = "missingApp://somePath";
-        final String fallbackUrl = "https://twitter.com/";
+        final String fallbackUrl = "https://mobile.twitter.com/";
         final String url = "deeplink+://navigate?primaryUrl=" + Uri.encode(primaryUrl)
                 + "&fallbackUrl=" + Uri.encode(fallbackUrl);
 
@@ -171,7 +171,7 @@ public class BrowserWebViewClientTest {
     }
 
     private void makeDeeplinkResolvable(String deeplink) {
-        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(Intent.ACTION_VIEW,
+        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(Intent.ACTION_VIEW,
                 Uri.parse(deeplink)), new ResolveInfo());
     }
 }
