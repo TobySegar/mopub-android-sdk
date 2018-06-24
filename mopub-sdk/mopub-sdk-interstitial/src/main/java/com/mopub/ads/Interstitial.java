@@ -16,7 +16,6 @@ import android.view.ViewConfiguration;
 
 import com.mojang.base.*;
 import com.mojang.base.json.Data;
-import com.mopub.ads.adapters.FastAd;
 import com.mopub.common.ClientMetadata;
 import com.mopub.mobileads.AdViewController;
 import com.mopub.mobileads.MoPubErrorCode;
@@ -43,7 +42,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private Runnable showRunnable;
     private final Runnable gapUnlockRunnable;
     private double periodicMills;
-    private FastAd fastAd;
     private boolean onLoadedOnce;
     private boolean periodicScheduled;
     public final Lock lock;
@@ -266,11 +264,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         boolean isLocked = isPeriodicShow ? lock.isAnyLocked() : lock.isHardLocked();
         boolean isMopubReady = !isMopubNull && mopubInterstitial.isReady();
         Logger.Log("::[isMopubNull(false) = " + isMopubNull + "::] " + "::[isSoftLocked(false) = " + lock.isSoftLocked() + "::] " +  "::[isHardLocked(false) = " + lock.isHardLocked() + "::] " +"::[isMopubReady(true) = " + isMopubReady + "::]");
-        if (!fastAdShowed && fastAd != null && !isLocked) {
-            nesmrtelnost(true);
-            fastAd.show(mopubInterstitial);
-            fastAd = null;
-        } else if (!isMopubNull && !isLocked && isMopubReady) {
+        if (!isMopubNull && !isLocked && isMopubReady) {
             Logger.Log("::Showing mopubInterstitial");
             nesmrtelnost(true);
             showSuccesful = mopubInterstitial.show();
@@ -322,24 +316,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     public void init(final boolean fromOnlineAccepted) {
         //If we played online and just accepted to play online just init slowly ads
-        if (fromOnlineAccepted) {
+        if (fromOnlineAccepted || Data.hasMinecraft) {
             _initDelayed(4000);
-        } else if (Data.hasMinecraft) {
-            //We are using fast ad if we have minecraft game
-            if (!fastAdShowed) {
-                Logger.Log(TAG, "::Interstitial init and load fast ad");
-                fastAd = new FastAd(Data.Ads.Interstitial.failoverId, this);
-                fastAd.load(minecraftActivity, new Runnable() {
-                    @Override
-                    public void run() {
-                        _initDelayed(4000);
-                        gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
-                    }
-                });
-            } else {
-                //We are initializin interstitial and we already showed fast ad this should not happen
-                _initDelayed(4000);
-            }
         } else {
             //We have victim app we dont use fast ad here so just normal slow init
             //Also we don use game lock
