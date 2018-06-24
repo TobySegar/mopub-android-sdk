@@ -69,7 +69,7 @@ public class ApplovinInterstitial extends CustomEventInterstitial implements App
 
     private String getKeyFromExtras(Map<String, String> serverExtras) {
         if (serverExtras.containsKey(EXTRAS_KEY)) {
-            serverExtras.get(EXTRAS_KEY);
+            return serverExtras.get(EXTRAS_KEY);
         } else if (mInterstitialListener != null) {
             mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NO_FILL);
         }
