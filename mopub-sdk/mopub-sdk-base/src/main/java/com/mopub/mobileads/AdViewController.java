@@ -15,13 +15,7 @@ import android.widget.FrameLayout;
 
 import com.mojang.base.Helper;
 import com.mojang.base.json.Data;
-import com.mopub.common.AdReport;
-import com.mopub.common.AdType;
-import com.mopub.common.ClientMetadata;
-import com.mopub.common.Constants;
-import com.mopub.common.DataKeys;
-import com.mopub.common.Preconditions;
-import com.mopub.common.VisibleForTesting;
+import com.mopub.common.*;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.DeviceUtils;
 import com.mopub.common.util.Dips;

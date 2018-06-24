@@ -8,6 +8,8 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.mojang.base.Helper;
+import com.mopub.common.privacy.ConsentData;
+import com.mopub.common.privacy.PersonalInfoManager;
 import com.mopub.common.util.DateAndTime;
 import com.mopub.mobileads.AdViewController;
 import com.mopub.mobileads.MoPubView;

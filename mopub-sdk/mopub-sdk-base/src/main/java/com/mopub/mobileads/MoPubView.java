@@ -13,10 +13,7 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.mopub.common.AdFormat;
-import com.mopub.common.AdReport;
-import com.mopub.common.DataKeys;
-import com.mopub.common.Preconditions;
+import com.mopub.common.*;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.ManifestUtils;
 import com.mopub.common.util.Reflection;
