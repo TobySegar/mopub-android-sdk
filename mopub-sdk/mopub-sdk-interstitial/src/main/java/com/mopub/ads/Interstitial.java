@@ -205,7 +205,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             schedulePeriodicShows();
             onLoadedOnce = true;
         }
-        System.gc();
     }
 
 
