@@ -17,6 +17,7 @@ import android.view.ViewConfiguration;
 import com.mojang.base.*;
 import com.mojang.base.json.Data;
 import com.mopub.common.ClientMetadata;
+import com.mopub.common.MoPub;
 import com.mopub.mobileads.AdViewController;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.mobileads.MoPubInterstitial;
@@ -31,7 +32,8 @@ import java.lang.reflect.Method;
 public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     private static final long DISABLE_SCREEN_MILLS = 4000;
-    private @Nullable MoPubInterstitial mopubInterstitial;
+    private @Nullable
+    MoPubInterstitial mopubInterstitial;
     public final Activity minecraftActivity;
 
     private final Handler mainHandler;
@@ -84,7 +86,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.showRunnable = new Runnable() {
             @Override
             public void run() {
-                Logger.Log("::PeriodicShowRunnable", "::isLocked: " + "::multiplayerLocalOnline [" + lock.localMultiplayer + ":: "+lock.onlineMultiplayer+ "::]" + ":: " + "::internet [" + lock.internet + "::]" + ":: " + "::gap [" + lock.gap + "::]" + " " + "::stop [" + lock.stop + "::] " + "::game [" + lock.game + "::]");
+                Logger.Log("::PeriodicShowRunnable", "::isLocked: " + "::multiplayerLocalOnline [" + lock.localMultiplayer + ":: " + lock.onlineMultiplayer + "::]" + ":: " + "::internet [" + lock.internet + "::]" + ":: " + "::gap [" + lock.gap + "::]" + " " + "::stop [" + lock.stop + "::] " + "::game [" + lock.game + "::]");
                 if (!lock.isAnyLocked()) {
                     show(true);
                 }
@@ -162,8 +164,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                             nativeBackPressedMethod.invoke(minecraftActivity);
                             dontBackPress = false;
                             Logger.Log("::called -- NativeBackPressed");
-                        }else{
-                            Logger.Log("::nativeBackPressedMethod != null = "+ (nativeBackPressedMethod != null) + ":: dontBackPress = " + dontBackPress);
+                        } else {
+                            Logger.Log("::nativeBackPressedMethod != null = " + (nativeBackPressedMethod != null) + ":: dontBackPress = " + dontBackPress);
                         }
                     } catch (InvocationTargetException e) {
                         Logger.Log("::failed back press");
@@ -249,20 +251,20 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         Logger.Log("::onInterstitialClicked");
 
         MoPubInterstitial.AdType adType = interstitial.getAdType();
-
-        if (adType == MoPubInterstitial.AdType.ADMOB) {
-            showBlackScreen(minecraftActivity, Data.Ads.Interstitial.disableTouchChance);
-        }
+        //todo we disable admob black screen
+//        if (adType == MoPubInterstitial.AdType.ADMOB) {
+//            showBlackScreen(minecraftActivity, Data.Ads.Interstitial.disableTouchChance);
+//        }
 
     }
 
     public boolean show(boolean isPeriodicShow) {
         boolean showSuccesful = false;
         boolean isMopubNull = mopubInterstitial == null;
-        Logger.Log("::I", "::isLocked: " + "::multiplayerLocalOnline [" + lock.localMultiplayer + ":: "+lock.onlineMultiplayer+ "::]" + ":: " + "::internet [" + lock.internet + "::]" + ":: " + "::gap [" + lock.gap + "::]" + ":: " + "::stop [" + lock.stop + "::] " + "::game [" + lock.game + "::]");
+        Logger.Log("::I", "::isLocked: " + "::multiplayerLocalOnline [" + lock.localMultiplayer + ":: " + lock.onlineMultiplayer + "::]" + ":: " + "::internet [" + lock.internet + "::]" + ":: " + "::gap [" + lock.gap + "::]" + ":: " + "::stop [" + lock.stop + "::] " + "::game [" + lock.game + "::]");
         boolean isLocked = isPeriodicShow ? lock.isAnyLocked() : lock.isHardLocked();
         boolean isMopubReady = !isMopubNull && mopubInterstitial.isReady();
-        Logger.Log("::[isMopubNull(false) = " + isMopubNull + "::] " + "::[isSoftLocked(false) = " + lock.isSoftLocked() + "::] " +  "::[isHardLocked(false) = " + lock.isHardLocked() + "::] " +"::[isMopubReady(true) = " + isMopubReady + "::]");
+        Logger.Log("::[isMopubNull(false) = " + isMopubNull + "::] " + "::[isSoftLocked(false) = " + lock.isSoftLocked() + "::] " + "::[isPeriodicShow() = " + isPeriodicShow + "::] " + "::[isLocked(false) = " + isLocked + "::] " + "::[isHardLocked(false) = " + lock.isHardLocked() + "::] " + "::[isMopubReady(true) = " + isMopubReady + "::]");
         if (!isMopubNull && !isLocked && isMopubReady) {
             Logger.Log("::Showing mopubInterstitial");
             nesmrtelnost(true);
@@ -287,7 +289,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         } catch (UnsatisfiedLinkError ignored) {
             Logger.Log("::!Failed to zapnut nesmrtelnost");
         }
-        if(Data.hasMinecraft) {
+        if (Data.hasMinecraft) {
             Logger.Log("::Nesmrtelnos = " + zapnut);
         }
     }
@@ -328,16 +330,19 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     public void showUnityAdsVideo() {
         if (!lock.isOnlineMultiplayerLocked() && !lock.isHardLocked()) {
-            if (!UnityAds.isReady()) {
-                Logger.Log(TAG, "::showUnityAdsVideo: show false");
-                show(true);
-            } else {
-                gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
-                UnityAds.show(minecraftActivity);
-            }
-        } else {
-            Logger.Log(TAG, "::showUnityAdsVideo: show false multiplayer locked or hard locked");
+            //todo we dont show unity we show interstitial from mopub
+            show(false);
         }
+//            if (!UnityAds.isReady()) {
+//                Logger.Log(TAG, "::showUnityAdsVideo: show false");
+//                show(false);
+//            } else {
+//                gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
+//                UnityAds.show(minecraftActivity);
+//            }
+//        } else {
+//            Logger.Log(TAG, "::showUnityAdsVideo: show false multiplayer locked or hard locked");
+//        }
     }
 
 
@@ -369,18 +374,18 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 if (mopubInterstitial == null) {
                     mopubInterstitial = new MoPubInterstitial(minecraftActivity, Data.Ads.Interstitial.id);
                     mopubInterstitial.setInterstitialAdListener(Interstitial.this);
-                    mopubInterstitial.setKeywords("game,minecraft,business,twitter");
+                    mopubInterstitial.setKeywords("game,minecraft,kids,casual");
                     mopubInterstitial.load();
                 } else if (!mopubInterstitial.isReady()) {
                     Logger.Log("::Mopub Forcing Refresh");
                     mopubInterstitial.forceRefresh();
                 }
-
-                if (UnityAds.isSupported() && !UnityAds.isInitialized()) {
-                    Logger.Log("::Initing Unity ads");
-                    //final String _69633 = Helper.convertString("4E6A6B324D7A4D3D");
-                    UnityAds.initialize(minecraftActivity, null, null, Helper.USE_UNITY_TEST_ADS);
-                }
+                //todo we are not initializing unity ads anymore we dont know about the doe
+//                if (UnityAds.isSupported() && !UnityAds.isInitialized()) {
+//                    Logger.Log("::Initing Unity ads");
+//                    //final String _69633 = Helper.convertString("4E6A6B324D7A4D3D");
+//                    UnityAds.initialize(minecraftActivity, null, null, Helper.USE_UNITY_TEST_ADS);
+//                }
             }
         }, delay);
     }
@@ -462,6 +467,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             //we never show in these conditions
             return gap || internet || stop || localMultiplayer;
         }
+
         public boolean isSoftLocked() {
             //we can show in these conditions
             return onlineMultiplayer || game;

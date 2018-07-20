@@ -61,8 +61,8 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'),
-                    project(':mopub-sdk').file('proguard.txt')
+            //proguardFiles getDefaultProguardFile('proguard-android.txt'),
+            //        project(':mopub-sdk').file('proguard.txt')
         }
 
         debug {

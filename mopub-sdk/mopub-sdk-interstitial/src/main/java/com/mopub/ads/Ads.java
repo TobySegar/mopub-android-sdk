@@ -3,6 +3,7 @@ package com.mopub.ads;
 
 import android.app.Activity;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.widget.Toast;
 
 import com.mojang.base.Analytics;
@@ -12,6 +13,13 @@ import com.mojang.base.Logger;
 import com.mojang.base.events.AppEvent;
 import com.mojang.base.events.GameEvent;
 
+import com.mopub.common.MoPub;
+import com.mopub.common.logging.MoPubLog;
+import com.mopub.common.privacy.ConsentDialogListener;
+import com.mopub.common.privacy.ConsentStatus;
+import com.mopub.common.privacy.ConsentStatusChangeListener;
+import com.mopub.common.privacy.PersonalInfoManager;
+import com.mopub.mobileads.MoPubErrorCode;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -56,6 +64,35 @@ public class Ads {
         }
 
         EventBus.getDefault().register(this);
+
+    }
+
+    public static void showMopubConsentDialog(final Runnable doAfterDialog) {
+        if (MoPub.isSdkInitialized()) {
+            // CONSENT DIALOG FOR MOPUB
+            final PersonalInfoManager mPersonalInfoManager = MoPub.getPersonalInformationManager();
+            if (mPersonalInfoManager != null && mPersonalInfoManager.shouldShowConsentDialog()) {
+                mPersonalInfoManager.loadConsentDialog(new ConsentDialogListener() {
+                    @Override
+                    public void onConsentDialogLoaded() {
+                        Logger.Log("::Ads", "::SHOWING CONSENT DIALOG");
+                        if(!mPersonalInfoManager.showConsentDialog()){
+                            doAfterDialog.run();
+                        }
+                    }
+
+                    @Override
+                    public void onConsentDialogLoadFailed(@NonNull MoPubErrorCode moPubErrorCode) {
+                        Logger.Log("::Ads", "::Consent dialog failed to load.");
+                        doAfterDialog.run();
+                    }
+                });
+            }else{
+                doAfterDialog.run();
+            }
+        }else{
+            doAfterDialog.run();
+        }
     }
 
     public static Ads getInstance() {
@@ -116,7 +153,7 @@ public class Ads {
                 break;
             case GamePlayStart:
                 interstitial.lock.gameUnlock();
-                interstitial.show(5000,false);
+                interstitial.show(5000, false);
                 break;
             case LeaveLevel:
                 numOfPlayers = 0;
@@ -143,17 +180,17 @@ public class Ads {
 
     private void showAfterLeftMultiplayerServer() {
         boolean isOnlyMultiplayerLocked = false;
-        if(interstitial.lock.isOnlineMultiplayerLocked()){
+        if (interstitial.lock.isOnlineMultiplayerLocked()) {
             //we check if only lock locked is from multiplayer.
             interstitial.lock.unlockOnlineMultiplayer();
             isOnlyMultiplayerLocked = !interstitial.lock.isAnyLocked();
             interstitial.lock.lockMultiplayer();
         }
 
-        if(isOnlyMultiplayerLocked){
-            if(interstitial.lock.isOnlineMultiplayerLocked()){
+        if (isOnlyMultiplayerLocked) {
+            if (interstitial.lock.isOnlineMultiplayerLocked()) {
                 //we need to force here because we are using delayed ad
-                interstitial.show(5000,false);
+                interstitial.show(5000, false);
             }
         }
     }
