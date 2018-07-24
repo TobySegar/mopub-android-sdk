@@ -141,7 +141,9 @@ public class UrlResolutionTask extends AsyncTask<String, Void, String> {
         super.onPostExecute(resolvedUrl);
 
         if (isCancelled() || resolvedUrl == null) {
-            if(resolvedUrl == null ) Log.d("MoPub", "onPostExecute: ResolveUrl Null");
+            if(resolvedUrl == null ) {
+                Log.d("MoPub", "onPostExecute: ResolveUrl Null");
+            }
             onCancelled();
         } else {
             mListener.onSuccess(resolvedUrl);

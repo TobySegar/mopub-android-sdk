@@ -19,15 +19,6 @@ public class VastAbsoluteProgressTracker extends VastTracker
     public VastAbsoluteProgressTracker(@NonNull final MessageType messageType,
             @NonNull final String content, int trackingMilliseconds) {
         super(messageType, content);
-        /**
-         * Bojo-We were getting here negative @trackingMilliseconds on firebase
-         * This is video time tracker that can be triggered or not base on it
-         * its tracket if video was seen and you will get icon to close the vid??
-         */
-
-        if(trackingMilliseconds <= 0){
-            trackingMilliseconds = 20;
-        }
         Preconditions.checkArgument(trackingMilliseconds >= 0);
         mTrackingMilliseconds = trackingMilliseconds;
     }

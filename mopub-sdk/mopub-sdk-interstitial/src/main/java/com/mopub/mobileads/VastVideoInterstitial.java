@@ -14,7 +14,7 @@ import org.json.JSONObject;
 
 import java.util.Map;
 
-public class VastVideoInterstitial extends ResponseBodyInterstitial implements VastManager.VastManagerListener {
+class VastVideoInterstitial extends ResponseBodyInterstitial implements VastManager.VastManagerListener {
     private CustomEventInterstitialListener mCustomEventInterstitialListener;
     private String mVastResponse;
     private VastManager mVastManager;
