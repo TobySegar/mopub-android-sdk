@@ -6,10 +6,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.widget.Toast;
 
-import com.mojang.base.Analytics;
-import com.mojang.base.Helper;
-import com.mojang.base.InternetObserver;
-import com.mojang.base.Logger;
+import com.mojang.base.*;
 import com.mojang.base.events.AppEvent;
 import com.mojang.base.events.GameEvent;
 
@@ -23,6 +20,8 @@ import com.mopub.mobileads.MoPubErrorCode;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import java.io.File;
 
 import static com.mojang.base.events.AppEvent.Destroy;
 import static com.mojang.base.events.AppEvent.OfflineAccepted;
@@ -107,6 +106,7 @@ public class Ads {
     public void onAppEvent(AppEvent appEvent) {
         switch (appEvent.event) {
             case Destroy:
+                FileManager.i().unregisterTexturePackDownloadReceiver(interstitial.minecraftActivity);
                 interstitial.destroy();
                 break;
             case Pause:
