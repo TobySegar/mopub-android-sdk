@@ -1,4 +1,4 @@
-package com.mopub.ads.adapters;
+package com.mopub.mobileads.adapters;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -7,42 +7,62 @@ import android.util.Log;
 import com.google.ads.mediation.admob.AdMobAdapter;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
 import com.mopub.common.MediationSettings;
-import com.mopub.mobileads.CustomEventInterstitial;
+import com.mopub.common.util.Views;
+import com.mopub.mobileads.CustomEventBanner;
 import com.mopub.mobileads.MoPubErrorCode;
 
 import java.util.Map;
 
-public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
+import static com.google.android.gms.ads.AdSize.BANNER;
+import static com.google.android.gms.ads.AdSize.FULL_BANNER;
+import static com.google.android.gms.ads.AdSize.LEADERBOARD;
+import static com.google.android.gms.ads.AdSize.MEDIUM_RECTANGLE;
+
+public class GooglePlayServicesBanner extends CustomEventBanner {
     /*
      * These keys are intended for MoPub internal use. Do not modify.
      */
     public static final String AD_UNIT_ID_KEY = "adUnitID";
-    public static final String LOCATION_KEY = "location";
+    public static final String AD_WIDTH_KEY = "adWidth";
+    public static final String AD_HEIGHT_KEY = "adHeight";
 
-    private CustomEventInterstitialListener mInterstitialListener;
-    private InterstitialAd mGoogleInterstitialAd;
+    private CustomEventBannerListener mBannerListener;
+    private AdView mGoogleAdView;
 
     @Override
-    protected void loadInterstitial(
+    protected void loadBanner(
             final Context context,
-            final CustomEventInterstitialListener customEventInterstitialListener,
+            final CustomEventBannerListener customEventBannerListener,
             final Map<String, Object> localExtras,
             final Map<String, String> serverExtras) {
-        mInterstitialListener = customEventInterstitialListener;
+        mBannerListener = customEventBannerListener;
         final String adUnitId;
+        final int adWidth;
+        final int adHeight;
 
         if (extrasAreValid(serverExtras)) {
             adUnitId = serverExtras.get(AD_UNIT_ID_KEY);
+            adWidth = Integer.parseInt(serverExtras.get(AD_WIDTH_KEY));
+            adHeight = Integer.parseInt(serverExtras.get(AD_HEIGHT_KEY));
         } else {
-            mInterstitialListener.onInterstitialFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
+            mBannerListener.onBannerFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
             return;
         }
 
-        mGoogleInterstitialAd = new InterstitialAd(context);
-        mGoogleInterstitialAd.setAdListener(new InterstitialAdListener());
-        mGoogleInterstitialAd.setAdUnitId(adUnitId);
+        mGoogleAdView = new AdView(context);
+        mGoogleAdView.setAdListener(new AdViewListener());
+        mGoogleAdView.setAdUnitId(adUnitId);
+
+        final AdSize adSize = calculateAdSize(adWidth, adHeight);
+        if (adSize == null) {
+            mBannerListener.onBannerFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
+            return;
+        }
+
+        mGoogleAdView.setAdSize(adSize);
 
         AdRequest.Builder builder = new AdRequest.Builder();
         builder.setRequestAgent("MoPub");
@@ -54,10 +74,19 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
         AdRequest adRequest = builder.build();
 
         try {
-            mGoogleInterstitialAd.loadAd(adRequest);
+            mGoogleAdView.loadAd(adRequest);
         } catch (NoClassDefFoundError e) {
             // This can be thrown by Play Services on Honeycomb.
-            mInterstitialListener.onInterstitialFailed(MoPubErrorCode.NETWORK_NO_FILL);
+            mBannerListener.onBannerFailed(MoPubErrorCode.NETWORK_NO_FILL);
+        }
+    }
+
+    @Override
+    protected void onInvalidate() {
+        Views.removeFromParent(mGoogleAdView);
+        if (mGoogleAdView != null) {
+            mGoogleAdView.setAdListener(null);
+            mGoogleAdView.destroy();
         }
     }
 
@@ -70,72 +99,67 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
         }
     }
 
-    @Override
-    public void showInterstitial() {
-        if (mGoogleInterstitialAd.isLoaded()) {
-            mGoogleInterstitialAd.show();
-        } else {
-            Log.d("MoPub", "Tried to show a Google Play Services interstitial ad before it finished loading. Please try again.");
-        }
-    }
-
-    @Override
-    protected boolean usesProxy() {
-        return false;
-    }
-
-    @Override
-    protected void onInvalidate() {
-        if (mGoogleInterstitialAd != null) {
-            mGoogleInterstitialAd.setAdListener(null);
-        }
-    }
-
     private boolean extrasAreValid(Map<String, String> serverExtras) {
+        try {
+            Integer.parseInt(serverExtras.get(AD_WIDTH_KEY));
+            Integer.parseInt(serverExtras.get(AD_HEIGHT_KEY));
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
         return serverExtras.containsKey(AD_UNIT_ID_KEY);
     }
 
-    private class InterstitialAdListener extends AdListener {
+    private AdSize calculateAdSize(int width, int height) {
+        // Use the smallest AdSize that will properly contain the adView
+        if (width <= BANNER.getWidth() && height <= BANNER.getHeight()) {
+            return BANNER;
+        } else if (width <= MEDIUM_RECTANGLE.getWidth() && height <= MEDIUM_RECTANGLE.getHeight()) {
+            return MEDIUM_RECTANGLE;
+        } else if (width <= FULL_BANNER.getWidth() && height <= FULL_BANNER.getHeight()) {
+            return FULL_BANNER;
+        } else if (width <= LEADERBOARD.getWidth() && height <= LEADERBOARD.getHeight()) {
+            return LEADERBOARD;
+        } else {
+            return null;
+        }
+    }
+
+    private class AdViewListener extends AdListener {
         /*
          * Google Play Services AdListener implementation
          */
         @Override
         public void onAdClosed() {
-            Log.d("MoPub", "Google Play Services interstitial ad dismissed.");
-            if (mInterstitialListener != null) {
-                mInterstitialListener.onInterstitialDismissed();
-            }
+
         }
 
         @Override
         public void onAdFailedToLoad(int errorCode) {
-            Log.d("MoPub", "Google Play Services interstitial ad failed to load.");
-            if (mInterstitialListener != null) {
-                mInterstitialListener.onInterstitialFailed(getMoPubErrorCode(errorCode));
+            Log.d("MoPub", "Google Play Services banner ad failed to load.");
+            if (mBannerListener != null) {
+                mBannerListener.onBannerFailed(getMoPubErrorCode(errorCode));
             }
         }
 
         @Override
         public void onAdLeftApplication() {
-            Log.d("MoPub", "Google Play Services interstitial ad clicked.");
-            if (mInterstitialListener != null) {
-                mInterstitialListener.onInterstitialClicked();
-            }
+
         }
 
         @Override
         public void onAdLoaded() {
-            Log.d("MoPub", "Google Play Services interstitial ad loaded successfully.");
-            if (mInterstitialListener != null) {
-                mInterstitialListener.onInterstitialLoaded();
+            Log.d("MoPub", "Google Play Services banner ad loaded successfully. Showing ad...");
+            if (mBannerListener != null) {
+                mBannerListener.onBannerLoaded(mGoogleAdView);
             }
         }
 
         @Override
         public void onAdOpened() {
-            Log.d("MoPub", "Showing Google Play Services interstitial ad.");
-            if (mInterstitialListener != null) {
-                mInterstitialListener.onInterstitialShown();
+            Log.d("MoPub", "Google Play Services banner ad clicked.");
+            if (mBannerListener != null) {
+                mBannerListener.onBannerClicked();
             }
         }
 
@@ -193,7 +217,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
 
     @Deprecated
         // for testing
-    InterstitialAd getGoogleInterstitialAd() {
-        return mGoogleInterstitialAd;
+    AdView getGoogleAdView() {
+        return mGoogleAdView;
     }
 }

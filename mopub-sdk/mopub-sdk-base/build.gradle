@@ -22,9 +22,10 @@ dependencies {
     }
     compile 'com.mopub.volley:mopub-volley:2.0.0'
     compile project(':base')
-    //compile 'com.google.android.gms:play-services-ads:10.0.0'
+    compile 'com.google.android.gms:play-services-ads:15.0.1'
     compile project(':unity-ads')
-    //compile project(':audience-network-sdk-4.26.1')
+    compile 'com.facebook.android:audience-network-sdk:4.+'
+    compile 'com.flurry.android:ads:11.1.1@aar'
 }
 
 project.description = 'MoPub Android SDK - Base'

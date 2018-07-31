@@ -230,13 +230,6 @@ public class AdViewController {
 
         final MoPubErrorCode errorCode = getErrorCodeFromVolleyError(error, mContext);
 
-        //todo failover uz nepouzivame lebo applovin sucks dick
-//        if (errorCode == MoPubErrorCode.SERVER_ERROR || errorCode == MoPubErrorCode.NO_FILL) {
-//            mBackoffPower++;
-//            onAdLoadSuccess(getFailoverResponse());
-//            return;
-//        }
-
         setNotLoading();
         adDidFail(errorCode);
     }

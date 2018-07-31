@@ -1,0 +1,3 @@
+[submodule "mopub-android-mediation"]
+	path = mopub-android-mediation
+	url = ../mopub-android-mediation.git

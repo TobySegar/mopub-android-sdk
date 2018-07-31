@@ -251,10 +251,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         Logger.Log("::onInterstitialClicked");
 
         MoPubInterstitial.AdType adType = interstitial.getAdType();
-        //todo we disable admob black screen
-//        if (adType == MoPubInterstitial.AdType.ADMOB) {
-//            showBlackScreen(minecraftActivity, Data.Ads.Interstitial.disableTouchChance);
-//        }
+
 
     }
 
@@ -315,34 +312,10 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
 
-    public void init(final boolean fromOnlineAccepted) {
-        //If we played online and just accepted to play online just init slowly ads
-        if (fromOnlineAccepted || Data.hasMinecraft) {
-            _initDelayed(4000);
-        } else {
-            //We have victim app we dont use fast ad here so just normal slow init
-            //Also we don use game lock
-            lock.game = false;
-            _initDelayed(4000);
-        }
-    }
-
-
     public void showUnityAdsVideo() {
         if (!lock.isOnlineMultiplayerLocked() && !lock.isHardLocked()) {
-            //todo we dont show unity we show interstitial from mopub
             show(false);
         }
-//            if (!UnityAds.isReady()) {
-//                Logger.Log(TAG, "::showUnityAdsVideo: show false");
-//                show(false);
-//            } else {
-//                gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
-//                UnityAds.show(minecraftActivity);
-//            }
-//        } else {
-//            Logger.Log(TAG, "::showUnityAdsVideo: show false multiplayer locked or hard locked");
-//        }
     }
 
 
@@ -366,8 +339,10 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     }
 
 
-    public void _initDelayed(int delay) {
-        Logger.Log("::Initing Mopub in 4 sec...");
+    public void init(boolean fromOnlineAccepted, int delay) {
+        Logger.Log("::Initing Mopub in "+delay+" sec...");
+        lock.game = Data.hasMinecraft;
+
         Helper.runOnWorkerThread(new Runnable() {
             @Override
             public void run() {
@@ -380,12 +355,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                     Logger.Log("::Mopub Forcing Refresh");
                     mopubInterstitial.forceRefresh();
                 }
-                //todo we are not initializing unity ads anymore we dont know about the doe
-//                if (UnityAds.isSupported() && !UnityAds.isInitialized()) {
-//                    Logger.Log("::Initing Unity ads");
-//                    //final String _69633 = Helper.convertString("4E6A6B324D7A4D3D");
-//                    UnityAds.initialize(minecraftActivity, null, null, Helper.USE_UNITY_TEST_ADS);
-//                }
             }
         }, delay);
     }

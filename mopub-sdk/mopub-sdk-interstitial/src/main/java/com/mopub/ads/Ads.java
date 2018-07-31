@@ -6,22 +6,21 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.MobileAds;
 import com.mojang.base.*;
 import com.mojang.base.events.AppEvent;
 import com.mojang.base.events.GameEvent;
 
+import com.mojang.base.json.Data;
 import com.mopub.common.MoPub;
-import com.mopub.common.logging.MoPubLog;
+import com.mopub.common.SdkConfiguration;
+import com.mopub.common.SdkInitializationListener;
 import com.mopub.common.privacy.ConsentDialogListener;
-import com.mopub.common.privacy.ConsentStatus;
-import com.mopub.common.privacy.ConsentStatusChangeListener;
 import com.mopub.common.privacy.PersonalInfoManager;
 import com.mopub.mobileads.MoPubErrorCode;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-
-import java.io.File;
 
 import static com.mojang.base.events.AppEvent.Destroy;
 import static com.mojang.base.events.AppEvent.OfflineAccepted;
@@ -42,31 +41,60 @@ import static com.mojang.base.events.GameEvent.StartSleepInBed;
  * Controlls how ads are showed
  */
 public class Ads {
+    private Banner banner;
+    private RewardedVideo rewardedVideo;
+    private Activity activity;
     private Interstitial interstitial;
     private int numOfPlayers;
     private int timesBlockChanged;
     private static Ads instance;
 
 
-    public Ads(Interstitial interstitial) {
-        this.interstitial = interstitial;
-        this.numOfPlayers = 0;
+    public Ads(Activity activity, Interstitial interstitial,RewardedVideo rewardedVideo,Banner banner) {
         if (Ads.instance == null) {
-            Ads.instance = this;
+            instance = this;
+
+            this.interstitial = interstitial;
+            this.rewardedVideo = rewardedVideo;
+            this.banner = banner;
+            this.activity = activity;
+
+            EventBus.getDefault().register(this);
         }
 
         if (InternetObserver.isInternetAvaible()) {
             Logger.Log("::start");
-            interstitial.init(false);
+            interstitial.init(false,4000);
         } else {
             Logger.Log("::start: No Internet Avaible for ads");
         }
-
-        EventBus.getDefault().register(this);
-
     }
 
-    public static void showMopubConsentDialog(final Runnable doAfterDialog) {
+    public static void earlyInitialization(Activity activity, final Runnable onInitialized){
+        Logger.Log("::Ads", "::Early Ads Initialization");
+        initializeMoPub(activity,onInitialized);
+        MobileAds.initialize(activity, Data.Ads.Interstitial.admobAppId);
+    }
+
+    private static void initializeMoPub(Activity activity, final Runnable runAfter) {
+        if (!MoPub.isSdkInitialized() && Data.Ads.enabled) {
+            Logger.Log("::Ads", "::Initializing MoPub");
+            MoPub.initializeSdk(
+                    activity,
+                    new SdkConfiguration.Builder(Data.Ads.Interstitial.id).build(),
+                    new SdkInitializationListener() {
+                        @Override
+                        public void onInitializationFinished() {
+                            Ads.showMoPubConsentDialog(runAfter);
+                        }
+                    });
+        } else {
+            Logger.Log("::Ads", "::Failed MoPub Initialization");
+            runAfter.run();
+        }
+    }
+
+    private static void showMoPubConsentDialog(final Runnable doAfterDialog) {
         if (MoPub.isSdkInitialized()) {
             // CONSENT DIALOG FOR MOPUB
             final PersonalInfoManager mPersonalInfoManager = MoPub.getPersonalInformationManager();
@@ -125,7 +153,7 @@ public class Ads {
             case OnlineAccepted:
                 if (InternetObserver.isInternetAvaible()) {
                     interstitial.lock.internetUnlock();
-                    interstitial.init(true);
+                    interstitial.init(true,4000);
                 }
                 break;
 
