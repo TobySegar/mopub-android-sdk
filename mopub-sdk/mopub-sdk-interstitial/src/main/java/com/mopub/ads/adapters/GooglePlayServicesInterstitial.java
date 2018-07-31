@@ -42,7 +42,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
 
         mGoogleInterstitialAd = new InterstitialAd(context);
         mGoogleInterstitialAd.setAdListener(new InterstitialAdListener());
-        mGoogleInterstitialAd.setAdUnitId(adUnitId);
+        mGoogleInterstitialAd.setAdUnitId(adUnitId);// test "ca-app-pub-3940256099942544/1033173712"
 
         AdRequest.Builder builder = new AdRequest.Builder();
         builder.setRequestAgent("MoPub");
