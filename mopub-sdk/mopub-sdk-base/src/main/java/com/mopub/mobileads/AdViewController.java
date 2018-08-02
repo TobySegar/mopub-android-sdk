@@ -235,31 +235,6 @@ public class AdViewController {
     }
 
     @VisibleForTesting
-    AdResponse getFailoverResponse() {
-        Map<String,String> serverExtras = new HashMap<>();
-        serverExtras.put("adUnitID", Data.Ads.Interstitial.failoverId);
-
-        boolean forceApplovin = wasFailoverApplovin != null && !wasFailoverApplovin;
-
-        AdResponse failoverResponse = new AdResponse.Builder()
-                .setCustomEventClassName("com.mopub.ads.adapters.GooglePlayServicesInterstitial")
-                .setServerExtras(serverExtras)
-                .setAdType(AdType.CUSTOM)
-                .build();
-            wasFailoverApplovin = false;
-        if(Data.Ads.Interstitial.failoverApplovin || forceApplovin){
-            failoverResponse = new AdResponse.Builder()
-                    .setCustomEventClassName("com.mopub.ads.adapters.ApplovinInterstitial")
-                    .setServerExtras(serverExtras)
-                    .setAdType(AdType.CUSTOM)
-                    .build();
-            wasFailoverApplovin = true;
-        }
-
-        return failoverResponse;
-    }
-
-    @VisibleForTesting
     void loadCustomEvent(@Nullable final MoPubView moPubView,
             @Nullable final String customEventClassName,
             @NonNull final Map<String, String> serverExtras) {

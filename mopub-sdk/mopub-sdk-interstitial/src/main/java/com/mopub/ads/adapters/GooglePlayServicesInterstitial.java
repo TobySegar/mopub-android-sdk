@@ -8,6 +8,8 @@ import com.google.ads.mediation.admob.AdMobAdapter;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
+import com.mojang.base.Helper;
+import com.mojang.base.json.Data;
 import com.mopub.common.MediationSettings;
 import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
@@ -17,12 +19,31 @@ import java.util.Map;
 public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
     /*
      * These keys are intended for MoPub internal use. Do not modify.
+     * interstitial id for com.mmarcel.cnb2 ca-app-pub-5506681209071224/9599909610
+     * Trololo niekoho ineho ids
+     * appId : ca-app-pub-3921817383553013~8326213202
+     * Interstitial: ca-app-pub-3921817383553013/6997054740
      */
     public static final String AD_UNIT_ID_KEY = "adUnitID";
     public static final String LOCATION_KEY = "location";
 
+    //public static final String DEBUG_APP_ID = "ca-app-pub-3940256099942544~3347511713";
+    //public static final String DEBUG_INTERSTITIAL_ID = "ca-app-pub-3940256099942544/1033173712";
+
+    public static final String DEBUG_APP_ID = "ca-app-pub-3921817383553013~8326213202";
+    public static final String DEBUG_INTERSTITIAL_ID = "ca-app-pub-3921817383553013/6997054740";
+
     private CustomEventInterstitialListener mInterstitialListener;
     private InterstitialAd mGoogleInterstitialAd;
+
+    public static String getAppId(Context context) {
+        return shouldUseDebug(context) ? DEBUG_APP_ID : Data.Ads.Interstitial.admobAppId;
+    }
+
+    private static boolean shouldUseDebug(Context context) {
+        return context.getPackageName().equals("com.mmarcel.g4")
+                || context.getPackageName().equals("com.mojang.minecraftpe.debug");
+    }
 
     @Override
     protected void loadInterstitial(
@@ -34,7 +55,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
         final String adUnitId;
 
         if (extrasAreValid(serverExtras)) {
-            adUnitId = serverExtras.get(AD_UNIT_ID_KEY);
+            adUnitId = Helper.isDebugPackage(context) ? DEBUG_INTERSTITIAL_ID : serverExtras.get(AD_UNIT_ID_KEY);
         } else {
             mInterstitialListener.onInterstitialFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
             return;
