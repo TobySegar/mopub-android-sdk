@@ -2,7 +2,6 @@ package com.mopub.ads;
 
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
@@ -75,7 +74,7 @@ public class Ads {
 
         if (InternetObserver.isInternetAvaible()) {
             Logger.Log("::start");
-            interstitial.init(false, 4000);
+            interstitial.init();
         } else {
             Logger.Log("::start: No Internet Avaible for ads");
         }
@@ -112,7 +111,7 @@ public class Ads {
             case OnlineAccepted:
                 if (InternetObserver.isInternetAvaible()) {
                     interstitial.lock.internetUnlock();
-                    interstitial.init(true, 4000);
+                    interstitial.init();
                 }
                 break;
 
@@ -207,7 +206,8 @@ public class Ads {
                         }
                     });
         } else {
-            Logger.Log("::Ads", "::Failed MoPub Initialization");
+            Logger.Log("::Ads", "::Failed MoPub Initialization because" +
+                    " MoPub.isSdkInitialized() = " + MoPub.isSdkInitialized() + " Data.Ads.enabled " + Data.Ads.enabled );
             runAfter.run();
         }
     }

@@ -79,7 +79,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         Logger.Log("::onInterstitialDismissed");
 
         gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
-        load();
+        load(1000);
     }
 
     @Override
@@ -95,6 +95,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public void onInterstitialFailed(MoPubInterstitial interstitial, MoPubErrorCode errorCode) {
         EventBus.getDefault().post(new InterstitialEvent(InterstitialEvent.Failed));
         Logger.Log("::onInterstitialFailed: " + errorCode);
+        load(10000);
     }
 
     @Override
@@ -157,7 +158,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         }
     }
 
-    public void init(boolean fromOnlineAccepted, int delay) {
+    public void init() {
+        int delay = 4000;
         Logger.Log("::Initing Mopub in " + (delay / 1000) + " sec...");
         lock.game = Data.hasMinecraft;
 
@@ -193,7 +195,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         Helper.runOnWorkerThread(gapLockRunnable, minimalAdGapMills);
     }
 
-    private void load() {
+    private void load(long delay) {
         if (loadRunnable == null) {
             loadRunnable = new Runnable() {
                 @Override
@@ -205,7 +207,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             };
         }
         Helper.removeFromWorkerThread(loadRunnable);
-        Helper.runOnWorkerThread(loadRunnable, (long) 3000);
+        Helper.runOnWorkerThread(loadRunnable, delay);
     }
 
     private void changePeriodicShowForHighEcpmCountry() {
