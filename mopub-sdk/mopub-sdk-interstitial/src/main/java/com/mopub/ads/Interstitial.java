@@ -22,7 +22,7 @@ import static com.mojang.base.events.InterstitialEvent.Loaded;
  */
 @SuppressWarnings("FieldCanBeLocal")
 public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
-    private static final String DEBUG_MOPUB_INTERSTITIAL_ID = Logger.String("::c2fc437d0fd44e91982838693549cdb4");
+    public static final String DEBUG_MOPUB_INTERSTITIAL_ID = Logger.String("::c2fc437d0fd44e91982838693549cdb4");
     private MoPubInterstitial mopubInterstitial;
     private final Activity activity;
     private double periodicMills;

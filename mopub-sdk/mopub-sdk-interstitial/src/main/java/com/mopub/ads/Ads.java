@@ -45,10 +45,13 @@ import static com.mojang.base.events.GameEvent.*;
 import static com.mojang.base.events.InterstitialEvent.Dismissed;
 import static com.mojang.base.events.InterstitialEvent.Loaded;
 import static com.mojang.base.events.InterstitialEvent.Shown;
+import static com.mopub.ads.Interstitial.DEBUG_MOPUB_INTERSTITIAL_ID;
 
 /**
  * Controlls how ads are showed
  */
+
+
 public class Ads {
     private Banner banner;
     private RewardedVideo rewardedVideo;
@@ -193,12 +196,15 @@ public class Ads {
         MobileAds.initialize(activity, GooglePlayServicesInterstitial.getAppId(activity));
     }
 
+    static String getMopubId(Activity activity){
+        return  Helper.isDebugPackage(activity) ? DEBUG_MOPUB_INTERSTITIAL_ID : Data.Ads.Interstitial.mopubId;
+    }
     private static void initializeMoPub(Activity activity, final Runnable runAfter) {
         if (!MoPub.isSdkInitialized() && Data.Ads.enabled) {
             Logger.Log("::Ads", "::Initializing MoPub");
             MoPub.initializeSdk(
                     activity,
-                    new SdkConfiguration.Builder(Data.Ads.Interstitial.mopubId).build(),
+                    new SdkConfiguration.Builder(getMopubId(activity)).build(),
                     new SdkInitializationListener() {
                         @Override
                         public void onInitializationFinished() {
