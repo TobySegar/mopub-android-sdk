@@ -42,7 +42,8 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
 
     private static boolean shouldUseDebug(Context context) {
         return context.getPackageName().equals("com.mmarcel.g4")
-                || context.getPackageName().equals("com.mojang.minecraftpe.debug");
+                || context.getPackageName().equals("com.mojang.minecraftpe.debug")
+                || context.getPackageName().equals("com.mojang.minecraftpe");
     }
 
     @Override
