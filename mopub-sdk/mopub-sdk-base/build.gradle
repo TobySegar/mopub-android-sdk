@@ -5,7 +5,10 @@ repositories {
         dirs './libs'
     }
     google()
+    //maven { url 'https://s3.amazonaws.com/moat-sdk-builds'}
     maven { url "https://maven.google.com" }
+    jcenter() // includes the MoPub SDK and AVID library
+    maven { url "http://dl.bintray.com/ironsource-mobile/android-adapters"}
 }
 //FACEBOOK
 //https://mvnrepository.com/artifact/com.facebook.android/audience-network-sdk
@@ -22,16 +25,30 @@ dependencies {
 //    }
     compile('com.mopub:libAvid-mopub:3.6.4')
     //https://s3.amazonaws.com/moat-sdk-builds/com/moat/analytics/mobile/mpub/moat-mobile-app-kit/2.4.5/moat-mobile-app-kit-2.4.5.aar
-    //compile 'com.moat.analytics.mobile.mpub:moat-mobile-app-kit:2.4.5'
+    //implementation 'com.moat.analytics.mobile.mpub:moat-mobile-app-kit:2.4.5'
     //We get this locally because s3.amazonaws suck balls
-    compile project(':moat-mobile-app-kit-2.4.5')
+    //compile project(':moat-mobile-app-kit-2.4.5')
 
     compile 'com.mopub.volley:mopub-volley:2.0.0'
     compile project(':base')
     compile 'com.google.android.gms:play-services-ads:15.0.1'
     compile project(':unity-ads')
-    compile 'com.facebook.android:audience-network-sdk:4.+'
     compile 'com.flurry.android:ads:11.1.1@aar'
+
+
+
+// AppLovin
+    compile 'com.applovin:applovin-sdk:8.1.0'
+
+// ironSource
+    compile files('libs/mediationsdk-6.7.11@jar')
+
+// Facebook Audience Network
+    compile 'com.facebook.android:audience-network-sdk:5.0.0'
+
+    // flurry ads
+    compile 'com.flurry.android:ads:10.1.0@aar'
+
 }
 
 project.description = 'MoPub Android SDK - Base'

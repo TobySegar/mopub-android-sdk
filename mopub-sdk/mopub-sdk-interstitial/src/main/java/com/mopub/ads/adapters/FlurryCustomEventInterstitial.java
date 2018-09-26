@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
+
 import com.flurry.android.ads.FlurryAdErrorType;
 import com.flurry.android.ads.FlurryAdInterstitial;
 import com.flurry.android.ads.FlurryAdInterstitialListener;
+import com.mopub.ads.adapters.FlurryAgentWrapper;
 
 import java.util.Map;
 
@@ -54,6 +56,8 @@ class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInter
             listener.onInterstitialFailed(ADAPTER_CONFIGURATION_ERROR);
             return;
         }
+
+        setAutomaticImpressionAndClickTracking(false);
 
         mContext = context;
         mListener = listener;
@@ -142,7 +146,9 @@ class FlurryCustomEventInterstitial extends com.mopub.mobileads.CustomEventInter
         public void onDisplay(FlurryAdInterstitial adInterstitial) {
             Log.d(LOG_TAG, "onDisplay: Flurry interstitial ad displayed");
 
-            // no-op
+            if (mListener != null) {
+                mListener.onInterstitialImpression();
+            }
         }
 
         @Override
