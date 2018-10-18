@@ -1,5 +1,6 @@
 package com.mopub.common.logging;
 
+import android.annotation.SuppressLint;
 import android.support.annotation.NonNull;
 import android.util.Log;
 

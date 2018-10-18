@@ -11,8 +11,8 @@ import com.unity3d.ads.UnityAds;
 
 import java.util.Map;
 
-public class UnityInterstitial extends CustomEventInterstitial implements IUnityAdsExtendedListener {
-
+public class UnityInterstitial{// extends CustomEventInterstitial implements IUnityAdsExtendedListener {
+/*
     private CustomEventInterstitialListener mCustomEventInterstitialListener;
     private Context mContext;
     private String mPlacementId = "video";
@@ -110,5 +110,5 @@ public class UnityInterstitial extends CustomEventInterstitial implements IUnity
         MoPubLog.d("Unity interstitial video cache failed for placement " + mPlacementId + ".");
         MoPubErrorCode errorCode = UnityRouter.UnityAdsUtils.getMoPubErrorCode(unityAdsError);
         mCustomEventInterstitialListener.onInterstitialFailed(errorCode);
-    }
+    }*/
 }

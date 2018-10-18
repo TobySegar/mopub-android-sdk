@@ -12,6 +12,10 @@ import android.view.View;
 import com.mopub.common.DataKeys;
 import com.mopub.common.Preconditions;
 import com.mopub.common.VisibleForTesting;
+import com.mopub.common.event.BaseEvent;
+import com.mopub.common.event.Event;
+import com.mopub.common.event.EventDetails;
+import com.mopub.common.event.MoPubEvents;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.Utils;
 import com.mopub.mobileads.MraidVideoPlayerActivity;
@@ -38,7 +42,6 @@ import java.util.Set;
 
 import static com.mopub.common.DataKeys.EVENT_DETAILS;
 import static com.mopub.common.DataKeys.IMPRESSION_MIN_VISIBLE_PERCENT;
-import static com.mopub.common.DataKeys.IMPRESSION_MIN_VISIBLE_PX;
 import static com.mopub.common.DataKeys.IMPRESSION_VISIBLE_MS;
 import static com.mopub.common.DataKeys.JSON_BODY_KEY;
 import static com.mopub.common.DataKeys.MAX_BUFFER_MS;
@@ -49,7 +52,7 @@ import static com.mopub.nativeads.NativeImageHelper.preCacheImages;
 import static com.mopub.nativeads.NativeVideoController.VisibilityTrackingEvent;
 
 public class MoPubCustomEventVideoNative extends CustomEventNative {
-    private MoPubVideoNativeAd videoNativeAd;
+
     @Override
     protected void loadNativeAd(@NonNull final Context context,
             @NonNull final CustomEventNativeListener customEventNativeListener,
@@ -63,6 +66,8 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
         }
 
         final Object eventDetailsObject = localExtras.get(EVENT_DETAILS);
+        final EventDetails eventDetails = eventDetailsObject instanceof EventDetails ?
+                (EventDetails) eventDetailsObject : null;
 
         final VideoResponseHeaders videoResponseHeaders = new VideoResponseHeaders(serverExtras);
         if (!videoResponseHeaders.hasValidHeaders()) {
@@ -80,22 +85,14 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
         }
 
         final String clickTrackingUrlFromHeader = (String) clickTrackingUrlFromHeaderObject;
-        videoNativeAd = new MoPubVideoNativeAd(context, (JSONObject) json,
-                customEventNativeListener, videoResponseHeaders,
+        final MoPubVideoNativeAd videoNativeAd = new MoPubVideoNativeAd(context, (JSONObject) json,
+                customEventNativeListener, videoResponseHeaders, eventDetails,
                 clickTrackingUrlFromHeader);
         try {
             videoNativeAd.loadAd();
         } catch (IllegalArgumentException e) {
             customEventNativeListener.onNativeAdFailed(NativeErrorCode.UNSPECIFIED);
         }
-    }
-
-    @Override
-    protected void onInvalidate(){
-        if (videoNativeAd == null) {
-            return;
-        }
-        videoNativeAd.invalidate();
     }
 
     public static class MoPubVideoNativeAd extends VideoNativeAd
@@ -112,9 +109,7 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
             CLICK_DESTINATION("clk", false),
             FALLBACK("fallback", false),
             CALL_TO_ACTION("ctatext", false),
-            VAST_VIDEO("video", false),
-            PRIVACY_INFORMATION_ICON_IMAGE_URL("privacyicon", false),
-            PRIVACY_INFORMATION_ICON_CLICKTHROUGH_URL("privacyclkurl", false);
+            VAST_VIDEO("video", false);
 
             @NonNull final String mName;
             final boolean mRequired;
@@ -171,6 +166,7 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
         @Nullable VastVideoConfig mVastVideoConfig;
         @Nullable private MediaLayout mMediaLayout;
         @Nullable private View mRootView;
+        @Nullable private final EventDetails mEventDetails;
 
         private final long mId;
         private boolean mNeedsSeek;
@@ -190,10 +186,11 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
                 @NonNull final JSONObject jsonObject,
                 @NonNull final CustomEventNativeListener customEventNativeListener,
                 @NonNull final VideoResponseHeaders videoResponseHeaders,
+                @Nullable final EventDetails eventDetails,
                 @NonNull final String clickTrackingUrl) {
             this(context, jsonObject, customEventNativeListener, videoResponseHeaders,
                     new VisibilityTracker(context), new NativeVideoControllerFactory(),
-                    clickTrackingUrl, VastManagerFactory.create(context.getApplicationContext(), false));
+                    eventDetails, clickTrackingUrl, VastManagerFactory.create(context.getApplicationContext(), false));
         }
 
         @VisibleForTesting
@@ -204,6 +201,7 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
                 @NonNull final VideoResponseHeaders videoResponseHeaders,
                 @NonNull final VisibilityTracker visibilityTracker,
                 @NonNull final NativeVideoControllerFactory nativeVideoControllerFactory,
+                @Nullable final EventDetails eventDetails,
                 @NonNull final String clickTrackingUrl,
                 @NonNull final VastManager vastManager) {
             Preconditions.checkNotNull(context);
@@ -222,6 +220,8 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
 
             mNativeVideoControllerFactory = nativeVideoControllerFactory;
             mMoPubClickTrackingUrl = clickTrackingUrl;
+
+            mEventDetails = eventDetails;
 
             mId = Utils.generateUniqueId();
             mNeedsSeek = true;
@@ -269,27 +269,19 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
                     addExtra(key, mJsonObject.opt(key));
                 }
             }
-            if (TextUtils.isEmpty(getPrivacyInformationIconClickThroughUrl())) {
-                setPrivacyInformationIconClickThroughUrl(PRIVACY_INFORMATION_CLICKTHROUGH_URL);
-            }
+            setPrivacyInformationIconClickThroughUrl(PRIVACY_INFORMATION_CLICKTHROUGH_URL);
 
             preCacheImages(mContext, getAllImageUrls(), new NativeImageHelper.ImageListener() {
                 @Override
                 public void onImagesCached() {
-                    if(isInvalidated()) {
-                        return;
-                    }
                     mVastManager.prepareVastVideoConfiguration(getVastVideo(),
                             MoPubVideoNativeAd.this,
-                            null,
+                            mEventDetails == null ? null : mEventDetails.getDspCreativeId(),
                             mContext);
                 }
 
                 @Override
                 public void onImagesFailedToCache(final NativeErrorCode errorCode) {
-                    if(isInvalidated()) {
-                        return;
-                    }
                     mCustomEventNativeListener.onNativeAdFailed(errorCode);
                 }
             });
@@ -313,22 +305,18 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
             visibilityTrackingEvent.totalRequiredPlayTimeMs =
                     mVideoResponseHeaders.getImpressionVisibleMs();
             visibilityTrackingEvents.add(visibilityTrackingEvent);
-            visibilityTrackingEvent.minimumVisiblePx =
-                    mVideoResponseHeaders.getImpressionVisiblePx();
 
             // VAST impression trackers
             for (final VastTracker vastTracker : vastVideoConfig.getImpressionTrackers()) {
                 final VisibilityTrackingEvent vastImpressionTrackingEvent =
                         new VisibilityTrackingEvent();
                 vastImpressionTrackingEvent.strategy = new PayloadVisibilityStrategy(mContext,
-                        vastTracker.getContent());
+                        vastTracker.getTrackingUrl());
                 vastImpressionTrackingEvent.minimumPercentageVisible =
                         mVideoResponseHeaders.getImpressionMinVisiblePercent();
                 vastImpressionTrackingEvent.totalRequiredPlayTimeMs =
                         mVideoResponseHeaders.getImpressionVisibleMs();
                 visibilityTrackingEvents.add(vastImpressionTrackingEvent);
-                vastImpressionTrackingEvent.minimumVisiblePx =
-                        mVideoResponseHeaders.getImpressionVisiblePx();
             }
 
             // Visibility tracking event from http response Vast payload
@@ -340,17 +328,13 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
                         new VisibilityTrackingEvent();
                 vastVisibilityTrackingEvent.strategy =
                         new PayloadVisibilityStrategy(mContext,
-                                vastVideoViewabilityTracker.getContent());
+                                vastVideoViewabilityTracker.getTrackingUrl());
                 vastVisibilityTrackingEvent.minimumPercentageVisible =
                         vastVideoViewabilityTracker.getPercentViewable();
                 vastVisibilityTrackingEvent.totalRequiredPlayTimeMs =
                         vastVideoViewabilityTracker.getViewablePlaytimeMS();
                 visibilityTrackingEvents.add(vastVisibilityTrackingEvent);
             }
-
-            mVastVideoConfig.setPrivacyInformationIconImageUrl(getPrivacyInformationIconImageUrl());
-            mVastVideoConfig.setPrivacyInformationIconClickthroughUrl(
-                    getPrivacyInformationIconClickThroughUrl());
 
             Set<String> clickTrackers = new HashSet<String>();
             clickTrackers.add(mMoPubClickTrackingUrl);
@@ -366,7 +350,7 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
             mVastVideoConfig.setClickThroughUrl(getClickDestinationUrl());
 
             mNativeVideoController = mNativeVideoControllerFactory.createForId(
-                    mId, mContext, visibilityTrackingEvents, mVastVideoConfig);
+                    mId, mContext, visibilityTrackingEvents, mVastVideoConfig, mEventDetails);
 
             mCustomEventNativeListener.onNativeAdLoaded(this);
 
@@ -423,12 +407,6 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
                     case VAST_VIDEO:
                         setVastVideo((String) value);
                         break;
-                    case PRIVACY_INFORMATION_ICON_IMAGE_URL:
-                        setPrivacyInformationIconImageUrl((String) value);
-                        break;
-                    case PRIVACY_INFORMATION_ICON_CLICKTHROUGH_URL:
-                        setPrivacyInformationIconClickThroughUrl((String) value);
-                        break;
                     default:
                         MoPubLog.d("Unable to add JSON key to internal mapping: " + key.mName);
                         break;
@@ -457,8 +435,7 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
             mVideoVisibleTracking.addView(mRootView,
                     mediaLayout,
                     mVideoResponseHeaders.getPlayVisiblePercent(),
-                    mVideoResponseHeaders.getPauseVisiblePercent(),
-                    mVideoResponseHeaders.getImpressionVisiblePx());
+                    mVideoResponseHeaders.getPauseVisiblePercent());
 
             mMediaLayout = mediaLayout;
             mMediaLayout.initForVideo();
@@ -567,7 +544,6 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
 
         @Override
         public void destroy() {
-            invalidate();
             cleanUpMediaLayout();
             mNativeVideoController.setPlayWhenReady(false);
             mNativeVideoController.release(this);
@@ -646,7 +622,8 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
             } else if (mEnded) {
                 newState = VideoState.ENDED;
             } else {
-                if (mLatestVideoControllerState == NativeVideoController.STATE_IDLE) {
+                if (mLatestVideoControllerState == NativeVideoController.STATE_PREPARING
+                        || mLatestVideoControllerState == NativeVideoController.STATE_IDLE) {
                     newState = VideoState.LOADING;
                 } else if (mLatestVideoControllerState == NativeVideoController.STATE_BUFFERING) {
                     newState = VideoState.BUFFERING;
@@ -693,6 +670,13 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
                     mNativeVideoController.setAppAudioEnabled(false);
                     mMediaLayout.setMode(MediaLayout.Mode.IMAGE);
                     // Only log the failed to play event when the video has not started
+                    if (previousState != VideoState.PLAYING && previousState != VideoState.PLAYING_MUTED) {
+                        MoPubEvents.log(Event.createEventFromDetails(
+                                BaseEvent.Name.ERROR_FAILED_TO_PLAY,
+                                BaseEvent.Category.NATIVE_VIDEO,
+                                BaseEvent.SamplingRate.NATIVE_VIDEO,
+                                mEventDetails));
+                    }
                     break;
                 case CREATED:
                 case LOADING:
@@ -800,14 +784,11 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
         @NonNull
         private List<String> getAllImageUrls() {
             final List<String> imageUrls = new ArrayList<String>();
-            if (!TextUtils.isEmpty(getMainImageUrl())) {
+            if (getMainImageUrl() != null) {
                 imageUrls.add(getMainImageUrl());
             }
-            if (!TextUtils.isEmpty(getIconImageUrl())) {
+            if (getIconImageUrl() != null) {
                 imageUrls.add(getIconImageUrl());
-            }
-            if (!TextUtils.isEmpty(getPrivacyInformationIconImageUrl())) {
-                imageUrls.add(getPrivacyInformationIconImageUrl());
             }
 
             imageUrls.addAll(getExtrasImageUrls());
@@ -910,9 +891,10 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
         public NativeVideoController createForId(final long id,
                 @NonNull final Context context,
                 @NonNull final List<VisibilityTrackingEvent> visibilityTrackingEvents,
-                @NonNull final VastVideoConfig vastVideoConfig) {
+                @NonNull final VastVideoConfig vastVideoConfig,
+                @Nullable final EventDetails eventDetails) {
             return NativeVideoController.createForId(id, context, visibilityTrackingEvents,
-                    vastVideoConfig);
+                    vastVideoConfig, eventDetails);
         }
     }
 
@@ -924,38 +906,20 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
         private int mImpressionMinVisiblePercent;
         private int mImpressionVisibleMs;
         private int mMaxBufferMs;
-        private Integer mImpressionVisiblePx;
         private JSONObject mVideoTrackers;
 
         VideoResponseHeaders(@NonNull final Map<String, String> serverExtras) {
             try {
                 mPlayVisiblePercent = Integer.parseInt(serverExtras.get(PLAY_VISIBLE_PERCENT));
                 mPauseVisiblePercent = Integer.parseInt(serverExtras.get(PAUSE_VISIBLE_PERCENT));
+                mImpressionMinVisiblePercent =
+                        Integer.parseInt(serverExtras.get(IMPRESSION_MIN_VISIBLE_PERCENT));
                 mImpressionVisibleMs = Integer.parseInt(serverExtras.get(IMPRESSION_VISIBLE_MS));
                 mMaxBufferMs = Integer.parseInt(serverExtras.get(MAX_BUFFER_MS));
                 mHeadersAreValid = true;
             } catch (NumberFormatException e) {
                 mHeadersAreValid = false;
             }
-
-            final String impressionVisiblePxString = serverExtras.get(IMPRESSION_MIN_VISIBLE_PX);
-            if (!TextUtils.isEmpty(impressionVisiblePxString)) {
-                try {
-                    mImpressionVisiblePx = Integer.parseInt(impressionVisiblePxString);
-                } catch (NumberFormatException e) {
-                    MoPubLog.d("Unable to parse impression min visible px from server extras.");
-                }
-            }
-            try {
-                mImpressionMinVisiblePercent =
-                        Integer.parseInt(serverExtras.get(IMPRESSION_MIN_VISIBLE_PERCENT));
-            } catch (NumberFormatException e) {
-                MoPubLog.d("Unable to parse impression min visible percent from server extras.");
-                if (mImpressionVisiblePx == null || mImpressionVisiblePx < 0) {
-                    mHeadersAreValid = false;
-                }
-            }
-
 
             final String videoTrackers = serverExtras.get(VIDEO_TRACKERS_KEY);
             if (TextUtils.isEmpty(videoTrackers)) {
@@ -992,11 +956,6 @@ public class MoPubCustomEventVideoNative extends CustomEventNative {
 
         int getMaxBufferMs() {
             return mMaxBufferMs;
-        }
-
-        @Nullable
-        Integer getImpressionVisiblePx() {
-            return mImpressionVisiblePx;
         }
 
         JSONObject getVideoTrackers() {

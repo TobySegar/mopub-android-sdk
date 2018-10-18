@@ -11,21 +11,14 @@ import java.util.Locale;
  * A Vast tracking URL with an "absolute" trigger threshold. The tracker should be triggered
  * after a fixed number of milliseconds have been played.
  */
-public class VastAbsoluteProgressTracker extends VastTracker
-        implements Comparable<VastAbsoluteProgressTracker>, Serializable {
+public class VastAbsoluteProgressTracker extends VastTracker implements Comparable<VastAbsoluteProgressTracker>, Serializable {
     private static final long serialVersionUID = 0L;
     private final int mTrackingMilliseconds;
 
-    public VastAbsoluteProgressTracker(@NonNull final MessageType messageType,
-            @NonNull final String content, int trackingMilliseconds) {
-        super(messageType, content);
+    public VastAbsoluteProgressTracker(@NonNull final String trackingUrl, int trackingMilliseconds) {
+        super(trackingUrl);
         Preconditions.checkArgument(trackingMilliseconds >= 0);
         mTrackingMilliseconds = trackingMilliseconds;
-    }
-
-    public VastAbsoluteProgressTracker(@NonNull final String trackingUrl,
-            int trackingMilliseconds) {
-        this(MessageType.TRACKING_URL, trackingUrl, trackingMilliseconds);
     }
 
     public int getTrackingMilliseconds() {
@@ -42,6 +35,6 @@ public class VastAbsoluteProgressTracker extends VastTracker
 
     @Override
     public String toString() {
-        return String.format(Locale.US, "%dms: %s", mTrackingMilliseconds, getContent());
+        return String.format(Locale.US, "%dms: %s", mTrackingMilliseconds, mTrackingUrl);
     }
 }

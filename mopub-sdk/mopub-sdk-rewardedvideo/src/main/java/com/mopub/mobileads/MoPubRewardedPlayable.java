@@ -2,7 +2,6 @@ package com.mopub.mobileads;
 
 import android.app.Activity;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.mopub.common.MoPubReward;
 import com.mopub.common.VisibleForTesting;
@@ -16,8 +15,8 @@ import java.util.Map;
  */
 public class MoPubRewardedPlayable extends MoPubRewardedAd {
 
-    @NonNull static final String MOPUB_REWARDED_PLAYABLE_ID = "mopub_rewarded_playable_id";
-    @Nullable private RewardedMraidInterstitial mRewardedMraidInterstitial;
+    @NonNull private static final String MOPUB_REWARDED_PLAYABLE_ID = "mopub_rewarded_playable_id";
+    @NonNull private RewardedMraidInterstitial mRewardedMraidInterstitial;
 
     public MoPubRewardedPlayable() {
         mRewardedMraidInterstitial = new RewardedMraidInterstitial();
@@ -29,10 +28,6 @@ public class MoPubRewardedPlayable extends MoPubRewardedAd {
             @NonNull final Map<String, String> serverExtras) throws Exception {
         super.loadWithSdkInitialized(activity, localExtras, serverExtras);
 
-        if (mRewardedMraidInterstitial == null) {
-            MoPubLog.w("mRewardedMraidInterstitial is null. Has this class been invalidated?");
-            return;
-        }
         mRewardedMraidInterstitial.loadInterstitial(activity, new MoPubRewardedPlayableListener(),
                 localExtras, serverExtras);
     }
@@ -40,21 +35,18 @@ public class MoPubRewardedPlayable extends MoPubRewardedAd {
     @NonNull
     @Override
     protected String getAdNetworkId() {
-        return mAdUnitId != null ? mAdUnitId : MOPUB_REWARDED_PLAYABLE_ID;
+        return MOPUB_REWARDED_PLAYABLE_ID;
     }
 
     @Override
     protected void onInvalidate() {
-        if (mRewardedMraidInterstitial != null) {
-            mRewardedMraidInterstitial.onInvalidate();
-        }
-        mRewardedMraidInterstitial = null;
+        mRewardedMraidInterstitial.onInvalidate();
         super.onInvalidate();
     }
 
     @Override
     protected void show() {
-        if (isReady() && mRewardedMraidInterstitial != null) {
+        if (isReady()) {
             MoPubLog.d("Showing MoPub rewarded playable.");
             mRewardedMraidInterstitial.showInterstitial();
         } else {
@@ -86,12 +78,5 @@ public class MoPubRewardedPlayable extends MoPubRewardedAd {
     void setRewardedMraidInterstitial(
             @NonNull final RewardedMraidInterstitial rewardedMraidInterstitial) {
         mRewardedMraidInterstitial = rewardedMraidInterstitial;
-    }
-
-    @Deprecated
-    @VisibleForTesting
-    @Nullable
-    RewardedMraidInterstitial getRewardedMraidInterstitial() {
-        return mRewardedMraidInterstitial;
     }
 }

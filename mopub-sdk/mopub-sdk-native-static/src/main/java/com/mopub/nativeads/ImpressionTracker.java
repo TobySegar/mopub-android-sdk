@@ -117,8 +117,7 @@ public class ImpressionTracker {
         }
 
         mTrackedViews.put(view, impressionInterface);
-        mVisibilityTracker.addView(view, impressionInterface.getImpressionMinPercentageViewed(),
-                impressionInterface.getImpressionMinVisiblePx());
+        mVisibilityTracker.addView(view, impressionInterface.getImpressionMinPercentageViewed());
     }
 
     public void removeView(final View view) {

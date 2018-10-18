@@ -6,8 +6,9 @@ import android.support.annotation.Nullable;
 import com.mopub.common.util.ResponseHeader;
 import com.mopub.volley.AuthFailureError;
 import com.mopub.volley.Request;
-import com.mopub.volley.toolbox.HttpResponse;
 import com.mopub.volley.toolbox.HurlStack;
+
+import org.apache.http.HttpResponse;
 
 import java.io.IOException;
 import java.util.Map;
@@ -40,16 +41,14 @@ public class RequestQueueHttpStack extends HurlStack {
     }
 
     @Override
-    public HttpResponse executeRequest(@NonNull final Request<?> request,
+    public HttpResponse performRequest(@NonNull final Request<?> request,
             @Nullable Map<String, String> additionalHeaders) throws IOException, AuthFailureError {
-        // If the headers map is null or empty, make a new once since Collections.emptyMap()
-        // returns an unmodifiable map.
-        if (additionalHeaders == null || additionalHeaders.isEmpty()) {
+        if (additionalHeaders == null) {
             additionalHeaders = new TreeMap<String, String>();
         }
 
         additionalHeaders.put(ResponseHeader.USER_AGENT.getKey(), mUserAgent);
 
-        return super.executeRequest(request, additionalHeaders);
+        return super.performRequest(request, additionalHeaders);
     }
 }

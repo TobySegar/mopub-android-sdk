@@ -7,7 +7,7 @@ import com.mopub.common.AdFormat;
 import com.mopub.common.AdType;
 import com.mopub.common.util.ResponseHeader;
 
-import org.json.JSONObject;
+import java.util.Map;
 
 import static com.mopub.network.HeaderUtils.extractHeader;
 
@@ -99,7 +99,7 @@ public class AdTypeTranslator {
     public static String getCustomEventName(@NonNull AdFormat adFormat,
             @NonNull String adType,
             @Nullable String fullAdType,
-            @Nullable JSONObject headers) {
+            @NonNull Map<String, String> headers) {
         if (AdType.CUSTOM.equalsIgnoreCase(adType)) {
             return extractHeader(headers, ResponseHeader.CUSTOM_EVENT_NAME);
         } else if (AdType.STATIC_NATIVE.equalsIgnoreCase(adType)) {

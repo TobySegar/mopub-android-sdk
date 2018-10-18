@@ -19,11 +19,11 @@ import com.mopub.mobileads.MoPubErrorCode;
 
 import java.util.Map;
 
-public class IronSourceInterstitial extends CustomEventInterstitial implements ISDemandOnlyInterstitialListener {
-
-    /**
+public class IronSourceInterstitial{// extends CustomEventInterstitial implements ISDemandOnlyInterstitialListener {
+/*
+    *//**
      * private vars
-     */
+     *//*
 
     // Configuration keys
     private static final String APPLICATION_KEY = "applicationKey";
@@ -42,9 +42,9 @@ public class IronSourceInterstitial extends CustomEventInterstitial implements I
 
     private static CustomEventInterstitialListener mMoPubListener;
 
-    /**
+    *//**
      * Mopub API
-     */
+     *//*
 
     @Override
     protected void loadInterstitial(Context context, CustomEventInterstitialListener customEventInterstitialListener, Map<String, Object> map0, Map<String, String> serverExtras) {
@@ -128,9 +128,9 @@ public class IronSourceInterstitial extends CustomEventInterstitial implements I
         mMoPubListener = null;
     }
 
-    /**
+    *//**
      * Class Helper Methods
-     **/
+     **//*
 
     private void initIronSourceSDK(Activity activity, String appKey) {
         IronSource.setISDemandOnlyInterstitialListener(this);
@@ -185,9 +185,9 @@ public class IronSourceInterstitial extends CustomEventInterstitial implements I
         }
     }
 
-    /**
+    *//**
      * IronSource Interstitial Listener
-     **/
+     **//*
 
     @Override
     public void onInterstitialAdReady(String instanceId) {
@@ -301,5 +301,5 @@ public class IronSourceInterstitial extends CustomEventInterstitial implements I
         @Override
         public void onBackPressed(@NonNull Activity activity) {
         }
-    };
+    };*/
 }

@@ -3,6 +3,8 @@ package com.mopub.ads;
 
 import android.app.Activity;
 
+import com.heyzap.sdk.ads.HeyzapAds;
+import com.heyzap.sdk.ads.InterstitialAd;
 import com.mojang.base.*;
 import com.mojang.base.events.GameEvent;
 import com.mojang.base.events.InterstitialEvent;
@@ -21,7 +23,7 @@ import static com.mojang.base.events.InterstitialEvent.Loaded;
  * Intertitial functionality for showing ads
  */
 @SuppressWarnings("FieldCanBeLocal")
-public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
+public class Interstitial implements MoPubInterstitial.InterstitialAdListener, HeyzapAds.OnStatusListener {
     public static final String DEBUG_MOPUB_INTERSTITIAL_ID = Logger.String("::c2fc437d0fd44e91982838693549cdb4");
     private MoPubInterstitial mopubInterstitial;
     private final Activity activity;
@@ -114,14 +116,17 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         Helper.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                boolean isMopubNull = mopubInterstitial == null;
+                //boolean isMopubNull = mopubInterstitial == null;
+                boolean isMopubNull = false;
                 boolean isLocked = isPeriodicShow ? lock.isAnyLocked() : lock.isHardLocked();
-                boolean isMopubReady = !isMopubNull && mopubInterstitial.isReady();
+                //boolean isMopubReady = !isMopubNull && mopubInterstitial.isReady();
+                boolean isMopubReady = HeyzapAds.hasStarted();
                 Logger.Log("::I", "::isLocked: " + "::multiplayerLocalOnline [" + lock.localMultiplayer + ":: " + lock.onlineMultiplayer + "::]" + ":: " + "::internet [" + lock.internet + "::]" + ":: " + "::gap [" + lock.gap + "::]" + ":: " + "::stop [" + lock.stop + "::] " + "::game [" + lock.game + "::]");
                 Logger.Log("::[isMopubNull(false) = " + isMopubNull + "::] " + "::[isSoftLocked(false) = " + lock.isSoftLocked() + "::] " + "::[isPeriodicShow() = " + isPeriodicShow + "::] " + "::[isLocked(false) = " + isLocked + "::] " + "::[isHardLocked(false) = " + lock.isHardLocked() + "::] " + "::[isMopubReady(true) = " + isMopubReady + "::]");
                 if (!isMopubNull && !isLocked && isMopubReady) {
                     Logger.Log("::Showing mopubInterstitial");
-                    mopubInterstitial.show();
+                    //mopubInterstitial.show();
+                    InterstitialAd.display(activity);
                 }
             }
         }, delay);
@@ -134,7 +139,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     public void destroy() {
         if (mopubInterstitial != null) {
-            mopubInterstitial.destroy();
+           // mopubInterstitial.destroy();
+
         }
     }
 
@@ -162,19 +168,30 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         int delay = 4000;
         Logger.Log("::Initing Mopub in " + (delay / 1000) + " sec...");
         lock.game = Data.hasMinecraft;
-
+        InterstitialAd.setOnStatusListener(this);
+        InterstitialAd.fetch();
         Helper.runOnWorkerThread(new Runnable() {
             @Override
             public void run() {
-                if (mopubInterstitial == null) {
-                    String mopubId = Helper.isDebugPackage(activity) ? DEBUG_MOPUB_INTERSTITIAL_ID : Data.Ads.Interstitial.mopubId;
-                    mopubInterstitial = new MoPubInterstitial(activity, mopubId);
-                    mopubInterstitial.setInterstitialAdListener(Interstitial.this);
-                    mopubInterstitial.setKeywords("game,minecraft,kids,casual");
-                    mopubInterstitial.load();
-                } else if (!mopubInterstitial.isReady()) {
+                //if (mopubInterstitial == null || HeyzapAds.hasStarted()) {
+                if ( !HeyzapAds.hasStarted()) {
+                    //String mopubId = Helper.isDebugPackage(activity) ? DEBUG_MOPUB_INTERSTITIAL_ID : Data.Ads.Interstitial.mopubId;
+                    //mopubInterstitial = new MoPubInterstitial(activity, mopubId);
+                    //mopubInterstitial.setInterstitialAdListener(Interstitial.this);
+                    //mopubInterstitial.setKeywords("game,minecraft,kids,casual");
+                    //mopubInterstitial.load();
+                    //InterstitialAd.
+                    //HeyzapAds.setGdprConsent(true, activity.getApplicationContext());
+                    //HeyzapAds.setBundleId("com.mmarcel.cnb2");
+
+                    //HeyzapAds.setThirdPartyVerboseLogging(true);
+                    InterstitialAd.fetch();
+                //} else if (!mopubInterstitial.isReady()) {
+                } else if (HeyzapAds.hasStarted()) {
                     Logger.Log("::Mopub Forcing Refresh");
-                    mopubInterstitial.forceRefresh();
+                    InterstitialAd.fetch();
+                    //mopubInterstitial.forceRefresh();
+
                 }
             }
         }, delay);
@@ -201,8 +218,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 @Override
                 public void run() {
                     if (mopubInterstitial != null) {
-                        mopubInterstitial.load();
+                        //mopubInterstitial.load();
                     }
+                    InterstitialAd.fetch();
                 }
             };
         }
@@ -219,7 +237,43 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             }
         }
     }
+//********Heyzap
+    @Override
+    public void onShow(String s) {
+onInterstitialShown(null);
+    }
 
+    @Override
+    public void onClick(String s) {
+onInterstitialClicked(null);
+    }
+
+    @Override
+    public void onHide(String s) {
+onInterstitialDismissed(null);
+    }
+
+    @Override
+    public void onFailedToShow(String s) {
+onInterstitialFailed(null,MoPubErrorCode.SERVER_ERROR);
+    }
+
+    @Override
+    public void onAvailable(String s) {
+onInterstitialLoaded(null);
+    }
+
+    @Override
+    public void onFailedToFetch(String s) {
+onInterstitialFailed(null,MoPubErrorCode.NO_FILL);
+    }
+
+    @Override
+    public void onAudioStarted() { }
+
+    @Override
+    public void onAudioFinished() { }
+    //********Heyzap
     public class Lock {
         private boolean stop;
         private boolean onlineMultiplayer;

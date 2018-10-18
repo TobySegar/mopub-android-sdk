@@ -101,7 +101,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
         }
     }
 
-    @Override
+
     protected boolean usesProxy() {
         return false;
     }

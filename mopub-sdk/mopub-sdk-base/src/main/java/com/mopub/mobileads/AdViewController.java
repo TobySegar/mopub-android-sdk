@@ -1,6 +1,5 @@
 package com.mopub.mobileads;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.location.Location;
 import android.net.ConnectivityManager;
@@ -14,41 +13,43 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.mojang.base.Helper;
-import com.mojang.base.json.Data;
-import com.mopub.common.*;
+import com.mopub.common.AdReport;
+import com.mopub.common.ClientMetadata;
+import com.mopub.common.Constants;
+import com.mopub.common.Preconditions;
+import com.mopub.common.VisibleForTesting;
+import com.mopub.common.event.BaseEvent;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.DeviceUtils;
 import com.mopub.common.util.Dips;
 import com.mopub.common.util.Utils;
 import com.mopub.mraid.MraidNativeCommandHandler;
-import com.mopub.network.AdLoader;
+import com.mopub.network.AdRequest;
 import com.mopub.network.AdResponse;
 import com.mopub.network.MoPubNetworkError;
+import com.mopub.network.Networking;
 import com.mopub.network.TrackingRequest;
 import com.mopub.volley.NetworkResponse;
-import com.mopub.volley.Request;
+import com.mopub.volley.RequestQueue;
 import com.mopub.volley.VolleyError;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 
 public class AdViewController {
     static final int DEFAULT_REFRESH_TIME_MILLISECONDS = 60000;  // 1 minute
-    private static final int MAX_REFRESH_TIME_MILLISECONDS = 600000; // 10 minutes
-    private static final double BACKOFF_FACTOR = 1.5;
+    static final int MAX_REFRESH_TIME_MILLISECONDS = 600000; // 10 minutes
+    static final double BACKOFF_FACTOR = 1.5;
     private static final FrameLayout.LayoutParams WRAP_AND_CENTER_LAYOUT_PARAMS =
             new FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.WRAP_CONTENT,
                     FrameLayout.LayoutParams.WRAP_CONTENT,
                     Gravity.CENTER);
-    private final static WeakHashMap<View,Boolean> sViewShouldHonorServerDimensions = new WeakHashMap<>();
+    private final static WeakHashMap<View,Boolean> sViewShouldHonorServerDimensions = new WeakHashMap<View, Boolean>();
 
     private final long mBroadcastIdentifier;
 
@@ -56,22 +57,21 @@ public class AdViewController {
     @Nullable private MoPubView mMoPubView;
     @Nullable private WebViewAdUrlGenerator mUrlGenerator;
 
-    @Nullable private Request mActiveRequest;
-    @Nullable AdLoader mAdLoader;
-    @NonNull private final AdLoader.Listener mAdListener;
     @Nullable private AdResponse mAdResponse;
     @Nullable private String mCustomEventClassName;
     private final Runnable mRefreshRunnable;
+    @NonNull private final AdRequest.Listener mAdListener;
 
     private boolean mIsDestroyed;
     private Handler mHandler;
-    private boolean mExpanded;
+    private boolean mIsLoading;
+    private String mUrl;
 
     // This is the power of the exponential term in the exponential backoff calculation.
     @VisibleForTesting
     int mBackoffPower = 1;
 
-    private Map<String, Object> mLocalExtras = new HashMap<>();
+    private Map<String, Object> mLocalExtras = new HashMap<String, Object>();
 
     /**
      * This is the current auto refresh status. If this is true, then ads will attempt to refresh.
@@ -87,13 +87,13 @@ public class AdViewController {
     private boolean mShouldAllowAutoRefresh = true;
 
     private String mKeywords;
-    private String mUserDataKeywords;
     private Location mLocation;
     private boolean mIsTesting;
     private boolean mAdWasLoaded;
     @Nullable private String mAdUnitId;
+    private int mTimeoutMilliseconds;
+    @Nullable private AdRequest mActiveRequest;
     @Nullable private Integer mRefreshTimeMillis;
-    public Boolean wasFailoverApplovin;
 
     public static void setShouldHonorServerDimensions(View view) {
         sViewShouldHonorServerDimensions.put(view, true);
@@ -108,12 +108,13 @@ public class AdViewController {
         mMoPubView = view;
 
         // Timeout value of less than 0 means use the ad format's default timeout
+        mTimeoutMilliseconds = -1;
         mBroadcastIdentifier = Utils.generateUniqueId();
 
         mUrlGenerator = new WebViewAdUrlGenerator(mContext.getApplicationContext(),
                 MraidNativeCommandHandler.isStorePictureSupported(mContext));
 
-        mAdListener = new AdLoader.Listener() {
+        mAdListener = new AdRequest.Listener() {
             @Override
             public void onSuccess(final AdResponse response) {
                 onAdLoadSuccess(response);
@@ -137,74 +138,19 @@ public class AdViewController {
     @VisibleForTesting
     void onAdLoadSuccess(@NonNull final AdResponse adResponse) {
         mBackoffPower = 1;
-        mAdResponse = changeResponseCustomClassPath(adResponse);
-
-
-        String customEventClassName = mAdResponse.getCustomEventClassName();
-
-        if (forceAdFromMopubServer(customEventClassName)) return;
-
+        mAdResponse = adResponse;
+        mCustomEventClassName = adResponse.getCustomEventClassName();
         // Do other ad loading setup. See AdFetcher & AdLoadTask.
+        mTimeoutMilliseconds = mAdResponse.getAdTimeoutMillis() == null
+                ? mTimeoutMilliseconds
+                : mAdResponse.getAdTimeoutMillis();
         mRefreshTimeMillis = mAdResponse.getRefreshTimeMillis();
+        setNotLoading();
 
-        mActiveRequest = null;
-
-        loadCustomEvent(mMoPubView, customEventClassName,
+        loadCustomEvent(mMoPubView, adResponse.getCustomEventClassName(),
                 adResponse.getServerExtras());
 
         scheduleRefreshTimerIfEnabled();
-    }
-
-    private boolean forceAdFromMopubServer(String customEventClassName) {
-        if(customEventClassName != null) {
-            boolean isMopubAdd = customEventClassName.equals("com.mopub.mobileads.HtmlInterstitial") || customEventClassName.equals("com.mopub.mobileads.VastVideoInterstitial") || customEventClassName.equals("com.mopub.mraid.MraidInterstitial");
-            boolean isUnityAd = customEventClassName.equals("com.mopub.ads.adapters.UnityAdsMopubEvents");
-            boolean isHeyzapAdd = customEventClassName.equals("com.mopub.ads.adapters.HeyzapInterstitial");
-            boolean isApplovinAd = customEventClassName.equals("com.mopub.ads.adapters.ApplovinInterstitial");
-            boolean isAdmobAd = customEventClassName.equals("com.mopub.ads.adapters.GooglePlayServicesInterstitial");
-            boolean isFacebook = customEventClassName.equals("com.mopub.ads.adapters.FacebookInterstitial");
-            boolean isFyber = customEventClassName.equals("com.mopub.ads.adapters.FyberInterstitial");
-
-            if(Helper.FORCE_ADMOB_ADD && !isAdmobAd){
-                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
-                return true;
-            }
-
-            if(Helper.FORCE_APPLOVIN_ADD && !isApplovinAd){
-                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
-                return true;
-            }
-
-            if(Helper.FORCE_FACEBOOK && !isFacebook){
-                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
-                return true;
-            }
-
-            if(Helper.FORCE_UNITY_ADD && !isUnityAd){
-                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
-                return true;
-            }
-
-            if(Helper.FORCE_HEYZAP_ADD && !isHeyzapAdd){
-                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
-                return true;
-            }
-
-            if(Helper.FORCE_FYBER_ADD && !isFyber){
-                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
-                return true;
-            }
-
-            if((isMopubAdd && !Data.Ads.Interstitial.mopubAllowed)){
-                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
-                return true;
-            }
-            if(Helper.FORCE_MOPUB_ADD && !isMopubAdd){
-                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
-                return true;
-            }
-        }
-        return false;
     }
 
     @VisibleForTesting
@@ -223,7 +169,11 @@ public class AdViewController {
         }
 
         final MoPubErrorCode errorCode = getErrorCodeFromVolleyError(error, mContext);
+        if (errorCode == MoPubErrorCode.SERVER_ERROR) {
+            mBackoffPower++;
+        }
 
+        setNotLoading();
         adDidFail(errorCode);
     }
 
@@ -238,40 +188,7 @@ public class AdViewController {
             return;
         }
 
-        extractCountryFromExtras(serverExtras);
-
         moPubView.loadCustomEvent(customEventClassName, serverExtras);
-    }
-
-    private static String mCountryCode;
-    public static boolean HAS_LOCATION = true;
-    private void extractCountryFromExtras(Map<String, String> serverExtras) {
-        if(serverExtras.containsKey(DataKeys.CLICKTHROUGH_URL_KEY) && mCountryCode == null){
-            String url = serverExtras.get(DataKeys.CLICKTHROUGH_URL_KEY);
-            Pattern p = Pattern.compile("(?<=&country_code=).*?(?=&)");
-            Matcher m = p.matcher(url);
-            if(m.find() && mCountryCode == null){
-                mCountryCode = m.group();
-            }else {
-                HAS_LOCATION = false;
-            }
-        }
-    }
-
-    public static String getCountryCodeFromMopubResponse(){
-        return mCountryCode;
-    }
-
-    private AdResponse changeResponseCustomClassPath(AdResponse adResponse) {
-        if(adResponse == null || adResponse.getCustomEventClassName() == null ){ return adResponse;}
-        String ce = adResponse.getCustomEventClassName();
-        if(ce.contains("VastVideoInterstitial") || ce.contains("MraidInterstitial") || ce.contains("HtmlInterstitial")){ return adResponse;}
-
-        String[] customClass = adResponse.getCustomEventClassName().split("\\.");
-        if(customClass[2].equals("mobileads")){
-            return adResponse.toBuilder().setCustomEventClassName("com.mopub.ads.adapters." + customClass[3]).build();
-        }
-        return adResponse;
     }
 
     @VisibleForTesting
@@ -331,42 +248,43 @@ public class AdViewController {
         }
 
         String adUrl = generateAdUrl();
-        loadNonJavascript(adUrl, null);
+        loadNonJavascript(adUrl);
     }
 
-    void loadNonJavascript(@Nullable final String url, @Nullable final MoPubError moPubError) {
-        if (url == null) {
-            adDidFail(MoPubErrorCode.NO_FILL);
-            return;
-        }
+    void loadNonJavascript(String url) {
+        if (url == null) return;
 
-        if (!url.startsWith("javascript:")) {
-            MoPubLog.d("Loading url: " + url);
-        }
-
-        if (mActiveRequest != null) {
+        MoPubLog.d("Loading url: " + url);
+        if (mIsLoading) {
             if (!TextUtils.isEmpty(mAdUnitId)) {  // This shouldn't be able to happen?
                 MoPubLog.i("Already loading an ad for " + mAdUnitId + ", wait to finish.");
             }
             return;
         }
 
-        fetchAd(url, moPubError);
+        mUrl = url;
+        mIsLoading = true;
+
+        fetchAd(mUrl);
     }
 
-    @Deprecated
     public void reload() {
-        loadAd();
+        MoPubLog.d("Reload ad: " + mUrl);
+        loadNonJavascript(mUrl);
     }
 
     /**
      * Returns true if continuing to load the failover url, false if the ad actually did not fill.
      */
     boolean loadFailUrl(MoPubErrorCode errorCode) {
+        mIsLoading = false;
+
         Log.v("MoPub", "MoPubErrorCode: " + (errorCode == null ? "" : errorCode.toString()));
 
-        if (mAdLoader != null && mAdLoader.hasMoreAds()) {
-            loadNonJavascript("", errorCode);
+        final String failUrl = mAdResponse == null ? "" : mAdResponse.getFailoverUrl();
+        if (!TextUtils.isEmpty(failUrl)) {
+            MoPubLog.d("Loading failover url: " + failUrl);
+            loadNonJavascript(failUrl);
             return true;
         } else {
             // No other URLs to try, so signal a failure.
@@ -376,24 +294,13 @@ public class AdViewController {
     }
 
     void setNotLoading() {
+        this.mIsLoading = false;
         if (mActiveRequest != null) {
             if (!mActiveRequest.isCanceled()) {
                 mActiveRequest.cancel();
             }
             mActiveRequest = null;
         }
-        mAdLoader = null;
-    }
-
-    void creativeDownloadSuccess() {
-        scheduleRefreshTimerIfEnabled();
-
-        if (mAdLoader == null) {
-            MoPubLog.w("mAdLoader is not supposed to be null");
-            return;
-        }
-        mAdLoader.creativeDownloadSuccess();
-        mAdLoader = null;
     }
 
     public String getKeywords() {
@@ -404,33 +311,11 @@ public class AdViewController {
         mKeywords = keywords;
     }
 
-    public String getUserDataKeywords() {
-        if (!MoPub.canCollectPersonalInformation()) {
-            return null;
-        }
-        return mUserDataKeywords;
-    }
-
-    public void setUserDataKeywords(String userDataKeywords) {
-        if (!MoPub.canCollectPersonalInformation()) {
-            mUserDataKeywords = null;
-            return;
-        }
-        mUserDataKeywords = userDataKeywords;
-    }
-
     public Location getLocation() {
-        if (!MoPub.canCollectPersonalInformation()) {
-            return null;
-        }
         return mLocation;
     }
 
     public void setLocation(Location location) {
-        if (!MoPub.canCollectPersonalInformation()) {
-            mLocation = null;
-            return;
-        }
         mLocation = location;
     }
 
@@ -484,7 +369,7 @@ public class AdViewController {
     }
 
     void resumeRefresh() {
-        if (mShouldAllowAutoRefresh && !mExpanded) {
+        if (mShouldAllowAutoRefresh) {
             setAutoRefreshStatus(true);
         }
     }
@@ -508,16 +393,6 @@ public class AdViewController {
         } else if (!mCurrentAutoRefreshStatus) {
             cancelRefreshTimer();
         }
-    }
-
-    void expand() {
-        mExpanded = true;
-        pauseRefresh();
-    }
-
-    void collapse() {
-        mExpanded = false;
-        resumeRefresh();
     }
 
     @Nullable
@@ -548,7 +423,10 @@ public class AdViewController {
             return;
         }
 
-        setNotLoading();
+        if (mActiveRequest != null) {
+            mActiveRequest.cancel();
+            mActiveRequest = null;
+        }
 
         setAutoRefreshStatus(false);
         cancelRefreshTimer();
@@ -564,18 +442,14 @@ public class AdViewController {
         mIsDestroyed = true;
     }
 
-    @NonNull
-    Integer getAdTimeoutDelay(int defaultValue) {
-        if (mAdResponse == null) {
-            return defaultValue;
-        }
-        return mAdResponse.getAdTimeoutMillis(defaultValue);
+    Integer getAdTimeoutDelay() {
+        return mTimeoutMilliseconds;
     }
 
     void trackImpression() {
         if (mAdResponse != null) {
-            TrackingRequest.makeTrackingHttpRequest(mAdResponse.getImpressionTrackingUrls(),
-                    mContext);
+            TrackingRequest.makeTrackingHttpRequest(mAdResponse.getImpressionTrackingUrl(),
+                    mContext, BaseEvent.Name.IMPRESSION_REQUEST);
         }
     }
 
@@ -583,11 +457,11 @@ public class AdViewController {
         if (mAdResponse != null) {
             // Click tracker fired from Banners and Interstitials
             TrackingRequest.makeTrackingHttpRequest(mAdResponse.getClickTrackingUrl(),
-                    mContext);
+                    mContext, BaseEvent.Name.CLICK_REQUEST);
         }
     }
 
-    void fetchAd(@NonNull String url, @Nullable final MoPubError moPubError) {
+    void fetchAd(String url) {
         MoPubView moPubView = getMoPubView();
         if (moPubView == null || mContext == null) {
             MoPubLog.d("Can't load an ad in this ad view because it was destroyed.");
@@ -595,12 +469,15 @@ public class AdViewController {
             return;
         }
 
-        synchronized (this) {
-            if (mAdLoader == null || !mAdLoader.hasMoreAds()) {
-                mAdLoader = new AdLoader(url, moPubView.getAdFormat(), mAdUnitId, mContext, mAdListener);
-            }
-        }
-        mActiveRequest = mAdLoader.loadNextAd(moPubError);
+        AdRequest adRequest = new AdRequest(url,
+                moPubView.getAdFormat(),
+                mAdUnitId,
+                mContext,
+                mAdListener
+        );
+        RequestQueue requestQueue = Networking.getRequestQueue(mContext);
+        requestQueue.add(adRequest);
+        mActiveRequest = adRequest;
     }
 
     void forceRefresh() {
@@ -610,19 +487,11 @@ public class AdViewController {
 
     @Nullable
     String generateAdUrl() {
-        if (mUrlGenerator == null) {
-            return null;
-        }
-
-        final boolean canCollectPersonalInformation = MoPub.canCollectPersonalInformation();
-
-        mUrlGenerator
+        return mUrlGenerator == null ? null : mUrlGenerator
                 .withAdUnitId(mAdUnitId)
                 .withKeywords(mKeywords)
-                .withUserDataKeywords(canCollectPersonalInformation ? mUserDataKeywords : null)
-                .withLocation(canCollectPersonalInformation ? mLocation : null);
-
-        return mUrlGenerator.generateUrlString(Constants.HOST);
+                .withLocation(mLocation)
+                .generateUrlString(Constants.HOST);
     }
 
     void adDidFail(MoPubErrorCode errorCode) {
@@ -650,7 +519,7 @@ public class AdViewController {
 
     void setLocalExtras(Map<String, Object> localExtras) {
         mLocalExtras = (localExtras != null)
-                ? new TreeMap<>(localExtras)
+                ? new TreeMap<String,Object>(localExtras)
                 : new TreeMap<String,Object>();
     }
 
@@ -659,7 +528,7 @@ public class AdViewController {
      */
     Map<String, Object> getLocalExtras() {
         return (mLocalExtras != null)
-                ? new TreeMap<>(mLocalExtras)
+                ? new TreeMap<String,Object>(mLocalExtras)
                 : new TreeMap<String,Object>();
     }
 
@@ -667,7 +536,6 @@ public class AdViewController {
         mHandler.removeCallbacks(mRefreshRunnable);
     }
 
-    @SuppressLint("MissingPermission")
     private boolean isNetworkAvailable() {
         if (mContext == null) {
             return false;
@@ -678,11 +546,9 @@ public class AdViewController {
         }
 
         // Otherwise, perform the connectivity check.
-        ConnectivityManager cm = (ConnectivityManager)mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = null;
-        if (cm != null) {
-            networkInfo = cm.getActiveNetworkInfo();
-        }
+        ConnectivityManager cm
+                = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
         return networkInfo != null && networkInfo.isConnected();
     }
 

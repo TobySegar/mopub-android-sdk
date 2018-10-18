@@ -15,7 +15,6 @@ import static com.mopub.common.util.Reflection.classFound;
 
 public class GpsHelper {
     static public final int GOOGLE_PLAY_SUCCESS_CODE = 0;
-    static public final int SERVICE_VERSION_UPDATE_REQUIRED = 2;
     static public final String ADVERTISING_ID_KEY = "advertisingId";
     static public final String IS_LIMIT_AD_TRACKING_ENABLED_KEY = "isLimitAdTrackingEnabled";
     private static String sPlayServicesUtilClassName = "com.google.android.gms.common.GooglePlayServicesUtil";
@@ -43,8 +42,7 @@ public class GpsHelper {
 
             Object result = methodBuilder.execute();
 
-            Integer intResult = (Integer) result;
-            return (intResult != null && (intResult == GOOGLE_PLAY_SUCCESS_CODE || intResult == SERVICE_VERSION_UPDATE_REQUIRED));
+            return (result != null && (Integer) result == GOOGLE_PLAY_SUCCESS_CODE);
         } catch (Exception exception) {
             return false;
         }
@@ -60,15 +58,18 @@ public class GpsHelper {
         }
     }
 
+    static boolean isClientMetadataPopulated(final Context context) {
+        return ClientMetadata.getInstance(context).isAdvertisingInfoSet();
+    }
+
     static public void fetchAdvertisingInfoAsync(final Context context, final GpsHelperListener gpsHelperListener) {
         // This method guarantees that the Google Play Services (GPS) advertising info will
         // be populated if GPS is available and the ad info is not already cached
         // The above will happen before the callback is run
         boolean playServicesIsAvailable = isPlayServicesAvailable(context);
-        if (playServicesIsAvailable ) {
+        if (playServicesIsAvailable && !isClientMetadataPopulated(context)) {
             internalFetchAdvertisingInfoAsync(context, gpsHelperListener);
-        }
-        else {
+        } else {
             if (gpsHelperListener != null) {
                 gpsHelperListener.onFetchAdInfoCompleted();
             }
@@ -124,7 +125,7 @@ public class GpsHelper {
     static private class FetchAdvertisingInfoTask extends AsyncTask<Void, Void, Void> {
         private WeakReference<Context> mContextWeakReference;
         private WeakReference<GpsHelperListener> mGpsHelperListenerWeakReference;
-        private AdvertisingInfo info;
+
         public FetchAdvertisingInfoTask(Context context, GpsHelperListener gpsHelperListener) {
             mContextWeakReference = new WeakReference<Context>(context);
             mGpsHelperListenerWeakReference = new WeakReference<GpsHelperListener>(gpsHelperListener);
@@ -145,7 +146,7 @@ public class GpsHelper {
                 Object adInfo = methodBuilder.execute();
 
                 if (adInfo != null) {
-                    // updateClientMetadata(context, adInfo);
+                    updateClientMetadata(context, adInfo);
                 }
             } catch (Exception exception) {
                 MoPubLog.d("Unable to obtain Google AdvertisingIdClient.Info via reflection.");
@@ -161,6 +162,19 @@ public class GpsHelper {
                 gpsHelperListener.onFetchAdInfoCompleted();
             }
         }
+    }
+
+    static void updateClientMetadata(final Context context, final Object adInfo) {
+        String advertisingId = reflectedGetAdvertisingId(adInfo, null);
+        boolean isLimitAdTrackingEnabled = reflectedIsLimitAdTrackingEnabled(adInfo, false);
+
+        /*
+         * Committing using the editor is atomic; a single editor must always commit
+         * to ensure that the state of the GPS variables are in sync.
+         */
+
+        ClientMetadata clientMetadata = ClientMetadata.getInstance(context);
+        clientMetadata.setAdvertisingInfo(advertisingId, isLimitAdTrackingEnabled);
     }
 
     static String reflectedGetAdvertisingId(final Object adInfo, final String defaultValue) {

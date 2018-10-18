@@ -2,8 +2,6 @@ package com.mopub.mobileads;
 
 import android.content.Context;
 
-import com.mopub.ads.Proxy;
-
 import java.util.Map;
 
 /*
@@ -15,25 +13,23 @@ import java.util.Map;
  * At runtime, the MoPub SDK will find and instantiate a CustomEventInterstitial subclass as needed
  * and invoke its loadInterstitial() method.
  */
-public abstract class CustomEventInterstitial implements Interstitial {
-
-    private boolean mAutomaticImpressionAndClickTracking = true;
-
+public abstract class CustomEventInterstitial {
+    
     /*
-         * When the MoPub SDK receives a response indicating it should load a custom event, it will send
-         * this message to your custom event class. Your implementation of this method can either load
-         * an interstitial ad from a third-party ad network, or execute any application code.
-         * It must also notify the provided CustomEventInterstitial.Listener Object of certain lifecycle
-         * events.
-         *
-         * The localExtras parameter is a Map containing additional custom data that is set within
-         * your application by calling MoPubInterstitial.setLocalExtras(Map<String, Object>). Note that
-         * the localExtras Map is a copy of the Map supplied to setLocalExtras().
-         *
-         * The serverExtras parameter is a Map containing additional custom data configurable on the
-         * MoPub website that you want to associate with a given custom event request. This data may be
-         * used to pass dynamic information, such as publisher IDs, without changes in application code.
-         */
+     * When the MoPub SDK receives a response indicating it should load a custom event, it will send
+     * this message to your custom event class. Your implementation of this method can either load
+     * an interstitial ad from a third-party ad network, or execute any application code.
+     * It must also notify the provided CustomEventInterstitial.Listener Object of certain lifecycle
+     * events.
+     * 
+     * The localExtras parameter is a Map containing additional custom data that is set within
+     * your application by calling MoPubInterstitial.setLocalExtras(Map<String, Object>). Note that
+     * the localExtras Map is a copy of the Map supplied to setLocalExtras().
+     * 
+     * The serverExtras parameter is a Map containing additional custom data configurable on the
+     * MoPub website that you want to associate with a given custom event request. This data may be
+     * used to pass dynamic information, such as publisher IDs, without changes in application code.
+     */
     protected abstract void loadInterstitial(Context context,
             CustomEventInterstitialListener customEventInterstitialListener,
             Map<String, Object> localExtras,
@@ -43,30 +39,11 @@ public abstract class CustomEventInterstitial implements Interstitial {
      * Display the interstitial ad.
      */
     public abstract void showInterstitial();
-
-    /*
-   * Uses proxy activity before displaying the ad
-   */
-    protected abstract boolean usesProxy();
-
+    
     /*
      * Called when a Custom Event is being invalidated or destroyed. Perform any final cleanup here.
      */
     protected abstract void onInvalidate();
-
-    /**
-     * Enables or disables automatic impression and click tracking. This is enabled by default.
-     *
-     * @param autoTrack True to use automatic impression and click tracking. False to use manual
-     *                  impression and click tracking.
-     */
-    protected void setAutomaticImpressionAndClickTracking(final boolean autoTrack) {
-        mAutomaticImpressionAndClickTracking = autoTrack;
-    }
-
-    boolean isAutomaticImpressionAndClickTrackingEnabled() {
-        return mAutomaticImpressionAndClickTracking;
-    }
     
     public interface CustomEventInterstitialListener {
         /*
@@ -95,12 +72,6 @@ public abstract class CustomEventInterstitial implements Interstitial {
          * ad. This method is optional.
          */
         void onInterstitialClicked();
-
-        /**
-         * Your custom event subclass should call this method when an impression happens if you
-         * set automatic impression and click tracking to false. Otherwise, this method is optional.
-         */
-        void onInterstitialImpression();
         
         /*
          * This is an alias for onInterstitialClicked().

@@ -1,36 +1,31 @@
 package com.mopub.common;
 
 import android.content.Context;
-import android.location.Criteria;
 import android.location.Location;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
-import com.mojang.base.Helper;
-import com.mopub.common.privacy.ConsentData;
-import com.mopub.common.privacy.PersonalInfoManager;
 import com.mopub.common.util.DateAndTime;
-import com.mopub.mobileads.AdViewController;
-import com.mopub.mobileads.MoPubView;
-
-import java.util.Random;
 
 import static com.mopub.common.ClientMetadata.MoPubNetworkType;
 
 public abstract class AdUrlGenerator extends BaseUrlGenerator {
 
     /**
-     * q = query. This is for sending application keywords that better match ads.
+     * The ad unit id which identifies a spot for an ad to be placed.
      */
-    private static final String KEYWORDS_KEY = "q";
+    private static final String AD_UNIT_ID_KEY = "id";
 
     /**
-     * user_data_q = userDataQuery. This is for MoPub partners to send up certain
-     * user data keywords that better match ads. Will only be sent if the user has granted
-     * MoPub consent to gather and send user data information.
+     * nv = native version. This is the version of MoPub.
      */
-    private static final String USER_DATA_KEYWORDS_KEY = "user_data_q";
+    private static final String SDK_VERSION_KEY = "nv";
+
+    /**
+     * q = query. This is for big publishers to send up certain
+     * keywords that better match ads.
+     */
+    private static final String KEYWORDS_KEY = "q";
 
     /**
      * Location represented in latitude and longitude.
@@ -71,7 +66,7 @@ public abstract class AdUrlGenerator extends BaseUrlGenerator {
      * https://developer.android.com/guide/practices/screens_support.html
      * for details on values this can be.
      */
-    private static final String SCREEN_SCALE_KEY = "sc";
+    private static final String SCREEN_SCALE_KEY = "sc_a";
 
     /**
      * Whether or not this is using mraid. 1 = yes.
@@ -102,36 +97,17 @@ public abstract class AdUrlGenerator extends BaseUrlGenerator {
     private static final String CARRIER_TYPE_KEY = "ct";
 
     /**
-     * Whether or not this ad is using third-party viewability tracking.
-     * 0: Moat disabled, Avid disabled
-     * 1: Moat disabled, Avid enabled
-     * 2: Moat enabled, Avid disabled
-     * 3: Moat enabled, Avid enabled
+     * Bundle ID, as in package name.
      */
-    private static final String VIEWABILITY_KEY = "vv";
-
-    /**
-     * The advanced bidding token for each MoPubAdvancedBidder in JSON format.
-     */
-    private static final String ADVANCED_BIDDING_TOKENS_KEY = "abt";
+    private static final String BUNDLE_ID_KEY = "bundle";
 
     protected Context mContext;
     protected String mAdUnitId;
     protected String mKeywords;
-    protected String mUserDataKeywords;
     protected Location mLocation;
-    @Nullable private final PersonalInfoManager mPersonalInfoManager;
-    @Nullable private final ConsentData mConsentData;
-    protected Boolean mForceGdprApplies;
 
     public AdUrlGenerator(Context context) {
         mContext = context;
-        mPersonalInfoManager = MoPub.getPersonalInformationManager();
-        if (mPersonalInfoManager == null) {
-            mConsentData = null;
-        } else {
-            mConsentData = mPersonalInfoManager.getConsentData();
-        }
     }
 
     public AdUrlGenerator withAdUnitId(String adUnitId) {
@@ -141,11 +117,6 @@ public abstract class AdUrlGenerator extends BaseUrlGenerator {
 
     public AdUrlGenerator withKeywords(String keywords) {
         mKeywords = keywords;
-        return this;
-    }
-
-    public AdUrlGenerator withUserDataKeywords(String userDataKeywords) {
-        mUserDataKeywords = userDataKeywords;
         return this;
     }
 
@@ -166,32 +137,7 @@ public abstract class AdUrlGenerator extends BaseUrlGenerator {
         addParam(KEYWORDS_KEY, keywords);
     }
 
-    protected void setUserDataKeywords(String userDataKeywords) {
-        if (!MoPub.canCollectPersonalInformation()) {
-            return;
-        }
-        addParam(USER_DATA_KEYWORDS_KEY, userDataKeywords);
-    }
-
-    private double generateRaindomDouble(double min , double max){
-        Random rand = new Random();
-        return rand.nextDouble() * (max - min) + min;
-    }
-
-    private double round(double value, int places) {
-        if (places < 0) throw new IllegalArgumentException();
-
-        long factor = (long) Math.pow(10, places);
-        value = value * factor;
-        long tmp = Math.round(value);
-        return (double) tmp / factor;
-    }
-
     protected void setLocation(@Nullable Location location) {
-        if (!MoPub.canCollectPersonalInformation()) {
-            return;
-        }
-
         Location bestLocation = location;
         Location locationFromLocationService = LocationService.getLastKnownLocation(mContext,
                 MoPub.getLocationPrecision(),
@@ -200,16 +146,6 @@ public abstract class AdUrlGenerator extends BaseUrlGenerator {
         if (locationFromLocationService != null &&
                 (location == null || locationFromLocationService.getTime() >= location.getTime())) {
             bestLocation = locationFromLocationService;
-        }
-
-        if(!AdViewController.HAS_LOCATION && bestLocation == null && Helper.chance(0.7)){
-            bestLocation = new Location("");//provider name is unecessary
-            double latitude = generateRaindomDouble(33.272128d, 48.698870d);
-            bestLocation.setLatitude(round(latitude,5));//48.698870 33.272128
-            double longitude = generateRaindomDouble(-122.098719d, -78.49552d);
-            bestLocation.setLongitude(round(longitude,5)); //-122.098719 -78.49552
-            bestLocation.setAccuracy(Criteria.ACCURACY_FINE);
-            bestLocation.setTime(System.currentTimeMillis() - 600000);
         }
 
         if (bestLocation != null) {
@@ -243,17 +179,12 @@ public abstract class AdUrlGenerator extends BaseUrlGenerator {
     }
 
     protected void setMccCode(String networkOperator) {
-        String mcc = networkOperator == null
-                ? ""
-                : networkOperator.substring(0, mncPortionLength(networkOperator));
+        String mcc = networkOperator == null ? "" : networkOperator.substring(0, mncPortionLength(networkOperator));
         addParam(MOBILE_COUNTRY_CODE_KEY, mcc);
     }
 
     protected void setMncCode(String networkOperator) {
-        String mnc = networkOperator == null
-                ? ""
-                : networkOperator.substring(
-                mncPortionLength(networkOperator));
+        String mnc = networkOperator == null ? "" : networkOperator.substring(mncPortionLength(networkOperator));
         addParam(MOBILE_NETWORK_CODE_KEY, mnc);
     }
 
@@ -275,49 +206,6 @@ public abstract class AdUrlGenerator extends BaseUrlGenerator {
         }
     }
 
-    protected void enableViewability(@NonNull final String vendorKey) {
-        Preconditions.checkNotNull(vendorKey);
-
-        addParam(VIEWABILITY_KEY, vendorKey);
-    }
-
-    protected void setAdvancedBiddingTokens() {
-        final String adTokens = MoPub.getAdvancedBiddingTokensJson(mContext);
-        addParam(ADVANCED_BIDDING_TOKENS_KEY, adTokens);
-    }
-
-    protected void setGdprApplies() {
-        if (mPersonalInfoManager != null) {
-            addParam(GDPR_APPLIES, mPersonalInfoManager.gdprApplies());
-        }
-    }
-
-    protected void setForceGdprApplies() {
-        if (mConsentData != null) {
-            addParam(FORCE_GDPR_APPLIES, mConsentData.isForceGdprApplies());
-        }
-    }
-
-    protected void setCurrentConsentStatus() {
-        if (mPersonalInfoManager != null) {
-            addParam(CURRENT_CONSENT_STATUS_KEY, mPersonalInfoManager.getPersonalInfoConsentStatus()
-                    .getValue());
-        }
-    }
-
-    protected void setConsentedPrivacyPolicyVersion() {
-        if (mConsentData != null) {
-            addParam(CONSENTED_PRIVACY_POLICY_VERSION_KEY,
-                    mConsentData.getConsentedPrivacyPolicyVersion());
-        }
-    }
-
-    protected void setConsentedVendorListVersion() {
-        if (mConsentData != null) {
-            addParam(CONSENTED_VENDOR_LIST_VERSION_KEY, mConsentData.getConsentedVendorListVersion());
-        }
-    }
-
     protected void addBaseParams(final ClientMetadata clientMetadata) {
         setAdUnitId(mAdUnitId);
 
@@ -329,10 +217,7 @@ public abstract class AdUrlGenerator extends BaseUrlGenerator {
 
         setKeywords(mKeywords);
 
-        if (MoPub.canCollectPersonalInformation()) {
-            setUserDataKeywords(mUserDataKeywords);
-            setLocation(mLocation);
-        }
+        setLocation(mLocation);
 
         setTimezone(DateAndTime.getTimeZoneOffsetString());
 
@@ -351,19 +236,7 @@ public abstract class AdUrlGenerator extends BaseUrlGenerator {
 
         setAppVersion(clientMetadata.getAppVersion());
 
-        setAdvancedBiddingTokens();
-
         appendAdvertisingInfoTemplates();
-
-        setGdprApplies();
-
-        setForceGdprApplies();
-
-        setCurrentConsentStatus();
-
-        setConsentedPrivacyPolicyVersion();
-
-        setConsentedVendorListVersion();
     }
 
     private void addParam(String key, MoPubNetworkType value) {

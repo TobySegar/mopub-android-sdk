@@ -1,6 +1,6 @@
 package com.mopub.common;
 
-import android.annotation.SuppressLint;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -8,18 +8,16 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Point;
 import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.provider.Settings;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 
 import com.mopub.common.logging.MoPubLog;
-import com.mopub.common.privacy.MoPubIdentifier;
 import com.mopub.common.util.DeviceUtils;
 import com.mopub.common.util.Dips;
+import com.mopub.common.util.Utils;
 
 import java.util.Locale;
 
@@ -30,34 +28,34 @@ import static android.content.pm.PackageManager.NameNotFoundException;
  * Singleton that caches Client objects so they will be available to background threads.
  */
 public class ClientMetadata {
+    // Network type constant defined after API 9:
+    private static final int TYPE_ETHERNET = 9;
 
     private static final String DEVICE_ORIENTATION_PORTRAIT = "p";
     private static final String DEVICE_ORIENTATION_LANDSCAPE = "l";
     private static final String DEVICE_ORIENTATION_SQUARE = "s";
     private static final String DEVICE_ORIENTATION_UNKNOWN = "u";
+    private static final String IFA_PREFIX = "ifa:";
+    private static final String SHA_PREFIX = "sha:";
+    private static final int UNKNOWN_NETWORK = -1;
+    private static final int MISSING_VALUE = -1;
 
     private String mNetworkOperatorForUrl;
-    private String mNetworkOperator;
+    private final String mNetworkOperator;
     private String mSimOperator;
-    private String mIsoCountryCode;
-    private String mSimIsoCountryCode;
+    private final String mIsoCountryCode;
+    private final String mSimIsoCountryCode;
     private String mNetworkOperatorName;
     private String mSimOperatorName;
+    private String mUdid;
+    private boolean mDoNotTrack = false;
+    private boolean mAdvertisingInfoSet = false;
 
-    @NonNull
-    private final MoPubIdentifier moPubIdentifier;
-
-    /**
-     * MoPubNetworkType - network connection type enumeration
-     */
     public enum MoPubNetworkType {
         UNKNOWN(0),
         ETHERNET(1),
         WIFI(2),
-        MOBILE(3),
-        GG(4),      // connected to 2G network
-        GGG(5),     // connected to 3G network
-        GGGG(6);    // connected to 4G network
+        MOBILE(3);
 
         private final int mId;
         MoPubNetworkType(int id) {
@@ -67,6 +65,23 @@ public class ClientMetadata {
         @Override
         public String toString() {
             return Integer.toString(mId);
+        }
+
+        private static MoPubNetworkType fromAndroidNetworkType(int type) {
+            switch(type) {
+                case TYPE_ETHERNET:
+                    return ETHERNET;
+                case ConnectivityManager.TYPE_WIFI:
+                    return WIFI;
+                case ConnectivityManager.TYPE_MOBILE:
+                case ConnectivityManager.TYPE_MOBILE_DUN:
+                case ConnectivityManager.TYPE_MOBILE_HIPRI:
+                case ConnectivityManager.TYPE_MOBILE_MMS:
+                case ConnectivityManager.TYPE_MOBILE_SUPL:
+                    return MOBILE;
+                default:
+                    return UNKNOWN;
+            }
         }
 
         public int getId() {
@@ -91,7 +106,6 @@ public class ClientMetadata {
     /**
      * Returns the singleton ClientMetadata object, using the context to obtain data if necessary.
      */
-    @NonNull
     public static ClientMetadata getInstance(Context context) {
         // Use a local variable so we can reduce accesses of the volatile field.
         ClientMetadata result = sInstance;
@@ -112,7 +126,6 @@ public class ClientMetadata {
      * ClientMetadata. If the object has never been referenced from a thread with a context,
      * this will return null.
      */
-    @Nullable
     public static ClientMetadata getInstance() {
         ClientMetadata result = sInstance;
         if (result == null) {
@@ -153,43 +166,48 @@ public class ClientMetadata {
 
         final TelephonyManager telephonyManager =
                 (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
-        if(telephonyManager!=null) {
-            mNetworkOperatorForUrl = telephonyManager.getNetworkOperator();
-            mNetworkOperator = telephonyManager.getNetworkOperator();
-            if (telephonyManager.getPhoneType() == TelephonyManager.PHONE_TYPE_CDMA &&
-                    telephonyManager.getSimState() == TelephonyManager.SIM_STATE_READY) {
-                mNetworkOperatorForUrl = telephonyManager.getSimOperator();
-                mSimOperator = telephonyManager.getSimOperator();
-            }
-
-            if (MoPub.canCollectPersonalInformation()) {
-                mIsoCountryCode = telephonyManager.getNetworkCountryIso();
-                mSimIsoCountryCode = telephonyManager.getSimCountryIso();
-            } else {
-                mIsoCountryCode = "";
-                mSimIsoCountryCode = "";
-            }
-
-            try {
-                // Some Lenovo devices require READ_PHONE_STATE here.
-                mNetworkOperatorName = telephonyManager.getNetworkOperatorName();
-                if (telephonyManager.getSimState() == TelephonyManager.SIM_STATE_READY) {
-                    mSimOperatorName = telephonyManager.getSimOperatorName();
-                }
-            } catch (SecurityException e) {
-                mNetworkOperatorName = null;
-                mSimOperatorName = null;
-            }
+        mNetworkOperatorForUrl = telephonyManager.getNetworkOperator();
+        mNetworkOperator = telephonyManager.getNetworkOperator();
+        if (telephonyManager.getPhoneType() == TelephonyManager.PHONE_TYPE_CDMA &&
+                telephonyManager.getSimState() == TelephonyManager.SIM_STATE_READY) {
+            mNetworkOperatorForUrl = telephonyManager.getSimOperator();
+            mSimOperator = telephonyManager.getSimOperator();
         }
-        moPubIdentifier = new MoPubIdentifier(mContext);
+
+        mIsoCountryCode = telephonyManager.getNetworkCountryIso();
+        mSimIsoCountryCode = telephonyManager.getSimCountryIso();
+        try {
+            // Some Lenovo devices require READ_PHONE_STATE here.
+            mNetworkOperatorName = telephonyManager.getNetworkOperatorName();
+            if (telephonyManager.getSimState() == TelephonyManager.SIM_STATE_READY) {
+                mSimOperatorName = telephonyManager.getSimOperatorName();
+            }
+        } catch (SecurityException e) {
+            mNetworkOperatorName = null;
+            mSimOperatorName = null;
+        }
+
+        setAmazonAdvertisingInfo();
+        if (!mAdvertisingInfoSet) {
+            // Amazon ad info is not supported on this device, so get the device ID.
+            // This will be replaced later when the Play Services callbacks complete.
+            mUdid = getDeviceIdFromContext(mContext);
+        }
+
     }
 
-    public void repopulateCountryData() {
-        final TelephonyManager telephonyManager =
-                (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
-        if (MoPub.canCollectPersonalInformation() && telephonyManager != null) {
-            mIsoCountryCode = telephonyManager.getNetworkCountryIso();
-            mSimIsoCountryCode = telephonyManager.getSimCountryIso();
+    // For Amazon tablets running Fire OS 5.1+ and TV devices running Fire OS 5.2.1.1+, the
+    // advertising info is available as System Settings.
+    // See https://developer.amazon.com/public/solutions/devices/fire-tv/docs/fire-tv-advertising-id
+    @VisibleForTesting
+    protected void setAmazonAdvertisingInfo() {
+        ContentResolver resolver = mContext.getContentResolver();
+        int limitAdTracking = Settings.Secure.getInt(resolver, "limit_ad_tracking", MISSING_VALUE);
+        String advertisingId = Settings.Secure.getString(resolver, "advertising_id");
+
+        if (limitAdTracking != MISSING_VALUE && !TextUtils.isEmpty(advertisingId)) {
+            boolean doNotTrack = limitAdTracking != 0;
+            setAdvertisingInfo(advertisingId, doNotTrack);
         }
     }
 
@@ -203,6 +221,13 @@ public class ClientMetadata {
             MoPubLog.d("Failed to retrieve PackageInfo#versionName.");
             return null;
         }
+    }
+
+    private static String getDeviceIdFromContext(Context context) {
+        String deviceId = Settings.Secure.getString(context.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+        deviceId = (deviceId == null) ? "" : Utils.sha1(deviceId);
+        return SHA_PREFIX + deviceId;
     }
 
     /**
@@ -221,64 +246,17 @@ public class ClientMetadata {
         return orientation;
     }
 
-    @SuppressLint("MissingPermission")
+
     public MoPubNetworkType getActiveNetworkType() {
-        if (!DeviceUtils.isPermissionGranted(mContext, ACCESS_NETWORK_STATE)) {
-            return MoPubNetworkType.UNKNOWN;
+        int networkType = UNKNOWN_NETWORK;
+        if (DeviceUtils.isPermissionGranted(mContext, ACCESS_NETWORK_STATE)) {
+            NetworkInfo activeNetworkInfo = mConnectivityManager.getActiveNetworkInfo();
+            networkType = activeNetworkInfo != null
+                    ? activeNetworkInfo.getType() : UNKNOWN_NETWORK;
         }
-
-        NetworkInfo activeNetworkInfo = mConnectivityManager.getActiveNetworkInfo();
-        if (activeNetworkInfo == null || !activeNetworkInfo.isConnected()) {
-            return MoPubNetworkType.UNKNOWN;
-        }
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_ETHERNET) {
-                return MoPubNetworkType.ETHERNET;
-            }
-        } else {
-            Network[] networks = mConnectivityManager.getAllNetworks();
-            for (Network network : networks) {
-                NetworkCapabilities capabilities = mConnectivityManager.getNetworkCapabilities(network);
-                if (capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET))
-                    return MoPubNetworkType.ETHERNET;
-            }
-        }
-
-        NetworkInfo networkInfo = mConnectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-        if (networkInfo != null && networkInfo.isConnected()) {
-            return MoPubNetworkType.WIFI;
-        }
-
-        networkInfo = mConnectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-        if (networkInfo != null && networkInfo.isConnected()) {
-            int netType = networkInfo.getSubtype();
-            switch (netType) {
-                case TelephonyManager.NETWORK_TYPE_GPRS:
-                case TelephonyManager.NETWORK_TYPE_EDGE:
-                case TelephonyManager.NETWORK_TYPE_CDMA:
-                case TelephonyManager.NETWORK_TYPE_1xRTT:
-                case TelephonyManager.NETWORK_TYPE_IDEN:
-                    return MoPubNetworkType.GG; // 2G
-                case TelephonyManager.NETWORK_TYPE_UMTS:
-                case TelephonyManager.NETWORK_TYPE_EVDO_0:
-                case TelephonyManager.NETWORK_TYPE_EVDO_A:
-                case TelephonyManager.NETWORK_TYPE_HSDPA:
-                case TelephonyManager.NETWORK_TYPE_HSUPA:
-                case TelephonyManager.NETWORK_TYPE_HSPA:
-                case TelephonyManager.NETWORK_TYPE_EVDO_B:
-                case TelephonyManager.NETWORK_TYPE_EHRPD:
-                    return MoPubNetworkType.GGG; // 3G
-                case TelephonyManager.NETWORK_TYPE_HSPAP:
-                case TelephonyManager.NETWORK_TYPE_LTE:
-                    return MoPubNetworkType.GGGG; // 4G
-                default:
-                    return MoPubNetworkType.MOBILE;
-            }
-        }
-
-        return MoPubNetworkType.UNKNOWN;
+        return MoPubNetworkType.fromAndroidNetworkType(networkType);
     }
+
 
     /**
      * Get the logical density of the display as in {@link android.util.DisplayMetrics#density}
@@ -316,14 +294,14 @@ public class ClientMetadata {
      * @return the country code of the device.
      */
     public String getIsoCountryCode() {
-        return MoPub.canCollectPersonalInformation() ? mIsoCountryCode : "";
+        return mIsoCountryCode;
     }
 
     /**
      * @return the sim provider's country code.
      */
     public String getSimIsoCountryCode() {
-        return MoPub.canCollectPersonalInformation() ? mSimIsoCountryCode : "";
+        return mSimIsoCountryCode;
     }
 
     /**
@@ -341,12 +319,28 @@ public class ClientMetadata {
     }
 
     /**
-     *
-     * @return class to get Advertising ID and 'do not track' state
+     * @return the stored device ID.
      */
-    @NonNull
-    public MoPubIdentifier getMoPubIdentifier() {
-        return moPubIdentifier;
+    public synchronized String getDeviceId() {
+        return mUdid;
+    }
+
+    /**
+     * @return the user's do not track preference. Should be set whenever a getAdInfo() call is
+     *         completed.
+     */
+    public synchronized boolean isDoNotTrackSet() {
+        return mDoNotTrack;
+    }
+
+    public synchronized void setAdvertisingInfo(String advertisingId, boolean doNotTrack) {
+        mUdid = IFA_PREFIX + advertisingId;
+        mDoNotTrack = doNotTrack;
+        mAdvertisingInfoSet = true;
+    }
+
+    public synchronized boolean isAdvertisingInfoSet() {
+        return mAdvertisingInfoSet;
     }
 
     /**
@@ -433,21 +427,6 @@ public class ClientMetadata {
         return mAppName;
     }
 
-    @NonNull
-    public static String getCurrentLanguage(@NonNull final Context context) {
-        // Use default locale first for language code
-        String languageCode = Locale.getDefault().getLanguage().trim();
-
-        // If user's preferred locale is different from default locale, override language code
-        Locale userLocale = context.getResources().getConfiguration().locale;
-        if (userLocale != null) {
-            if (!userLocale.getLanguage().trim().isEmpty()) {
-                languageCode = userLocale.getLanguage().trim();
-            }
-        }
-        return languageCode;
-    }
-
     @Deprecated
     @VisibleForTesting
     public static void setInstance(ClientMetadata clientMetadata) {
@@ -456,7 +435,6 @@ public class ClientMetadata {
         }
     }
 
-    @Deprecated
     @VisibleForTesting
     public static void clearForTesting() {
         sInstance = null;

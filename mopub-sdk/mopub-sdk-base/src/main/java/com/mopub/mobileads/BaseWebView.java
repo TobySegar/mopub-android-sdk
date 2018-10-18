@@ -38,12 +38,6 @@ public class BaseWebView extends WebView {
     }
 
     @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        WebViews.manageThirdPartyCookies(this);
-    }
-
-    @Override
     public void destroy() {
         mIsDestroyed = true;
 
@@ -57,7 +51,7 @@ public class BaseWebView extends WebView {
         super.destroy();
     }
 
-    public void enablePlugins(final boolean enabled) {
+    protected void enablePlugins(final boolean enabled) {
         // Android 4.3 and above has no concept of plugin states
         if (VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN_MR2) {
             return;

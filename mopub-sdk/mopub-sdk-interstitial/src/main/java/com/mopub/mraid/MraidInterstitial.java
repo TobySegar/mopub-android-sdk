@@ -22,17 +22,11 @@ class MraidInterstitial extends ResponseBodyInterstitial {
     @Override
     protected void preRenderHtml(@NonNull CustomEventInterstitialListener
             customEventInterstitialListener) {
-        MraidActivity.preRenderHtml(this, mContext, customEventInterstitialListener, mHtmlData,
-                mBroadcastIdentifier);
+        MraidActivity.preRenderHtml(mContext, customEventInterstitialListener, mHtmlData);
     }
 
     @Override
     public void showInterstitial() {
         MraidActivity.start(mContext, mAdReport, mHtmlData, mBroadcastIdentifier);
-    }
-
-    @Override
-    protected boolean usesProxy() {
-        return false;
     }
 }

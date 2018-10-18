@@ -5,8 +5,6 @@ import android.text.TextUtils;
 
 import com.mopub.common.MoPub;
 import com.mopub.common.logging.MoPubLog;
-import com.mopub.common.privacy.ConsentStatus;
-import com.mopub.common.privacy.PersonalInfoManager;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.unity3d.ads.UnityAds;
 import com.unity3d.ads.mediation.IUnityAdsExtendedListener;
@@ -17,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class UnityRouter {
-    private static String sCurrentPlacementId;
+/*    private static String sCurrentPlacementId;
     private static final String GAME_ID_KEY = "gameId";
     private static final String ZONE_ID_KEY = "zoneId";
     private static final String PLACEMENT_ID_KEY = "placementId";
@@ -167,5 +165,5 @@ public class UnityRouter {
         public UnityAds.UnityAdsError getErrorCode() {
             return errorCode;
         }
-    }
+    }*/
 }

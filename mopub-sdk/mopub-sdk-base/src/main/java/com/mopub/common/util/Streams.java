@@ -1,7 +1,5 @@
 package com.mopub.common.util;
 
-import com.mopub.common.logging.MoPubLog;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,9 +60,8 @@ public class Streams {
 
         try {
             stream.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             // Unable to close the stream
-            MoPubLog.d("Unable to close stream. Ignoring.");
         }
     }
 }

@@ -4,14 +4,12 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.mopub.common.MoPub.BrowserAgent;
-import com.mopub.common.Preconditions;
+import com.mopub.common.event.EventDetails;
 import com.mopub.common.util.DateAndTime;
 
 import org.json.JSONObject;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -45,14 +43,10 @@ public class AdResponse implements Serializable {
     private final String mRedirectUrl;
     @Nullable
     private final String mClickTrackingUrl;
-    @NonNull
-    private final List<String> mImpressionTrackingUrls;
+    @Nullable
+    private final String mImpressionTrackingUrl;
     @Nullable
     private final String mFailoverUrl;
-    @Nullable
-    private final String mBeforeLoadUrl;
-    @Nullable
-    private final String mAfterLoadUrl;
     @Nullable
     private final String mRequestId;
 
@@ -73,6 +67,9 @@ public class AdResponse implements Serializable {
     private final String mResponseBody;
     @Nullable
     private final JSONObject mJsonBody;
+
+    @Nullable
+    private final EventDetails mEventDetails;
 
     @Nullable
     private final String mCustomEventClassName;
@@ -99,10 +96,8 @@ public class AdResponse implements Serializable {
 
         mRedirectUrl = builder.redirectUrl;
         mClickTrackingUrl = builder.clickTrackingUrl;
-        mImpressionTrackingUrls = builder.impressionTrackingUrls;
+        mImpressionTrackingUrl = builder.impressionTrackingUrl;
         mFailoverUrl = builder.failoverUrl;
-        mBeforeLoadUrl = builder.beforeLoadUrl;
-        mAfterLoadUrl = builder.afterLoadUrl;
         mRequestId = builder.requestId;
         mWidth = builder.width;
         mHeight = builder.height;
@@ -112,8 +107,9 @@ public class AdResponse implements Serializable {
         mScrollable = builder.scrollable;
         mResponseBody = builder.responseBody;
         mJsonBody = builder.jsonBody;
+        mEventDetails = builder.eventDetails;
         mCustomEventClassName = builder.customEventClassName;
-        mBrowserAgent = builder.browserAgent;
+        mBrowserAgent = builder.mBrowserAgent;
         mServerExtras = builder.serverExtras;
         mTimestamp = DateAndTime.now().getTime();
     }
@@ -125,6 +121,11 @@ public class AdResponse implements Serializable {
     @Nullable
     public JSONObject getJsonBody() {
         return mJsonBody;
+    }
+
+    @Nullable
+    public EventDetails getEventDetails() {
+        return mEventDetails;
     }
 
     @Nullable
@@ -191,25 +192,14 @@ public class AdResponse implements Serializable {
         return mClickTrackingUrl;
     }
 
-    @NonNull
-    public List<String> getImpressionTrackingUrls() {
-        return mImpressionTrackingUrls;
+    @Nullable
+    public String getImpressionTrackingUrl() {
+        return mImpressionTrackingUrl;
     }
 
-    @Deprecated
     @Nullable
     public String getFailoverUrl() {
         return mFailoverUrl;
-    }
-
-    @Nullable
-    public String getBeforeLoadUrl() {
-        return mBeforeLoadUrl;
-    }
-
-    @Nullable
-    public String getAfterLoadUrl() {
-        return mAfterLoadUrl;
     }
 
     @Nullable
@@ -231,11 +221,8 @@ public class AdResponse implements Serializable {
         return mHeight;
     }
 
-    @NonNull
-    public Integer getAdTimeoutMillis(int defaultValue) {
-        if (mAdTimeoutDelayMillis == null || mAdTimeoutDelayMillis < 1000) {
-            return defaultValue;
-        }
+    @Nullable
+    public Integer getAdTimeoutMillis() {
         return mAdTimeoutDelayMillis;
     }
 
@@ -260,7 +247,7 @@ public class AdResponse implements Serializable {
     @NonNull
     public Map<String, String> getServerExtras() {
         // Strings are immutable, so this works as a "deep" copy.
-        return new TreeMap<>(mServerExtras);
+        return new TreeMap<String, String>(mServerExtras);
     }
 
     public long getTimestamp() {
@@ -279,10 +266,8 @@ public class AdResponse implements Serializable {
                 .setShouldRewardOnClick(mShouldRewardOnClick)
                 .setRedirectUrl(mRedirectUrl)
                 .setClickTrackingUrl(mClickTrackingUrl)
-                .setImpressionTrackingUrls(mImpressionTrackingUrls)
+                .setImpressionTrackingUrl(mImpressionTrackingUrl)
                 .setFailoverUrl(mFailoverUrl)
-                .setBeforeLoadUrl(mBeforeLoadUrl)
-                .setAfterLoadUrl(mAfterLoadUrl)
                 .setDimensions(mWidth, mHeight)
                 .setAdTimeoutDelayMilliseconds(mAdTimeoutDelayMillis)
                 .setRefreshTimeMilliseconds(mRefreshTimeMillis)
@@ -290,6 +275,7 @@ public class AdResponse implements Serializable {
                 .setScrollable(mScrollable)
                 .setResponseBody(mResponseBody)
                 .setJsonBody(mJsonBody)
+                .setEventDetails(mEventDetails)
                 .setCustomEventClassName(mCustomEventClassName)
                 .setBrowserAgent(mBrowserAgent)
                 .setServerExtras(mServerExtras);
@@ -310,10 +296,8 @@ public class AdResponse implements Serializable {
 
         private String redirectUrl;
         private String clickTrackingUrl;
-        private List<String> impressionTrackingUrls = new ArrayList<>();
+        private String impressionTrackingUrl;
         private String failoverUrl;
-        private String beforeLoadUrl;
-        private String afterLoadUrl;
         private String requestId;
 
         private Integer width;
@@ -327,10 +311,11 @@ public class AdResponse implements Serializable {
         private String responseBody;
         private JSONObject jsonBody;
 
-        private String customEventClassName;
-        private BrowserAgent browserAgent;
+        private EventDetails eventDetails;
 
-        private Map<String, String> serverExtras = new TreeMap<>();
+        private String customEventClassName;
+        private BrowserAgent mBrowserAgent;
+        private Map<String, String> serverExtras = new TreeMap<String, String>();
 
         public Builder setAdType(@Nullable final String adType) {
             this.adType = adType;
@@ -395,25 +380,13 @@ public class AdResponse implements Serializable {
             return this;
         }
 
-        public Builder setImpressionTrackingUrls(@NonNull final List<String> impressionTrackingUrls) {
-            Preconditions.checkNotNull(impressionTrackingUrls);
-
-            this.impressionTrackingUrls = impressionTrackingUrls;
+        public Builder setImpressionTrackingUrl(@Nullable final String impressionTrackingUrl) {
+            this.impressionTrackingUrl = impressionTrackingUrl;
             return this;
         }
 
         public Builder setFailoverUrl(@Nullable final String failoverUrl) {
             this.failoverUrl = failoverUrl;
-            return this;
-        }
-
-        public Builder setBeforeLoadUrl(@Nullable final String beforeLoadUrl) {
-            this.beforeLoadUrl = beforeLoadUrl;
-            return this;
-        }
-
-        public Builder setAfterLoadUrl(@Nullable final String afterLoadUrl) {
-            this.afterLoadUrl = afterLoadUrl;
             return this;
         }
 
@@ -459,21 +432,26 @@ public class AdResponse implements Serializable {
             return this;
         }
 
+        public Builder setEventDetails(@Nullable final EventDetails eventDetails) {
+            this.eventDetails = eventDetails;
+            return this;
+        }
+
         public Builder setCustomEventClassName(@Nullable final String customEventClassName) {
             this.customEventClassName = customEventClassName;
             return this;
         }
 
         public Builder setBrowserAgent(@Nullable final BrowserAgent browserAgent) {
-            this.browserAgent = browserAgent;
+            this.mBrowserAgent = browserAgent;
             return this;
         }
 
         public Builder setServerExtras(@Nullable final Map<String, String> serverExtras) {
             if (serverExtras == null) {
-                this.serverExtras = new TreeMap<>();
+                this.serverExtras = new TreeMap<String, String>();
             } else {
-                this.serverExtras = new TreeMap<>(serverExtras);
+                this.serverExtras = new TreeMap<String, String>(serverExtras);
             }
             return this;
         }

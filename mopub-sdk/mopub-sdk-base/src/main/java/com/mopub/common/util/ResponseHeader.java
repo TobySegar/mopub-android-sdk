@@ -1,86 +1,51 @@
 package com.mopub.common.util;
 
 public enum ResponseHeader {
-    AD_TIMEOUT("x-ad-timeout-ms"),
-    AD_TYPE("x-adtype"),
-    CLICK_TRACKING_URL("x-clickthrough"),
-    CUSTOM_EVENT_DATA("x-custom-event-class-data"),
-    CUSTOM_EVENT_NAME("x-custom-event-class-name"),
-    CREATIVE_ID("x-creativeid"),
-    DSP_CREATIVE_ID("x-dspcreativeid"),
-    FAIL_URL("x-next-url"),
-    FULL_AD_TYPE("x-fulladtype"),
-    HEIGHT("x-height"),
-    IMPRESSION_URL("x-imptracker"),
-    IMPRESSION_URLS("imptrackers"),
-    REDIRECT_URL("x-launchpage"),
-    NATIVE_PARAMS("x-nativeparams"),
-    NETWORK_TYPE("x-networktype"),
-    ORIENTATION("x-orientation"),
-    REFRESH_TIME("x-refreshtime"),
-    SCROLLABLE("x-scrollable"),
-    WARMUP("x-warmup"),
-    WIDTH("x-width"),
-    BACKFILL("x-backfill"),
-    REQUEST_ID("x-request-id"),
+    AD_TIMEOUT("X-AdTimeout"),
+    AD_TYPE("X-Adtype"),
+    CLICK_TRACKING_URL("X-Clickthrough"),
+    CUSTOM_EVENT_DATA("X-Custom-Event-Class-Data"),
+    CUSTOM_EVENT_NAME("X-Custom-Event-Class-Name"),
+    CUSTOM_EVENT_HTML_DATA("X-Custom-Event-Html-Data"),
+    CREATIVE_ID("X-CreativeId"),
+    DSP_CREATIVE_ID("X-DspCreativeid"),
+    FAIL_URL("X-Failurl"),
+    FULL_AD_TYPE("X-Fulladtype"),
+    HEIGHT("X-Height"),
+    IMPRESSION_URL("X-Imptracker"),
+    REDIRECT_URL("X-Launchpage"),
+    NATIVE_PARAMS("X-Nativeparams"),
+    NETWORK_TYPE("X-Networktype"),
+    ORIENTATION("X-Orientation"),
+    REFRESH_TIME("X-Refreshtime"),
+    SCROLLABLE("X-Scrollable"),
+    WARMUP("X-Warmup"),
+    WIDTH("X-Width"),
 
-    // HTTP headers
-    CONTENT_TYPE("content-type"),
-    LOCATION("location"),
-    USER_AGENT("user-agent"),
-    ACCEPT_LANGUAGE("accept-language"),
-
-    BROWSER_AGENT("x-browser-agent"),
-
-    // Banner impression tracking fields
-    BANNER_IMPRESSION_MIN_VISIBLE_DIPS("x-banner-impression-min-pixels"),
-    BANNER_IMPRESSION_MIN_VISIBLE_MS("x-banner-impression-min-ms"),
-
-    // Native fields
-    IMPRESSION_MIN_VISIBLE_PERCENT("x-impression-min-visible-percent"),
-    IMPRESSION_VISIBLE_MS("x-impression-visible-ms"),
-    IMPRESSION_MIN_VISIBLE_PX("x-native-impression-min-px"),
+    LOCATION("Location"),
+    USER_AGENT("User-Agent"),
+    ACCEPT_LANGUAGE("Accept-Language"),
+    BROWSER_AGENT("X-Browser-Agent"),
 
     // Native Video fields
-    PLAY_VISIBLE_PERCENT("x-play-visible-percent"),
-    PAUSE_VISIBLE_PERCENT("x-pause-visible-percent"),
-    MAX_BUFFER_MS("x-max-buffer-ms"),
+    PLAY_VISIBLE_PERCENT("X-Play-Visible-Percent"),
+    PAUSE_VISIBLE_PERCENT("X-Pause-Visible-Percent"),
+    IMPRESSION_MIN_VISIBLE_PERCENT("X-Impression-Min-Visible-Percent"),
+    IMPRESSION_VISIBLE_MS("X-Impression-Visible-Ms"),
+    MAX_BUFFER_MS("X-Max-Buffer-Ms"),
 
     // Rewarded Ad fields
-    REWARDED_VIDEO_CURRENCY_NAME("x-rewarded-video-currency-name"),
-    REWARDED_VIDEO_CURRENCY_AMOUNT("x-rewarded-video-currency-amount"),
-    REWARDED_CURRENCIES("x-rewarded-currencies"),
-    REWARDED_VIDEO_COMPLETION_URL("x-rewarded-video-completion-url"),
-    REWARDED_DURATION("x-rewarded-duration"),
-    SHOULD_REWARD_ON_CLICK("x-should-reward-on-click"),
+    REWARDED_VIDEO_CURRENCY_NAME("X-Rewarded-Video-Currency-Name"),
+    REWARDED_VIDEO_CURRENCY_AMOUNT("X-Rewarded-Video-Currency-Amount"),
+    REWARDED_CURRENCIES("X-Rewarded-Currencies"),
+    REWARDED_VIDEO_COMPLETION_URL("X-Rewarded-Video-Completion-Url"),
+    REWARDED_DURATION("X-Rewarded-Duration"),
+    SHOULD_REWARD_ON_CLICK("X-Should-Reward-On-Click"),
 
     // Internal Video Trackers
-    VIDEO_TRACKERS("x-video-trackers"),
+    VIDEO_TRACKERS("X-Video-Trackers"),
 
-    // Viewability fields
-    VIDEO_VIEWABILITY_TRACKERS("x-video-viewability-trackers"),
-    DISABLE_VIEWABILITY("x-disable-viewability"),
-
-    // Advanced bidding fields
-    AD_RESPONSE_TYPE("x-ad-response-type"),
-    
-
-    // Client-side Waterfall
-    AD_RESPONSES("ad-responses"),
-    CONTENT("content"),
-    METADATA("metadata"),
-
-    BEFORE_LOAD_URL("x-before-load-url"),
-    AFTER_LOAD_URL("x-after-load-url"),
-
-    @Deprecated CUSTOM_SELECTOR("x-customselector"),
-
-    // Consent fields
-    INVALIDATE_CONSENT("invalidate_consent"),
-    FORCE_EXPLICIT_NO("force_explicit_no"),
-    REACQUIRE_CONSENT("reacquire_consent"),
-    CONSENT_CHANGE_REASON("consent_change_reason"),
-    FORCE_GDPR_APPLIES("force_gdpr_applies");
+    @Deprecated CUSTOM_SELECTOR("X-Customselector");
 
     private final String key;
     ResponseHeader(String key) {

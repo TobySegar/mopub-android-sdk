@@ -28,15 +28,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static com.mopub.network.TrackingRequest.makeVastTrackingHttpRequest;
 
 public class VastVideoConfig implements Serializable {
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 1L;
 
     @NonNull private final ArrayList<VastTracker> mImpressionTrackers;
     @NonNull private final ArrayList<VastFractionalProgressTracker> mFractionalTrackers;
@@ -48,7 +46,6 @@ public class VastVideoConfig implements Serializable {
     @NonNull private final ArrayList<VastTracker> mSkipTrackers;
     @NonNull private final ArrayList<VastTracker> mClickTrackers;
     @NonNull private final ArrayList<VastTracker> mErrorTrackers;
-
     @Nullable private String mClickThroughUrl;
     @Nullable private String mNetworkMediaFileUrl;
     @Nullable private String mDiskMediaFileUrl;
@@ -65,15 +62,9 @@ public class VastVideoConfig implements Serializable {
     @Nullable private String mCustomCloseIconUrl;
     @NonNull private DeviceUtils.ForceOrientation mCustomForceOrientation = DeviceUtils.ForceOrientation.FORCE_LANDSCAPE; // Default is forcing landscape
     @Nullable private VideoViewabilityTracker mVideoViewabilityTracker;
-    // Viewability
-    @NonNull private final Map<String, String> mExternalViewabilityTrackers;
-    @NonNull private final Set<String> mAvidJavascriptResources;
-    @NonNull private final Set<String> mMoatImpressionPixels;
 
     // MoPub-specific metadata
     private String mDspCreativeId;
-    private String mPrivacyInformationIconImageUrl;
-    private String mPrivacyInformationIconClickthroughUrl;
 
     /**
      * Flag to indicate if the VAST xml document has explicitly set the orientation as opposed to
@@ -95,10 +86,6 @@ public class VastVideoConfig implements Serializable {
         mErrorTrackers = new ArrayList<VastTracker>();
         mSocialActionsCompanionAds = new HashMap<String, VastCompanionAdConfig>();
         mIsRewardedVideo = false;
-
-        mExternalViewabilityTrackers = new HashMap<String, String>();
-        mAvidJavascriptResources = new HashSet<String>();
-        mMoatImpressionPixels = new HashSet<String>();
     }
 
     /**
@@ -254,25 +241,6 @@ public class VastVideoConfig implements Serializable {
         }
     }
 
-    public void addExternalViewabilityTrackers(
-            @Nullable final Map<String, String> externalViewabilityTrackers) {
-        if (externalViewabilityTrackers != null) {
-            mExternalViewabilityTrackers.putAll(externalViewabilityTrackers);
-        }
-    }
-
-    public void addAvidJavascriptResources(@Nullable final Set<String> javascriptResources) {
-        if (javascriptResources != null) {
-            mAvidJavascriptResources.addAll(javascriptResources);
-        }
-    }
-
-    public void addMoatImpressionPixels(@Nullable final Set<String> impressionPixels) {
-        if (impressionPixels != null) {
-            mMoatImpressionPixels.addAll(impressionPixels);
-        }
-    }
-
     public void setClickThroughUrl(@Nullable final String clickThroughUrl) {
         mClickThroughUrl = clickThroughUrl;
     }
@@ -339,16 +307,6 @@ public class VastVideoConfig implements Serializable {
 
     public void setIsRewardedVideo(final boolean isRewardedVideo) {
         mIsRewardedVideo = isRewardedVideo;
-    }
-
-    public void setPrivacyInformationIconImageUrl(
-            @Nullable final String privacyInformationIconImageUrl) {
-        mPrivacyInformationIconImageUrl = privacyInformationIconImageUrl;
-    }
-
-    public void setPrivacyInformationIconClickthroughUrl(
-            @Nullable final String privacyInformationIconClickthroughUrl) {
-        mPrivacyInformationIconClickthroughUrl = privacyInformationIconClickthroughUrl;
     }
 
     /**
@@ -467,21 +425,6 @@ public class VastVideoConfig implements Serializable {
         return mVideoViewabilityTracker;
     }
 
-    @NonNull
-    public Map<String, String> getExternalViewabilityTrackers() {
-        return mExternalViewabilityTrackers;
-    }
-
-    @NonNull
-    public Set<String> getAvidJavascriptResources() {
-        return mAvidJavascriptResources;
-    }
-
-    @NonNull
-    public Set<String> getMoatImpressionPixels() {
-        return mMoatImpressionPixels;
-    }
-
     public boolean isCustomForceOrientationSet() {
         return mIsForceOrientationSet;
     }
@@ -523,16 +466,6 @@ public class VastVideoConfig implements Serializable {
      */
     public boolean isRewardedVideo() {
         return mIsRewardedVideo;
-    }
-
-    @Nullable
-    public String getPrivacyInformationIconImageUrl() {
-        return mPrivacyInformationIconImageUrl;
-    }
-
-    @Nullable
-    public String getPrivacyInformationIconClickthroughUrl() {
-        return mPrivacyInformationIconClickthroughUrl;
     }
 
     /**

@@ -3,17 +3,12 @@ package com.mopub.mobileads;
 import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 
 import com.mopub.common.MediationSettings;
 import com.mopub.common.MoPubReward;
 import com.mopub.common.Preconditions;
-import com.mopub.common.SdkConfiguration;
-import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.ReflectionTarget;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -23,59 +18,11 @@ import java.util.Set;
 public class MoPubRewardedVideos {
 
     @ReflectionTarget
-    private static void initializeRewardedVideo(@NonNull Activity activity,
+    public static void initializeRewardedVideo(@NonNull Activity activity,
             MediationSettings... mediationSettings) {
         Preconditions.checkNotNull(activity);
 
         MoPubRewardedVideoManager.init(activity, mediationSettings);
-    }
-
-    @ReflectionTarget
-    private static void initializeRewardedVideo(@NonNull Activity activity,
-            @NonNull List<Class<? extends CustomEventRewardedVideo>> networksToInit,
-            MediationSettings... mediationSettings) {
-        Preconditions.checkNotNull(activity);
-        Preconditions.checkNotNull(networksToInit);
-
-        MoPubRewardedVideoManager.init(activity, mediationSettings);
-        MoPubRewardedVideoManager.initNetworks(activity, networksToInit);
-    }
-
-    /**
-     * Use MoPub#initializeSdk instead.
-     */
-    @ReflectionTarget
-    @SuppressWarnings("unchecked")
-    private static void initializeRewardedVideo(@NonNull final Activity activity,
-            @NonNull final SdkConfiguration sdkConfiguration) {
-        Preconditions.checkNotNull(activity);
-        Preconditions.checkNotNull(sdkConfiguration);
-
-        final List<String> networksToInit = sdkConfiguration.getNetworksToInit();
-        final List<Class<? extends CustomEventRewardedVideo>> classList = new ArrayList<>();
-        if (networksToInit != null) {
-            for (final String networkClassName : networksToInit) {
-                if (TextUtils.isEmpty(networkClassName)) {
-                    continue;
-                }
-                try {
-                    final Class networkClass = Class.forName(networkClassName);
-                    classList.add(networkClass.asSubclass(CustomEventRewardedVideo.class));
-                } catch (ClassNotFoundException e) {
-                    MoPubLog.w("Ignoring unknown class name " + networkClassName);
-                } catch (ClassCastException e) {
-                    MoPubLog.w(
-                            "Unable to cast " + networkClassName +
-                                    " to Class<? extends CustomEventRewardedVideo>.");
-                }
-            }
-        }
-
-        if (!classList.isEmpty()) {
-            initializeRewardedVideo(activity, classList, sdkConfiguration.getMediationSettings());
-        } else {
-            initializeRewardedVideo(activity, sdkConfiguration.getMediationSettings());
-        }
     }
 
     @ReflectionTarget
@@ -112,13 +59,6 @@ public class MoPubRewardedVideos {
         Preconditions.checkNotNull(adUnitId);
 
         MoPubRewardedVideoManager.showVideo(adUnitId);
-    }
-
-    @ReflectionTarget
-    public static void showRewardedVideo(@NonNull String adUnitId, @Nullable String customData) {
-        Preconditions.checkNotNull(adUnitId);
-
-        MoPubRewardedVideoManager.showVideo(adUnitId, customData);
     }
 
     @ReflectionTarget

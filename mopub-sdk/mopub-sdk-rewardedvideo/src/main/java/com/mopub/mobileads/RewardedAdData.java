@@ -32,8 +32,6 @@ class RewardedAdData {
     @NonNull
     private final Map<String, String> mAdUnitToServerCompletionUrlMap;
     @NonNull
-    private final Map<String, String> mAdUnitToCustomDataMap;
-    @NonNull
     private final Map<Class<? extends CustomEventRewardedAd>, MoPubReward> mCustomEventToRewardMap;
     @NonNull
     private final Map<TwoPartKey, Set<String>> mCustomEventToMoPubIdMap;
@@ -48,24 +46,18 @@ class RewardedAdData {
         mAdUnitToRewardMap = new TreeMap<String, MoPubReward>();
         mAdUnitToAvailableRewardsMap = new TreeMap<String, Set<MoPubReward>>();
         mAdUnitToServerCompletionUrlMap = new TreeMap<String, String>();
-        mAdUnitToCustomDataMap = new TreeMap<String, String>();
         mCustomEventToRewardMap = new HashMap<Class<? extends CustomEventRewardedAd>, MoPubReward>();
         mCustomEventToMoPubIdMap = new HashMap<TwoPartKey, Set<String>>();
     }
 
     @Nullable
-    CustomEventRewardedAd getCustomEvent(@Nullable String moPubId) {
+    CustomEventRewardedAd getCustomEvent(@NonNull String moPubId) {
         return mAdUnitToCustomEventMap.get(moPubId);
     }
 
     @Nullable
     MoPubReward getMoPubReward(@Nullable String moPubId) {
         return mAdUnitToRewardMap.get(moPubId);
-    }
-
-    @Nullable
-    String getCustomData(@Nullable String moPubId) {
-        return mAdUnitToCustomDataMap.get(moPubId);
     }
 
     void addAvailableReward(
@@ -138,13 +130,6 @@ class RewardedAdData {
         if (availableRewards != null && !availableRewards.isEmpty()) {
             availableRewards.clear();
         }
-    }
-
-    void resetSelectedReward(@NonNull String moPubId) {
-        Preconditions.checkNotNull(moPubId);
-
-        // Clear any reward previously selected for this AdUnit
-        updateAdUnitRewardMapping(moPubId, null, null);
     }
 
     @Nullable
@@ -279,13 +264,6 @@ class RewardedAdData {
         mCurrentlyShowingAdUnitId = currentAdUnitId;
     }
 
-    void updateAdUnitToCustomDataMapping(@NonNull final String moPubId,
-            @Nullable String customData) {
-        Preconditions.NoThrow.checkNotNull(moPubId);
-
-        mAdUnitToCustomDataMap.put(moPubId, customData);
-    }
-
     @Nullable
     String getCurrentlyShowingAdUnitId() {
         return mCurrentlyShowingAdUnitId;
@@ -307,7 +285,6 @@ class RewardedAdData {
         mAdUnitToRewardMap.clear();
         mAdUnitToAvailableRewardsMap.clear();
         mAdUnitToServerCompletionUrlMap.clear();
-        mAdUnitToCustomDataMap.clear();
         mCustomEventToRewardMap.clear();
         mCustomEventToMoPubIdMap.clear();
         mCurrentlyShowingAdUnitId = null;

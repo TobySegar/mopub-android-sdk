@@ -1,7 +1,6 @@
 package com.mopub.mobileads.factories;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 
 import com.mopub.common.AdReport;
 import com.mopub.mobileads.HtmlBannerWebView;
@@ -11,7 +10,6 @@ import static com.mopub.mobileads.CustomEventBanner.CustomEventBannerListener;
 public class HtmlBannerWebViewFactory {
     protected static HtmlBannerWebViewFactory instance = new HtmlBannerWebViewFactory();
 
-    @NonNull
     public static HtmlBannerWebView create(
             Context context,
             AdReport adReport,

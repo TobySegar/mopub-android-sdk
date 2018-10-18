@@ -2,10 +2,7 @@ package com.mopub.nativeads;
 
 import android.support.annotation.NonNull;
 
-import com.mopub.mobileads.MoPubError;
-
-public enum NativeErrorCode implements MoPubError {
-    AD_SUCCESS("ad successfully loaded."),
+public enum NativeErrorCode {
     EMPTY_AD_RESPONSE("Server returned empty response."),
     INVALID_RESPONSE("Unable to parse response from server."),
     IMAGE_DOWNLOAD_FAILURE("Unable to download images associated with ad."),
@@ -26,7 +23,7 @@ public enum NativeErrorCode implements MoPubError {
 
     private final String message;
 
-    NativeErrorCode(String message) {
+    private NativeErrorCode(String message) {
         this.message = message;
     }
 
@@ -35,18 +32,4 @@ public enum NativeErrorCode implements MoPubError {
     public final String toString() {
         return message;
     }
-
-    @Override
-    public int getIntCode() {
-        switch (this) {
-            case NETWORK_TIMEOUT:
-                return ER_TIMEOUT;
-            case NATIVE_ADAPTER_NOT_FOUND:
-                return ER_ADAPTER_NOT_FOUND;
-            case AD_SUCCESS:
-                return ER_SUCCESS;
-        }
-        return ER_UNSPECIFIED;
-    }
-
 }

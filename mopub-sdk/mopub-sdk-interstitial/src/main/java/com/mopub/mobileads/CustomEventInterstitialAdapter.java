@@ -5,16 +5,11 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.mopub.ads.Proxy;
 import com.mopub.common.AdReport;
 import com.mopub.common.Constants;
 import com.mopub.common.Preconditions;
-import com.mopub.common.VisibleForTesting;
 import com.mopub.common.logging.MoPubLog;
-import com.mopub.mobileads.CustomEventInterstitial;
 import com.mopub.mobileads.CustomEventInterstitial.CustomEventInterstitialListener;
-import com.mopub.mobileads.MoPubErrorCode;
-import com.mopub.mobileads.MoPubInterstitial;
 import com.mopub.mobileads.factories.CustomEventInterstitialFactory;
 
 import java.util.Map;
@@ -36,10 +31,8 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
     private Context mContext;
     private Map<String, Object> mLocalExtras;
     private Map<String, String> mServerExtras;
-    private long mBroadcastIdentifier;
     private final Handler mHandler;
     private final Runnable mTimeout;
-    private Proxy mProxy;
 
     public CustomEventInterstitialAdapter(@NonNull final MoPubInterstitial moPubInterstitial,
             @NonNull final String className,
@@ -49,7 +42,6 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         Preconditions.checkNotNull(serverExtras);
         mHandler = new Handler();
         mMoPubInterstitial = moPubInterstitial;
-        mBroadcastIdentifier = broadcastIdentifier;
         mContext = mMoPubInterstitial.getActivity();
         mTimeout = new Runnable() {
             @Override
@@ -100,15 +92,6 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
             return;
         }
 
-        //We use proxy activity for some ad networks
-        if(mCustomEventInterstitial.usesProxy()){
-            if (mProxy == null) {
-                mProxy = new Proxy();
-            }
-            mProxy.startProxyActivity(mContext,mCustomEventInterstitial);
-            return;
-        }
-
         // Custom event classes can be developed by any third party and may not be tested.
         // We catch all exceptions here to prevent crashes from untested code.
         try {
@@ -130,17 +113,11 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
                 MoPubLog.d("Invalidating a custom event interstitial threw an exception.", e);
             }
         }
-
         mCustomEventInterstitial = null;
         mContext = null;
         mServerExtras = null;
         mLocalExtras = null;
         mCustomEventInterstitialAdapterListener = null;
-        final WebViewCacheService.Config config =
-                WebViewCacheService.popWebViewConfig(mBroadcastIdentifier);
-        if (config != null) {
-            config.getWebView().destroy();
-        }
         mInvalidated = true;
     }
 
@@ -152,25 +129,18 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         mCustomEventInterstitialAdapterListener = listener;
     }
 
-    boolean isAutomaticImpressionAndClickTrackingEnabled() {
-        final CustomEventInterstitial customEventInterstitial = mCustomEventInterstitial;
-        if (customEventInterstitial == null) {
-            return true;
-        }
-
-        return customEventInterstitial.isAutomaticImpressionAndClickTrackingEnabled();
-    }
-
     private void cancelTimeout() {
         mHandler.removeCallbacks(mTimeout);
     }
 
     private int getTimeoutDelayMilliseconds() {
-        if (mMoPubInterstitial == null ) {
+        if (mMoPubInterstitial == null
+                || mMoPubInterstitial.getAdTimeoutDelay() == null
+                || mMoPubInterstitial.getAdTimeoutDelay() < 0) {
             return DEFAULT_INTERSTITIAL_TIMEOUT_DELAY;
         }
 
-        return mMoPubInterstitial.getAdTimeoutDelay(DEFAULT_INTERSTITIAL_TIMEOUT_DELAY);
+        return mMoPubInterstitial.getAdTimeoutDelay() * 1000;
     }
 
     interface CustomEventInterstitialAdapterListener {
@@ -178,7 +148,6 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         void onCustomEventInterstitialFailed(MoPubErrorCode errorCode);
         void onCustomEventInterstitialShown();
         void onCustomEventInterstitialClicked();
-        void onCustomEventInterstitialImpression();
         void onCustomEventInterstitialDismissed();
     }
 
@@ -236,17 +205,6 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
     }
 
     @Override
-    public void onInterstitialImpression() {
-        if (isInvalidated()) {
-            return;
-        }
-
-        if (mCustomEventInterstitialAdapterListener != null) {
-            mCustomEventInterstitialAdapterListener.onCustomEventInterstitialImpression();
-        }
-    }
-
-    @Override
     public void onLeaveApplication() {
         onInterstitialClicked();
     }
@@ -260,15 +218,6 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         if (mCustomEventInterstitialAdapterListener != null) {
             mCustomEventInterstitialAdapterListener.onCustomEventInterstitialDismissed();
         }
-
-        if(mProxy != null) {
-            mProxy.Finish();
-        }
-    }
-
-    @VisibleForTesting
-    void setProxy(Proxy proxy){
-        mProxy = proxy;
     }
 
     @Deprecated

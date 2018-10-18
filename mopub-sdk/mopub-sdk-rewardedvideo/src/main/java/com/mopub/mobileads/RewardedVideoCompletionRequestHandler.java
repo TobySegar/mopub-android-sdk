@@ -40,13 +40,10 @@ public class RewardedVideoCompletionRequestHandler implements
     private static final String API_VERSION_KEY = "&v=";
     private static final String REWARD_NAME_KEY = "&rcn=";
     private static final String REWARD_AMOUNT_KEY = "&rca=";
-    private static final String CUSTOM_EVENT_CLASS_NAME_KEY = "&cec=";
-    private static final String CUSTOM_DATA_KEY = "&rcd=";
 
     @NonNull private final String mUrl;
     @NonNull private final Handler mHandler;
     @NonNull private final RequestQueue mRequestQueue;
-    @NonNull private final Context mContext;
     private int mRetryCount;
     private volatile boolean mShouldStop;
 
@@ -54,21 +51,15 @@ public class RewardedVideoCompletionRequestHandler implements
             @NonNull final String url,
             @Nullable final String customerId,
             @NonNull final String rewardName,
-            @NonNull final String rewardAmount,
-            @Nullable final String className,
-            @Nullable final String customData) {
-        this(context, url, customerId, rewardName, rewardAmount, className, customData,
-                new Handler());
+            @NonNull final String rewardAmount) {
+        this(context, url, customerId, rewardName, rewardAmount, new Handler());
     }
 
-    @VisibleForTesting
     RewardedVideoCompletionRequestHandler(@NonNull final Context context,
             @NonNull final String url,
             @Nullable final String customerId,
             @NonNull final String rewardName,
             @NonNull final String rewardAmount,
-            @Nullable final String className,
-            @Nullable final String customData,
             @NonNull final Handler handler) {
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(url);
@@ -76,11 +67,10 @@ public class RewardedVideoCompletionRequestHandler implements
         Preconditions.checkNotNull(rewardAmount);
         Preconditions.checkNotNull(handler);
 
-        mUrl = appendParameters(url, customerId, rewardName, rewardAmount, className, customData);
+        mUrl = appendParameters(url, customerId, rewardName, rewardAmount);
         mRetryCount = 0;
         mHandler = handler;
         mRequestQueue = Networking.getRequestQueue(context);
-        mContext = context.getApplicationContext();
     }
 
     void makeRewardedVideoCompletionRequest() {
@@ -91,7 +81,7 @@ public class RewardedVideoCompletionRequestHandler implements
         }
 
         final RewardedVideoCompletionRequest rewardedVideoCompletionRequest =
-                new RewardedVideoCompletionRequest(mContext, mUrl,
+                new RewardedVideoCompletionRequest(mUrl,
                         new DefaultRetryPolicy(getTimeout(mRetryCount) - REQUEST_TIMEOUT_DELAY,
                                 0, 0f), this);
         rewardedVideoCompletionRequest.setTag(mUrl);
@@ -132,17 +122,13 @@ public class RewardedVideoCompletionRequestHandler implements
             @Nullable final String url,
             @Nullable final String customerId,
             @NonNull final String rewardName,
-            @NonNull final String rewardAmount,
-            @Nullable final String rewardedAd,
-            @Nullable final String customData) {
-        if (context == null || TextUtils.isEmpty(url) || rewardName == null ||
-                rewardAmount == null) {
+            @NonNull final String rewardAmount) {
+        if (context == null || TextUtils.isEmpty(url) || rewardName == null || rewardAmount == null) {
             return;
         }
 
         new RewardedVideoCompletionRequestHandler(context, url, customerId, rewardName,
-                rewardAmount, rewardedAd, customData)
-                .makeRewardedVideoCompletionRequest();
+                rewardAmount).makeRewardedVideoCompletionRequest();
     }
 
     static int getTimeout(int retryCount) {
@@ -156,29 +142,17 @@ public class RewardedVideoCompletionRequestHandler implements
     private static String appendParameters(@NonNull final String url,
             @Nullable final String customerId,
             @NonNull final String rewardName,
-            @NonNull final String rewardAmount,
-            @Nullable final String className,
-            @Nullable final String customData) {
+            @NonNull final String rewardAmount) {
         Preconditions.checkNotNull(url);
         Preconditions.checkNotNull(rewardName);
         Preconditions.checkNotNull(rewardAmount);
 
-        final StringBuilder stringBuilder = new StringBuilder(url);
-        stringBuilder
-                .append(CUSTOMER_ID_KEY).append((customerId == null) ? "" : Uri.encode(customerId))
-                .append(REWARD_NAME_KEY).append(Uri.encode(rewardName))
-                .append(REWARD_AMOUNT_KEY).append(Uri.encode(rewardAmount))
-                .append(SDK_VERSION_KEY).append(Uri.encode(MoPub.SDK_VERSION))
-                // Does not need to be encoded as it's an int
-                .append(API_VERSION_KEY).append(MoPubRewardedVideoManager.API_VERSION)
-                .append(CUSTOM_EVENT_CLASS_NAME_KEY)
-                .append((className == null) ? "" : Uri.encode(className));
-
-        if (!TextUtils.isEmpty(customData)) {
-            stringBuilder.append(CUSTOM_DATA_KEY).append(Uri.encode(customData));
-        }
-
-        return stringBuilder.toString();
+        return url +
+                CUSTOMER_ID_KEY + (customerId == null ? "" : Uri.encode(customerId)) +
+                REWARD_NAME_KEY + Uri.encode(rewardName) +
+                REWARD_AMOUNT_KEY + Uri.encode(rewardAmount) +
+                SDK_VERSION_KEY + Uri.encode(MoPub.SDK_VERSION) +
+                API_VERSION_KEY + MoPubRewardedVideoManager.API_VERSION;
     }
 
     @VisibleForTesting

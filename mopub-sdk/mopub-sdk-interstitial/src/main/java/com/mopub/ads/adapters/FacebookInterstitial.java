@@ -20,8 +20,8 @@ import java.util.Map;
 
 import static com.mopub.mobileads.MoPubErrorCode.EXPIRED;
 
-public class FacebookInterstitial extends CustomEventInterstitial implements InterstitialAdListener {
-    private static final int ONE_HOURS_MILLIS = 60 * 60 * 1000;
+public class FacebookInterstitial{// extends CustomEventInterstitial implements InterstitialAdListener {
+/*    private static final int ONE_HOURS_MILLIS = 60 * 60 * 1000;
     private static final String PLACEMENT_ID_KEY = "placement_id";
     private InterstitialAd mFacebookInterstitial;
     private CustomEventInterstitialListener mInterstitialListener;
@@ -38,17 +38,17 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
                     MoPubLog.d("Expiring unused Facebook Interstitial ad due to Facebook's 60-minute expiration policy.");
                     mInterstitialListener.onInterstitialFailed(EXPIRED);
 
-                    /* Can't get a direct handle to adFailed() to set the interstitial's state to IDLE: https://github.com/mopub/mopub-android-sdk/blob/4199080a1efd755641369715a4de5031d6072fbc/mopub-sdk/mopub-sdk-interstitial/src/main/java/com/mopub/mobileads/MoPubInterstitial.java#L91.
-                    So, invalidating the interstitial (destroying & nulling) instead. */
+                    *//* Can't get a direct handle to adFailed() to set the interstitial's state to IDLE: https://github.com/mopub/mopub-android-sdk/blob/4199080a1efd755641369715a4de5031d6072fbc/mopub-sdk/mopub-sdk-interstitial/src/main/java/com/mopub/mobileads/MoPubInterstitial.java#L91.
+                    So, invalidating the interstitial (destroying & nulling) instead. *//*
                     onInvalidate();
                 }
             }
         };
     }
 
-    /**
+    *//**
      * CustomEventInterstitial implementation
-     */
+     *//*
 
     @Override
     protected void loadInterstitial(final Context context,
@@ -114,9 +114,9 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
         }
     }
 
-    /**
+    *//**
      * InterstitialAdListener implementation
-     */
+     *//*
 
     @Override
     public void onAdLoaded(final Ad ad) {
@@ -183,5 +183,5 @@ public class FacebookInterstitial extends CustomEventInterstitial implements Int
 
     private void cancelExpirationTimer() {
         mHandler.removeCallbacks(mAdExpiration);
-    }
+    }*/
 }

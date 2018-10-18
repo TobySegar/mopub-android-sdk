@@ -1,77 +1,63 @@
 package com.mopub.network;
 
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.mopub.common.Preconditions;
-import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.ResponseHeader;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
 
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class HeaderUtils {
-
-    @NonNull
-    public static String extractHeader(@Nullable final JSONObject headers,
-            @NonNull final ResponseHeader responseHeader) {
-        Preconditions.checkNotNull(responseHeader);
-
-        if (headers == null) {
-            return "";
-        }
-
-        return headers.optString(responseHeader.getKey());
+    @Nullable
+    public static String extractHeader(Map<String, String> headers, ResponseHeader responseHeader) {
+        return headers.get(responseHeader.getKey());
     }
 
-    @Nullable
-    public static Integer extractIntegerHeader(JSONObject headers, ResponseHeader responseHeader) {
+    public static Integer extractIntegerHeader(Map<String, String> headers, ResponseHeader responseHeader) {
         return formatIntHeader(extractHeader(headers, responseHeader));
     }
 
-    public static boolean extractBooleanHeader(JSONObject headers, ResponseHeader responseHeader, boolean defaultValue) {
+    public static boolean extractBooleanHeader(Map<String, String> headers, ResponseHeader responseHeader, boolean defaultValue) {
         return formatBooleanHeader(extractHeader(headers, responseHeader), defaultValue);
     }
 
-    @Nullable
-    public static Integer extractPercentHeader(JSONObject headers, ResponseHeader responseHeader) {
+    public static Integer extractPercentHeader(Map<String, String> headers, ResponseHeader responseHeader) {
         return formatPercentHeader(extractHeader(headers, responseHeader));
     }
 
-    @NonNull
-    static List<String> extractStringArray(@NonNull final JSONObject headers,
-            @NonNull final ResponseHeader responseHeader) {
-        Preconditions.checkNotNull(headers);
-        Preconditions.checkNotNull(responseHeader);
-
-        final List<String> stringArray = new ArrayList<>();
-        final JSONArray jsonArray = headers.optJSONArray(responseHeader.getKey());
-        if (jsonArray == null) {
-            return stringArray;
-        }
-
-        for (int i = 0; i < jsonArray.length(); i++) {
-            try {
-                stringArray.add(jsonArray.getString(i));
-            } catch (JSONException e) {
-                MoPubLog.d("Unable to parse item " + i + " from " + responseHeader.getKey());
-            }
-        }
-
-        return stringArray;
-    }
-
     @Nullable
-    static String extractPercentHeaderString(JSONObject headers,
+    public static String extractPercentHeaderString(Map<String, String> headers,
             ResponseHeader responseHeader) {
         Integer percentHeaderValue = extractPercentHeader(headers, responseHeader);
         return percentHeaderValue != null ? percentHeaderValue.toString() : null;
+    }
+
+
+    public static String extractHeader(HttpResponse response, ResponseHeader responseHeader) {
+        Header header = response.getFirstHeader(responseHeader.getKey());
+        return header != null ? header.getValue() : null;
+    }
+
+    public static boolean extractBooleanHeader(HttpResponse response, ResponseHeader responseHeader, boolean defaultValue) {
+        return formatBooleanHeader(extractHeader(response, responseHeader), defaultValue);
+    }
+
+    public static Integer extractIntegerHeader(HttpResponse response, ResponseHeader responseHeader) {
+        String headerValue = extractHeader(response, responseHeader);
+        return formatIntHeader(headerValue);
+    }
+
+    public static int extractIntHeader(HttpResponse response, ResponseHeader responseHeader, int defaultValue) {
+        Integer headerValue = extractIntegerHeader(response, responseHeader);
+        if (headerValue == null) {
+            return defaultValue;
+        }
+
+        return headerValue;
     }
 
     private static boolean formatBooleanHeader(@Nullable String headerValue, boolean defaultValue) {
@@ -81,7 +67,6 @@ public class HeaderUtils {
         return headerValue.equals("1");
     }
 
-    @Nullable
     private static Integer formatIntHeader(String headerValue) {
         try {
             return Integer.parseInt(headerValue);

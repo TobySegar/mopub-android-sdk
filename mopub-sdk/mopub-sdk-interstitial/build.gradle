@@ -1,5 +1,15 @@
 apply from: '../shared-build.gradle'
-
+repositories {
+    flatDir {
+        dirs './libs'
+    }
+    google()
+    //maven { url 'https://s3.amazonaws.com/moat-sdk-builds'}
+    maven { url "https://maven.google.com" }
+    jcenter() // includes the MoPub SDK and AVID library
+    maven { url  "https://fyber.bintray.com/fairbid-maven" }
+    maven { url  "https://adcolony.bintray.com/AdColony" }
+}
 dependencies {
     compile project(':mopub-sdk-base')
 }

@@ -9,7 +9,6 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
@@ -125,16 +124,11 @@ public class NativeVideoViewController extends BaseVideoViewController implement
             public void onClick(View v) {
                 mNativeVideoController.setPlayWhenReady(false);
                 mCachedVideoFrame = mFullScreenVideoView.getTextureView().getBitmap();
-                String url = mVastVideoConfig.getPrivacyInformationIconClickthroughUrl();
-                if (TextUtils.isEmpty(url)) {
-                    url = MoPubVideoNativeAd.PRIVACY_INFORMATION_CLICKTHROUGH_URL;
-                }
                 new UrlHandler.Builder().withSupportedUrlActions(UrlAction.OPEN_IN_APP_BROWSER)
-                        .build().handleUrl(getContext(), url);
+                        .build().handleUrl(getContext(),
+                        MoPubVideoNativeAd.PRIVACY_INFORMATION_CLICKTHROUGH_URL);
             }
         });
-        mFullScreenVideoView.setPrivacyInformationIconImageUrl(
-                mVastVideoConfig.getPrivacyInformationIconImageUrl());
 
         final LayoutParams adViewLayout =
                 new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
@@ -247,7 +241,8 @@ public class NativeVideoViewController extends BaseVideoViewController implement
         } else if (mEnded) {
             newState = VideoState.ENDED;
         } else {
-            if (mLatestVideoControllerState == NativeVideoController.STATE_IDLE) {
+            if (mLatestVideoControllerState == NativeVideoController.STATE_PREPARING
+                    || mLatestVideoControllerState == NativeVideoController.STATE_IDLE) {
                 newState = VideoState.LOADING;
             } else if (mLatestVideoControllerState == NativeVideoController.STATE_BUFFERING) {
                 newState = VideoState.BUFFERING;

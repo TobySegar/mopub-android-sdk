@@ -1,22 +1,21 @@
 package com.mopub.common;
 
 import android.app.Activity;
-import android.content.Context;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.mopub.common.logging.MoPubLog;
-import com.mopub.common.privacy.PersonalInfoManager;
 import com.mopub.common.util.Reflection;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import static com.mopub.common.ExternalViewabilitySessionManager.ViewabilityVendor;
-
 public class MoPub {
-    public static final String SDK_VERSION = "5.3.0";
+    public static final String SDK_VERSION = "4.15.0";
+
+    public static Boolean isSdkInitialized() {
+        return false;
+    }
 
     public enum LocationAwareness { NORMAL, TRUNCATED, DISABLED }
 
@@ -55,6 +54,10 @@ public class MoPub {
             "com.mopub.mobileads.MoPubRewardedVideos";
     private static final String MOPUB_REWARDED_VIDEO_MANAGER =
             "com.mopub.mobileads.MoPubRewardedVideoManager";
+    private static final String MOPUB_REWARDED_VIDEO_LISTENER =
+            "com.mopub.mobileads.MoPubRewardedVideoListener";
+    private static final String MOPUB_REWARDED_VIDEO_MANAGER_REQUEST_PARAMETERS =
+            "com.mopub.mobileads.MoPubRewardedVideoManager$RequestParameters";
 
     private static final int DEFAULT_LOCATION_PRECISION = 6;
     private static final long DEFAULT_LOCATION_REFRESH_TIME_MILLIS = 60 * 1000;
@@ -66,11 +69,6 @@ public class MoPub {
     private static volatile boolean sIsBrowserAgentOverriddenByClient = false;
     private static boolean sSearchedForUpdateActivityMethod = false;
     @Nullable private static Method sUpdateActivityMethod;
-    private static boolean sAdvancedBiddingEnabled = true;
-    private static boolean sSdkInitialized = false;
-    private static boolean sSdkInitializing = false;
-    private static AdvancedBiddingTokens sAdvancedBiddingTokens;
-    private static PersonalInfoManager sPersonalInfoManager;
 
     @NonNull
     public static LocationAwareness getLocationAwareness() {
@@ -131,113 +129,6 @@ public class MoPub {
         return sBrowserAgent;
     }
 
-    public static void setAdvancedBiddingEnabled(final boolean advancedBiddingEnabled) {
-        sAdvancedBiddingEnabled = advancedBiddingEnabled;
-    }
-
-    public static boolean isAdvancedBiddingEnabled() {
-        return sAdvancedBiddingEnabled;
-    }
-
-    /**
-     * Initializes the MoPub SDK. Call this before making any rewarded ads or advanced bidding
-     * requests. This will do the rewarded video custom event initialization any number of times,
-     * but the SDK itself can only be initialized once, and the rewarded ads module can only be
-     * initialized once.
-     *
-     * @param context                   Recommended to be an activity context.
-     *                                  Rewarded ads initialization requires an Activity.
-     * @param sdkConfiguration          Configuration data to initialize the SDK.
-     * @param sdkInitializationListener Callback for when SDK initialization finishes.
-     */
-    public static void initializeSdk(@NonNull final Context context,
-            @NonNull final SdkConfiguration sdkConfiguration,
-            @Nullable final SdkInitializationListener sdkInitializationListener) {
-        Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(sdkConfiguration);
-
-        // This also initializes MoPubLog
-        MoPubLog.d("Initializing MoPub with ad unit: " + sdkConfiguration.getAdUnitId());
-
-        if (context instanceof Activity && Reflection.classFound(MOPUB_REWARDED_VIDEO_MANAGER)) {
-            final Activity activity = (Activity) context;
-            initializeRewardedVideo(activity, sdkConfiguration);
-        }
-
-        if (sSdkInitialized) {
-            MoPubLog.d("MoPub SDK is already initialized");
-            return;
-        }
-        if (sSdkInitializing) {
-            MoPubLog.d("MoPub SDK is currently initializing.");
-            return;
-        }
-
-        if (Looper.getMainLooper() != Looper.myLooper()) {
-            MoPubLog.e("MoPub can only be initialized on the main thread.");
-            return;
-        }
-
-        sSdkInitializing = true;
-
-        final SdkInitializationListener internalSdkInitializationListener = new SdkInitializationListener() {
-            @Override
-            public void onInitializationFinished() {
-                sSdkInitializing = false;
-                sSdkInitialized = true;
-                if (sdkInitializationListener != null) {
-                    sdkInitializationListener.onInitializationFinished();
-                }
-            }
-        };
-        final SdkInitializationListener compositeSdkInitializationListener =
-                new CompositeSdkInitializationListener(internalSdkInitializationListener, 2);
-
-        sPersonalInfoManager = new PersonalInfoManager(context, sdkConfiguration.getAdUnitId(),
-                compositeSdkInitializationListener);
-
-        ClientMetadata.getInstance(context);
-
-        sAdvancedBiddingTokens = new AdvancedBiddingTokens(compositeSdkInitializationListener);
-        sAdvancedBiddingTokens.addAdvancedBidders(sdkConfiguration.getAdvancedBidders());
-    }
-
-    /**
-     * @return true if SDK is initialized.
-     */
-    public static boolean isSdkInitialized() {
-        return sSdkInitialized;
-    }
-
-    /**
-     * Check this to see if you are allowed to collect personal user data.
-     *
-     * @return True if allowed, false otherwise.
-     */
-    public static boolean canCollectPersonalInformation() {
-        return sPersonalInfoManager != null && sPersonalInfoManager.canCollectPersonalInformation();
-    }
-
-    @Nullable
-    static String getAdvancedBiddingTokensJson(@NonNull final Context context) {
-        Preconditions.checkNotNull(context);
-
-        if (!isAdvancedBiddingEnabled() || sAdvancedBiddingTokens == null) {
-            return null;
-        }
-        return sAdvancedBiddingTokens.getTokensAsJsonString(context);
-    }
-
-    /**
-     * Gets the consent manager for handling user data.
-     *
-     * @return A PersonalInfoManager that handles consent management.
-     */
-    @Nullable
-    public static PersonalInfoManager getPersonalInformationManager() {
-        return sPersonalInfoManager;
-    }
-
     @VisibleForTesting
     static boolean isBrowserAgentOverriddenByClient() {
         return sIsBrowserAgentOverriddenByClient;
@@ -288,22 +179,24 @@ public class MoPub {
         MoPubLifecycleManager.getInstance(activity).onBackPressed(activity);
     }
 
-    public static void disableViewability(@NonNull final ViewabilityVendor vendor) {
-        Preconditions.checkNotNull(vendor);
+    ////////// MoPub RewardedVideoControl methods //////////
+    // These methods have been deprecated as of release 4.9 due to SDK modularization. MoPub is
+    // inside of the base module while MoPubRewardedVideos is inside of the rewarded video module.
+    // MoPubRewardedVideos methods must now be called with reflection because the publisher
+    // may have excluded the rewarded video module.
 
-        vendor.disable();
-    }
 
-    private static void initializeRewardedVideo(@NonNull Activity activity, @NonNull SdkConfiguration sdkConfiguration) {
-        Preconditions.checkNotNull(activity);
-        Preconditions.checkNotNull(sdkConfiguration);
-
+    /**
+     * @deprecated As of release 4.9, use MoPubRewardedVideos#initializeRewardedVideo instead
+     */
+    @Deprecated
+    public static void initializeRewardedVideo(@NonNull Activity activity, MediationSettings... mediationSettings) {
         try {
             new Reflection.MethodBuilder(null, "initializeRewardedVideo")
                     .setStatic(Class.forName(MOPUB_REWARDED_VIDEOS))
-                    .setAccessible()
                     .addParam(Activity.class, activity)
-                    .addParam(SdkConfiguration.class, sdkConfiguration).execute();
+                    .addParam(MediationSettings[].class, mediationSettings)
+                    .execute();
         } catch (ClassNotFoundException e) {
             MoPubLog.w("initializeRewardedVideo was called without the rewarded video module");
         } catch (NoSuchMethodException e) {
@@ -342,17 +235,97 @@ public class MoPub {
         }
     }
 
+    /**
+     * @deprecated As of release 4.9, use MoPubRewardedVideos#setRewardedVideoListener instead
+     */
     @Deprecated
-    @VisibleForTesting
-    static void clearAdvancedBidders() {
-        sAdvancedBiddingTokens = null;
-        sPersonalInfoManager = null;
-        sSdkInitialized = false;
+    public static void setRewardedVideoListener(@Nullable Object listener) {
+        try {
+            Class moPubRewardedVideoListenerClass = Class.forName(
+                    MOPUB_REWARDED_VIDEO_LISTENER);
+            new Reflection.MethodBuilder(null, "setRewardedVideoListener")
+                    .setStatic(Class.forName(MOPUB_REWARDED_VIDEOS))
+                    .addParam(moPubRewardedVideoListenerClass, listener)
+                    .execute();
+        } catch (ClassNotFoundException e) {
+            MoPubLog.w("setRewardedVideoListener was called without the rewarded video module");
+        } catch (NoSuchMethodException e) {
+            MoPubLog.w("setRewardedVideoListener was called without the rewarded video module");
+        } catch (Exception e) {
+            MoPubLog.e("Error while setting rewarded video listener", e);
+        }
     }
 
+    /**
+     * @deprecated As of release 4.9, use MoPubRewardedVideos#loadRewardedVideo instead
+     */
     @Deprecated
-    @VisibleForTesting
-    static void setPersonalInfoManager(@Nullable final PersonalInfoManager personalInfoManager) {
-        sPersonalInfoManager = personalInfoManager;
+    public static void loadRewardedVideo(@NonNull String adUnitId,
+            @Nullable MediationSettings... mediationSettings) {
+        MoPub.loadRewardedVideo(adUnitId, null, mediationSettings);
+    }
+
+    /**
+     * @deprecated As of release 4.9, use MoPubRewardedVideos#loadRewardedVideo instead
+     */
+    @Deprecated
+    public static void loadRewardedVideo(@NonNull String adUnitId,
+            @Nullable Object requestParameters,
+            @Nullable MediationSettings... mediationSettings) {
+        try {
+            Class requestParametersClass = Class.forName(
+                    MOPUB_REWARDED_VIDEO_MANAGER_REQUEST_PARAMETERS);
+            new Reflection.MethodBuilder(null, "loadRewardedVideo")
+                    .setStatic(Class.forName(MOPUB_REWARDED_VIDEOS))
+                    .addParam(String.class, adUnitId)
+                    .addParam(requestParametersClass, requestParameters)
+                    .addParam(MediationSettings[].class, mediationSettings)
+                    .execute();
+        } catch (ClassNotFoundException e) {
+            MoPubLog.w("loadRewardedVideo was called without the rewarded video module");
+        } catch (NoSuchMethodException e) {
+            MoPubLog.w("loadRewardedVideo was called without the rewarded video module");
+        } catch (Exception e) {
+            MoPubLog.e("Error while loading rewarded video", e);
+        }
+    }
+
+    /**
+     * @deprecated As of release 4.9, use MoPubRewardedVideos#hasRewardedVideo instead
+     */
+    @Deprecated
+    public static boolean hasRewardedVideo(@NonNull String adUnitId) {
+        try {
+            return (boolean) new Reflection.MethodBuilder(null, "hasRewardedVideo")
+                    .setStatic(Class.forName(MOPUB_REWARDED_VIDEOS))
+                    .addParam(String.class, adUnitId)
+                    .execute();
+        } catch (ClassNotFoundException e) {
+            MoPubLog.w("hasRewardedVideo was called without the rewarded video module");
+        } catch (NoSuchMethodException e) {
+            MoPubLog.w("hasRewardedVideo was called without the rewarded video module");
+        } catch (Exception e) {
+            MoPubLog.e("Error while checking rewarded video", e);
+        }
+        return false;
+    }
+
+    /**
+     * @deprecated As of release 4.9, use MoPubRewardedVideos#showRewardedVideo instead
+     */
+    @Deprecated
+    public static void showRewardedVideo(@NonNull String adUnitId) {
+        try {
+            new Reflection.MethodBuilder(null, "showRewardedVideo")
+                    .setStatic(Class.forName(MOPUB_REWARDED_VIDEOS))
+                    .addParam(String.class, adUnitId)
+                    .execute();
+        } catch (ClassNotFoundException e) {
+            MoPubLog.w("showRewardedVideo was called without the rewarded video module");
+        } catch (NoSuchMethodException e) {
+            MoPubLog.w("showRewardedVideo was called without the rewarded video module");
+        } catch (Exception e) {
+            MoPubLog.e("Error while showing rewarded video", e);
+        }
     }
 }

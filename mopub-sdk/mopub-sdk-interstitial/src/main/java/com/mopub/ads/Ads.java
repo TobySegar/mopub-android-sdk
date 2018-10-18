@@ -14,6 +14,7 @@ import android.view.ViewConfiguration;
 import android.widget.Toast;
 
 import com.google.android.gms.ads.MobileAds;
+import com.heyzap.sdk.ads.HeyzapAds;
 import com.mojang.base.*;
 import com.mojang.base.events.AppEvent;
 import com.mojang.base.events.GameEvent;
@@ -23,15 +24,10 @@ import com.mojang.base.json.Data;
 import com.mopub.ads.adapters.GooglePlayServicesInterstitial;
 import com.mopub.common.ClientMetadata;
 import com.mopub.common.MoPub;
-import com.mopub.common.SdkConfiguration;
-import com.mopub.common.SdkInitializationListener;
-import com.mopub.common.privacy.ConsentDialogListener;
-import com.mopub.common.privacy.PersonalInfoManager;
-import com.mopub.mobileads.AdViewController;
-import com.mopub.mobileads.MoPubErrorCode;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONObject;
 
 import java.lang.reflect.Method;
 
@@ -200,9 +196,12 @@ public class Ads {
         return  Helper.isDebugPackage(activity) ? DEBUG_MOPUB_INTERSTITIAL_ID : Data.Ads.Interstitial.mopubId;
     }
     private static void initializeMoPub(Activity activity, final Runnable runAfter) {
-        if (!MoPub.isSdkInitialized() && Data.Ads.enabled) {
+        //todo wao fake isSdkInitialized zaplata method
+        if (!HeyzapAds.hasStarted() && Data.Ads.enabled) {// || !MoPub.isSdkInitialized() && Data.Ads.enabled) {
             Logger.Log("::Ads", "::Initializing MoPub");
-            MoPub.initializeSdk(
+            HeyzapAds.start(Data.Ads.Interstitial.heyzapid, activity, HeyzapAds.DISABLE_AUTOMATIC_FETCH);
+            Ads.showMoPubConsentDialog(runAfter, activity);
+           /* MoPub.initializeSdk(
                     activity,
                     new SdkConfiguration.Builder(getMopubId(activity)).build(),
                     new SdkInitializationListener() {
@@ -210,7 +209,7 @@ public class Ads {
                         public void onInitializationFinished() {
                             Ads.showMoPubConsentDialog(runAfter);
                         }
-                    });
+                    });*/
         } else {
             Logger.Log("::Ads", "::Failed MoPub Initialization because" +
                     " MoPub.isSdkInitialized() = " + MoPub.isSdkInitialized() + " Data.Ads.enabled " + Data.Ads.enabled );
@@ -218,9 +217,11 @@ public class Ads {
         }
     }
 
-    private static void showMoPubConsentDialog(final Runnable doAfterDialog) {
-        if (MoPub.isSdkInitialized()) {
-            // CONSENT DIALOG FOR MOPUB
+    private static void showMoPubConsentDialog(final Runnable doAfterDialog, Activity activity) {
+        if (true ) {
+            HeyzapAds.setGdprConsent(true, activity);
+            doAfterDialog.run();
+           /* // CONSENT DIALOG FOR MOPUB
             final PersonalInfoManager mPersonalInfoManager = MoPub.getPersonalInformationManager();
             if (mPersonalInfoManager != null && mPersonalInfoManager.shouldShowConsentDialog()) {
                 mPersonalInfoManager.loadConsentDialog(new ConsentDialogListener() {
@@ -237,13 +238,10 @@ public class Ads {
                         Logger.Log("::Ads", "::Consent dialog failed to load.");
                         doAfterDialog.run();
                     }
-                });
+                });*/
             } else {
                 doAfterDialog.run();
             }
-        } else {
-            doAfterDialog.run();
-        }
     }
 
     private void callNativeBackPressed() {
@@ -367,7 +365,9 @@ public class Ads {
     @Nullable
     private String getCountryCodeFromMopub() {
         try {
-            String c1 = AdViewController.getCountryCodeFromMopubResponse();
+            //todo wao zaplata old sdk of mopub
+            String c1 = null; //AdViewController.getCountryCodeFromMopubResponse();
+
             if (c1 != null) return c1.toUpperCase();
             if (ClientMetadata.getInstance() != null) {
                 String c2 = ClientMetadata.getInstance().getIsoCountryCode();

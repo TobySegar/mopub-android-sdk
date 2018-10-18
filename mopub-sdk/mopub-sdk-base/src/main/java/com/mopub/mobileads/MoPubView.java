@@ -11,9 +11,11 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.View;
+import android.webkit.WebViewDatabase;
 import android.widget.FrameLayout;
 
-import com.mopub.common.*;
+import com.mopub.common.AdFormat;
+import com.mopub.common.AdReport;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.ManifestUtils;
 import com.mopub.common.util.Reflection;
@@ -22,8 +24,6 @@ import com.mopub.mobileads.factories.AdViewControllerFactory;
 
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.mopub.mobileads.MoPubErrorCode.ADAPTER_NOT_FOUND;
 
@@ -64,6 +64,25 @@ public class MoPubView extends FrameLayout {
 
         setHorizontalScrollBarEnabled(false);
         setVerticalScrollBarEnabled(false);
+
+        try {
+            // There is a rare bug in Froyo/2.2 where creation of a WebView causes a
+            // NullPointerException. (https://code.google.com/p/android/issues/detail?id=10789)
+            // It happens when the WebView can't access the local file store to make a cache file.
+            // Here, we'll work around it by trying to create a file store and then just go inert
+            // if it's not accessible.
+            if (WebViewDatabase.getInstance(context) == null) {
+                MoPubLog.e("Disabling MoPub. Local cache file is inaccessible so MoPub will " +
+                        "fail if we try to create a WebView. Details of this Android bug found at:" +
+                        "https://code.google.com/p/android/issues/detail?id=10789");
+                return;
+            }
+        } catch (Exception e) {
+            // If anything goes wrong here, it's most likely due to not having a WebView at all.
+            // This happens when Android updates WebView.
+            MoPubLog.e("Disabling MoPub due to no WebView, or it's being updated", e);
+            return;
+        }
 
         mAdViewController = AdViewControllerFactory.create(context, this);
         registerScreenStateBroadcastReceiver();
@@ -136,12 +155,8 @@ public class MoPubView extends FrameLayout {
         }
     }
 
-    @NonNull
-    Integer getAdTimeoutDelay(int defaultValue) {
-        if (mAdViewController == null) {
-            return defaultValue;
-        }
-        return mAdViewController.getAdTimeoutDelay(defaultValue);
+    Integer getAdTimeoutDelay() {
+        return (mAdViewController != null) ? mAdViewController.getAdTimeoutDelay() : null;
     }
 
     protected boolean loadFailUrl(@NonNull final MoPubErrorCode errorCode) {
@@ -155,7 +170,6 @@ public class MoPubView extends FrameLayout {
         if (mAdViewController == null) {
             return;
         }
-
         if (TextUtils.isEmpty(customEventClassName)) {
             MoPubLog.d("Couldn't invoke custom event because the server did not specify one.");
             loadFailUrl(ADAPTER_NOT_FOUND);
@@ -257,10 +271,8 @@ public class MoPubView extends FrameLayout {
         }
     }
 
-    protected void creativeDownloaded() {
-        if (mAdViewController != null) {
-            mAdViewController.creativeDownloadSuccess();
-        }
+    protected void nativeAdLoaded() {
+        if (mAdViewController != null) mAdViewController.scheduleRefreshTimerIfEnabled();
         adLoaded();
     }
 
@@ -279,27 +291,15 @@ public class MoPubView extends FrameLayout {
     }
 
     public String getKeywords() {
-        return (mAdViewController != null) ? mAdViewController.getKeywords(): null;
-    }
-
-    public void setUserDataKeywords(String userDataKeywords) {
-        if (mAdViewController != null && MoPub.canCollectPersonalInformation()) {
-            mAdViewController.setUserDataKeywords(userDataKeywords);
-        }
-    }
-
-    public String getUserDataKeywords() {
-        return (mAdViewController != null && MoPub.canCollectPersonalInformation()) ? mAdViewController.getUserDataKeywords() : null;
+        return (mAdViewController != null) ? mAdViewController.getKeywords() : null;
     }
 
     public void setLocation(Location location) {
-        if (mAdViewController != null && MoPub.canCollectPersonalInformation()) {
-            mAdViewController.setLocation(location);
-        }
+        if (mAdViewController != null) mAdViewController.setLocation(location);
     }
 
     public Location getLocation() {
-        return (mAdViewController != null && MoPub.canCollectPersonalInformation()) ? mAdViewController.getLocation() : null;
+        return (mAdViewController != null) ? mAdViewController.getLocation() : null;
     }
 
     public int getAdWidth() {
@@ -336,30 +336,6 @@ public class MoPubView extends FrameLayout {
     public void setAutorefreshEnabled(boolean enabled) {
         if (mAdViewController != null) {
             mAdViewController.setShouldAllowAutoRefresh(enabled);
-        }
-    }
-
-    void pauseAutorefresh() {
-        if (mAdViewController != null) {
-            mAdViewController.pauseRefresh();
-        }
-    }
-
-    void resumeAutorefresh() {
-        if (mAdViewController != null) {
-            mAdViewController.resumeRefresh();
-        }
-    }
-
-    void expand() {
-        if (mAdViewController != null) {
-            mAdViewController.expand();
-        }
-    }
-
-    void collapse() {
-        if (mAdViewController != null) {
-            mAdViewController.collapse();
         }
     }
 

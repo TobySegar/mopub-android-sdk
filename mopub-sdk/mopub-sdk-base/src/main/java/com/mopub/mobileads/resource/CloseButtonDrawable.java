@@ -1,6 +1,7 @@
 package com.mopub.mobileads.resource;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 
 public class CloseButtonDrawable extends BaseWidgetDrawable {

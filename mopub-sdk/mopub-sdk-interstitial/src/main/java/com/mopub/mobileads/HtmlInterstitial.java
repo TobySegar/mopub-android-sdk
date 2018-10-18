@@ -31,8 +31,7 @@ public class HtmlInterstitial extends ResponseBodyInterstitial {
 
     @Override
     protected void preRenderHtml(CustomEventInterstitialListener customEventInterstitialListener) {
-        MoPubActivity.preRenderHtml(this, mContext, mAdReport, customEventInterstitialListener, mHtmlData,
-                mIsScrollable, mRedirectUrl, mClickthroughUrl, mBroadcastIdentifier);
+        MoPubActivity.preRenderHtml(mContext, mAdReport, customEventInterstitialListener, mHtmlData);
     }
 
     @Override
@@ -40,10 +39,5 @@ public class HtmlInterstitial extends ResponseBodyInterstitial {
         MoPubActivity.start(mContext, mHtmlData, mAdReport, mIsScrollable,
                 mRedirectUrl, mClickthroughUrl, mOrientation,
                 mBroadcastIdentifier);
-    }
-
-    @Override
-    protected boolean usesProxy() {
-        return false;
     }
 }

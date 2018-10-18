@@ -13,13 +13,12 @@ import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
 import com.mopub.common.IntentActions;
-import com.mopub.common.Preconditions;
 import com.mopub.common.logging.MoPubLog;
 
 public abstract class BaseVideoViewController {
     private final Context mContext;
     private final RelativeLayout mLayout;
-    @NonNull private final BaseVideoViewControllerListener mBaseVideoViewControllerListener;
+    private final BaseVideoViewControllerListener mBaseVideoViewControllerListener;
     @Nullable private Long mBroadcastIdentifier;
 
     public interface BaseVideoViewControllerListener {
@@ -31,11 +30,7 @@ public abstract class BaseVideoViewController {
                 final Bundle extras);
     }
 
-    protected BaseVideoViewController(final Context context,
-            @Nullable final Long broadcastIdentifier,
-            @NonNull final BaseVideoViewControllerListener baseVideoViewControllerListener) {
-        Preconditions.checkNotNull(baseVideoViewControllerListener);
-
+    protected BaseVideoViewController(final Context context, @Nullable final Long broadcastIdentifier, final BaseVideoViewControllerListener baseVideoViewControllerListener) {
         mContext = context;
         mBroadcastIdentifier = broadcastIdentifier;
         mBaseVideoViewControllerListener = baseVideoViewControllerListener;
@@ -66,7 +61,6 @@ public abstract class BaseVideoViewController {
         // By default, the activity result is ignored
     }
 
-    @NonNull
     protected BaseVideoViewControllerListener getBaseVideoViewControllerListener() {
         return mBaseVideoViewControllerListener;
     }

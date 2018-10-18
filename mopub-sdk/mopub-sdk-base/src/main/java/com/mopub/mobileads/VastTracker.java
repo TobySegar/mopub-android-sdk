@@ -11,26 +11,14 @@ import java.io.Serializable;
  * progress trackers are only called once, but error trackers are repeatable.
  */
 public class VastTracker implements Serializable {
-    private static final long serialVersionUID = 1L;
-
-    @NonNull private final MessageType mMessageType;
-    @NonNull private final String mContent;
+    private static final long serialVersionUID = 0L;
+    @NonNull protected final String mTrackingUrl;
     private boolean mCalled;
     private boolean mIsRepeatable;
 
-    enum MessageType { TRACKING_URL, QUARTILE_EVENT }
-
-    public VastTracker(@NonNull final MessageType messageType, @NonNull final String content) {
-        Preconditions.checkNotNull(messageType);
-        Preconditions.checkNotNull(content);
-
-        mMessageType = messageType;
-        mContent = content;
-    }
-
-    // Legacy implementation implied URL tracking
-    public VastTracker(@NonNull final String trackingUrl) {
-        this(MessageType.TRACKING_URL, trackingUrl);
+    public VastTracker(@NonNull String trackingUrl) {
+        Preconditions.checkNotNull(trackingUrl);
+        mTrackingUrl = trackingUrl;
     }
 
     public VastTracker(@NonNull String trackingUrl, boolean isRepeatable) {
@@ -39,13 +27,8 @@ public class VastTracker implements Serializable {
     }
 
     @NonNull
-    public MessageType getMessageType() {
-        return mMessageType;
-    }
-
-    @NonNull
-    public String getContent() {
-        return mContent;
+    public String getTrackingUrl() {
+        return mTrackingUrl;
     }
 
     public void setTracked() {

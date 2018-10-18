@@ -4,14 +4,11 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
-import com.mojang.base.Analytics;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.AsyncTasks;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -62,11 +59,6 @@ public class UrlResolutionTask extends AsyncTask<String, Void, String> {
                     return locationUrl;
                 }
 
-                // Do not resolve redirects if native browser will handle the URL.
-                if (UrlAction.OPEN_NATIVE_BROWSER.shouldTryHandlingUrl(Uri.parse(locationUrl))) {
-                    return locationUrl;
-                }
-
                 previousUrl = locationUrl;
                 locationUrl = getRedirectLocation(locationUrl);
                 redirectCount++;
@@ -76,15 +68,14 @@ public class UrlResolutionTask extends AsyncTask<String, Void, String> {
             return null;
         } catch (URISyntaxException e) {
             return null;
-        } catch (NullPointerException e) {
-            return null;
         }
 
         return previousUrl;
     }
 
     @Nullable
-    private String getRedirectLocation(@NonNull final String urlString) throws IOException, URISyntaxException {
+    private String getRedirectLocation(@NonNull final String urlString) throws IOException,
+            URISyntaxException {
         final URL url = new URL(urlString);
 
         HttpURLConnection httpUrlConnection = null;
@@ -95,14 +86,6 @@ public class UrlResolutionTask extends AsyncTask<String, Void, String> {
             return resolveRedirectLocation(urlString, httpUrlConnection);
         } finally {
             if (httpUrlConnection != null) {
-                final InputStream is = httpUrlConnection.getInputStream();
-                if (is != null) {
-                    try {
-                        is.close();
-                    } catch (IOException e) {
-                        MoPubLog.d("IOException when closing httpUrlConnection. Ignoring.");
-                    }
-                }
                 httpUrlConnection.disconnect();
             }
         }
@@ -114,7 +97,7 @@ public class UrlResolutionTask extends AsyncTask<String, Void, String> {
             @NonNull final HttpURLConnection httpUrlConnection) throws IOException, URISyntaxException {
         final URI baseUri = new URI(baseUrl);
         final int responseCode = httpUrlConnection.getResponseCode();
-        final String redirectUrl = httpUrlConnection.getHeaderField("location");
+        final String redirectUrl = httpUrlConnection.getHeaderField("Location");
         String result = null;
 
         if (responseCode >= 300 && responseCode < 400) {
@@ -124,11 +107,7 @@ public class UrlResolutionTask extends AsyncTask<String, Void, String> {
                 result =  baseUri.resolve(redirectUrl).toString();
             } catch (IllegalArgumentException e) {
                 // Ensure the request is cancelled instead of resolving an intermediary URL
-                MoPubLog.d("Invalid URL redirection. baseUrl=" + baseUrl + "\n redirectUrl=" + redirectUrl);
                 throw new URISyntaxException(redirectUrl, "Unable to parse invalid URL");
-            } catch (NullPointerException e) {
-                MoPubLog.d("Invalid URL redirection. baseUrl=" + baseUrl + "\n redirectUrl=" + redirectUrl);
-                throw e;
             }
         }
 
@@ -140,9 +119,6 @@ public class UrlResolutionTask extends AsyncTask<String, Void, String> {
         super.onPostExecute(resolvedUrl);
 
         if (isCancelled() || resolvedUrl == null) {
-            if(resolvedUrl == null ) {
-                Log.d("MoPub", "onPostExecute: ResolveUrl Null");
-            }
             onCancelled();
         } else {
             mListener.onSuccess(resolvedUrl);
