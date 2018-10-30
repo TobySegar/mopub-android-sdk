@@ -35,11 +35,11 @@ dependencies {
     compile 'com.mopub.volley:mopub-volley:1.1.0'
 
     compile project(':base')
-    compile 'com.google.android.gms:play-services-ads:15.0.1'
-    compile 'com.google.android.gms:play-services-location:15.0.1'
+    compile 'com.google.android.gms:play-services-ads:16.0.0'
+    compile 'com.google.android.gms:play-services-location:16.0.0'
 
-    compile "com.google.android.gms:play-services-base:15.0.1"
-    compile "com.google.android.gms:play-services-ads-identifier:15.0.1"
+    compile "com.google.android.gms:play-services-base:16.0.1"
+    compile "com.google.android.gms:play-services-ads-identifier:16.0.0"
 
 
     compile project(':unity-ads')
@@ -47,7 +47,7 @@ dependencies {
 
 
 // AppLovin
-  compile 'com.applovin:applovin-sdk:8.1.0'
+  //compile 'com.applovin:applovin-sdk:8.1.0'
 
 // Facebook Audience Network
    //compile 'com.facebook.android:audience-network-sdk:5+'

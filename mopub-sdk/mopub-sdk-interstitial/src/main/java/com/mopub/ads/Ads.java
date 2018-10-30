@@ -58,7 +58,6 @@ public class Ads {
     private Method nativeBackPressedMethod;
     private boolean pauseScreenShowed;
 
-
     public Ads(Activity activity, Interstitial interstitial, RewardedVideo rewardedVideo, Banner banner) {
         if (Ads.instance == null) {
             instance = this;
@@ -127,9 +126,10 @@ public class Ads {
                 }
                 break;
             case Dismissed:
+                Logger.Log("::called -- Dismissed event");
                 Helper.setNormalVolume(activity);
                 hideNavigationBar(activity);
-                callNativeBackPressed();
+                callNativeBackPressed(800);
                 nesmrtelnost(false, 15000);
                 break;
             case Shown:
@@ -199,6 +199,7 @@ public class Ads {
         //todo wao fake isSdkInitialized zaplata method
         if (!HeyzapAds.hasStarted() && Data.Ads.enabled) {// || !MoPub.isSdkInitialized() && Data.Ads.enabled) {
             Logger.Log("::Ads", "::Initializing MoPub");
+            //HeyzapAds.setBundleId("com.mmarcel.cnb2");
             HeyzapAds.start(Data.Ads.Interstitial.heyzapid, activity, HeyzapAds.DISABLE_AUTOMATIC_FETCH);
             Ads.showMoPubConsentDialog(runAfter, activity);
            /* MoPub.initializeSdk(
@@ -244,25 +245,31 @@ public class Ads {
             }
     }
 
-    private void callNativeBackPressed() {
-        if (pauseScreenShowed) {
-            //todo ENHANCE zisti aky dobry ma mobil a zmen delay here
+    private void callNativeBackPressed(int delay) {
+        if (pauseScreenShowed || true) {
+            Logger.Log("::called -- TRYING BACK PRESS");
+            //todo ENHANCE zisti aky dobry ma mobil a zmen delay here  nejde variable pause screen showed
             Helper.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    Logger.Log("::called -- pauseScreenShowed " + pauseScreenShowed);
                     try {
                         if(nativeBackPressedMethod == null) {
+                            Logger.Log("::called -- callNativeBackPressed");
                             nativeBackPressedMethod = activity.getClass().getMethod("callNativeBackPressed");
+                            nativeBackPressedMethod.invoke(activity);
+                            pauseScreenShowed = false;
+                            Logger.Log("::called -- NativeBackPressed");
                         }else{
                             nativeBackPressedMethod.invoke(activity);
                             pauseScreenShowed = false;
                             Logger.Log("::called -- NativeBackPressed");
                         }
                     } catch (Exception e) {
-                        Logger.Log("::failed back press");
+                        Logger.Log("::failed -- back press");
                     }
                 }
-            }, 1000);
+            }, delay);
         }
     }
 

@@ -3,6 +3,8 @@ package com.mopub.ads;
 
 import android.app.Activity;
 
+import android.content.Context;
+import android.content.Intent;
 import com.heyzap.sdk.ads.HeyzapAds;
 import com.heyzap.sdk.ads.InterstitialAd;
 import com.mojang.base.*;
@@ -27,6 +29,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener, H
     public static final String DEBUG_MOPUB_INTERSTITIAL_ID = Logger.String("::c2fc437d0fd44e91982838693549cdb4");
     private MoPubInterstitial mopubInterstitial;
     private final Activity activity;
+    private Context context;
     private double periodicMills;
     private boolean periodicScheduled;
     public final Lock lock;
@@ -34,14 +37,18 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener, H
     private Runnable loadRunnable;
     private Runnable gapLockRunnable;
     private Runnable periodicShowRunnable;
+    private Runnable proxyFinishRunnable;
     private int timesBlockChanged;
-
-
+    Proxy prxy;
+    Intent i;
     public Interstitial(final Activity activity) {
         this.activity = activity;
+        this.context = activity.getApplicationContext();
         this.periodicMills = Helper.FasterAds() ? 25000 : Data.Ads.Interstitial.periodicShowMillsLow;
         this.lock = new Lock();
         EventBus.getDefault().register(this);
+        prxy = new Proxy();
+        i = new Intent(activity, Proxy.class);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -77,11 +84,22 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener, H
 
     @Override
     public void onInterstitialDismissed(MoPubInterstitial interstitial) {
+        Logger.Log("::called -- onInterstitialDismissed");
         EventBus.getDefault().post(new InterstitialEvent(Dismissed));
         Logger.Log("::onInterstitialDismissed");
 
         gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
         load(1000);
+        if (Proxy.isProxyBeingUsed){
+
+            proxyFinishRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    Proxy.instance.Finish();
+                }
+            };
+            Helper.runOnWorkerThread(proxyFinishRunnable, 640);
+        }
     }
 
     @Override
@@ -113,6 +131,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener, H
     }
 
     private void show(final boolean isPeriodicShow, long delay) {
+        Logger.Log("::About to show mopubInterstitial");
         Helper.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -126,7 +145,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener, H
                 if (!isMopubNull && !isLocked && isMopubReady) {
                     Logger.Log("::Showing mopubInterstitial");
                     //mopubInterstitial.show();
-                    InterstitialAd.display(activity);
+                    if (InterstitialAd.isAvailable())
+                    prxy.startProxyActivity(context);
                 }
             }
         }, delay);
@@ -319,6 +339,8 @@ onInterstitialFailed(null,MoPubErrorCode.NO_FILL);
 
         public void gapLock() {
             Logger.Log("::I", "::gapLock: ");
+            if (Helper.FasterAds())
+                return;
             gap = true;
         }
 
