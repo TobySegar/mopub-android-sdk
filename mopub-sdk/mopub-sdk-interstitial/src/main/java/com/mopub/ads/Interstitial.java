@@ -95,6 +95,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener, H
             proxyFinishRunnable = new Runnable() {
                 @Override
                 public void run() {
+                    if (Proxy.instance!=null)
                     Proxy.instance.Finish();
                 }
             };

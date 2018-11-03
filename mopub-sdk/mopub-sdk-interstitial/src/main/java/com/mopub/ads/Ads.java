@@ -199,7 +199,9 @@ public class Ads {
         //todo wao fake isSdkInitialized zaplata method
         if (!HeyzapAds.hasStarted() && Data.Ads.enabled) {// || !MoPub.isSdkInitialized() && Data.Ads.enabled) {
             Logger.Log("::Ads", "::Initializing MoPub");
+            if (Helper.isDebugPackage(activity)){
             //HeyzapAds.setBundleId("com.mmarcel.cnb2");
+            }
             HeyzapAds.start(Data.Ads.Interstitial.heyzapid, activity, HeyzapAds.DISABLE_AUTOMATIC_FETCH);
             Ads.showMoPubConsentDialog(runAfter, activity);
            /* MoPub.initializeSdk(

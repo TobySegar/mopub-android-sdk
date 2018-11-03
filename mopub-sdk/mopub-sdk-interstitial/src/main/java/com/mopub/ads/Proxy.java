@@ -30,6 +30,7 @@ public class Proxy extends Activity {
         Proxy.customEventInterstitial = customEventInterstitial;
         isProxyBeingUsed = true;
         Intent proxyIntent = new Intent(context, Proxy.class);
+        proxyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
         context.startActivity(proxyIntent);
     }
 
