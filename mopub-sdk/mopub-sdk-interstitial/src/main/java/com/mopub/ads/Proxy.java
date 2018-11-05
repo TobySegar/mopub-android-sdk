@@ -42,11 +42,17 @@ public class Proxy extends Activity {
 //    }
 
     public void Finish() {
+            try {
         Logger.Log(proxy, "::Finish -- posting fake stop");
         EventBus.getDefault().post(new AppEvent(Stop));
+        if (activityz2!=null)
         activityz2.finish();
+        if (instance!=null)
         instance.finish();
         finish();
+            }
+        catch (NullPointerException ignored) {
+        }
     }
 
     @Override
@@ -69,9 +75,15 @@ public class Proxy extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        try {
         Logger.Log(proxy, "::destroy");
+        if (activityz2!=null)
         instance = null;
+        if (instance!=null)
         activityz2 = null;
+        }
+        catch (NullPointerException ignored) {
+        }
         //Proxy.customEventInterstitial = null;
         //Proxy.mGoogleInterstitialAd = null;
     }
