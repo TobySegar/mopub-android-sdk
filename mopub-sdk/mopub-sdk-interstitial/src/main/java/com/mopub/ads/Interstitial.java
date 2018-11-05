@@ -95,8 +95,10 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener, H
             proxyFinishRunnable = new Runnable() {
                 @Override
                 public void run() {
-                    if (Proxy.instance!=null)
+                    if (Proxy.instance!=null){
                     Proxy.instance.Finish();
+                    Proxy.lock=false;
+                    }
                 }
             };
             Helper.runOnWorkerThread(proxyFinishRunnable, 640);
@@ -132,11 +134,12 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener, H
     }
 
     private void show(final boolean isPeriodicShow, long delay) {
-        Logger.Log("::About to show mopubInterstitial");
+        Logger.Log("::Ads about to show mopubInterstitial");
         Helper.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 //boolean isMopubNull = mopubInterstitial == null;
+
                 boolean isMopubNull = false;
                 boolean isLocked = isPeriodicShow ? lock.isAnyLocked() : lock.isHardLocked();
                 //boolean isMopubReady = !isMopubNull && mopubInterstitial.isReady();

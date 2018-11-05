@@ -23,6 +23,7 @@ public class Proxy extends Activity {
     public static boolean isProxyBeingUsed;
     public static Proxy instance = null;
     public static Activity activityz2 = null;
+    public static boolean lock;
     //private static InterstitialAd mGoogleInterstitialAd;
 
     public void startProxyActivity(Context context) {
@@ -61,7 +62,7 @@ public class Proxy extends Activity {
         Logger.Log(proxy, "::create");
         activityz2 = this;
         instance = this;
-
+        if (!lock)
         InterstitialAd.display(activityz2);
         //if (Proxy.customEventInterstitial != null) {
         //    Proxy.customEventInterstitial.showInterstitial();

@@ -46,7 +46,7 @@ dependencies {
 
 
 // AppLovin
-    compile 'com.applovin:applovin-sdk:8.1.0'
+    //compile 'com.applovin:applovin-sdk:8.1.0'
 
 // Facebook Audience Network
     //compile 'com.facebook.android:audience-network-sdk:5+'

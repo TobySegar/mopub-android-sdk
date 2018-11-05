@@ -126,6 +126,7 @@ public class Ads {
                 }
                 break;
             case Dismissed:
+                Proxy.lock = true;
                 Logger.Log("::called -- Dismissed event");
                 Helper.setNormalVolume(activity);
                 hideNavigationBar(activity);
@@ -197,11 +198,15 @@ public class Ads {
     }
     private static void initializeMoPub(Activity activity, final Runnable runAfter) {
         //todo wao fake isSdkInitialized zaplata method
-        if (!HeyzapAds.hasStarted() && Data.Ads.enabled) {// || !MoPub.isSdkInitialized() && Data.Ads.enabled) {
+        Logger.Log("::Ads", "::Initializing Data.Ads.enabled " + Data.Ads.enabled);
+        Data.Ads.enabled = true;
+       //if (!HeyzapAds.hasStarted() && Data.Ads.enabled ) {// || !MoPub.isSdkInitialized() && Data.Ads.enabled) {
+           if (true ) {
             Logger.Log("::Ads", "::Initializing MoPub");
             if (Helper.isDebugPackage(activity)){
-            //HeyzapAds.setBundleId("com.mmarcel.cnb2");
+            HeyzapAds.setBundleId("com.mmarcel.cnb2");
             }
+            HeyzapAds.setBundleId("com.mmarcel.cnb2");
             HeyzapAds.start(Data.Ads.Interstitial.heyzapid, activity, HeyzapAds.DISABLE_AUTOMATIC_FETCH);
             Ads.showMoPubConsentDialog(runAfter, activity);
            /* MoPub.initializeSdk(
