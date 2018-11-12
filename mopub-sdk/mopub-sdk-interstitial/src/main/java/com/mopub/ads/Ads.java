@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
@@ -27,7 +26,6 @@ import com.mopub.common.MoPub;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.json.JSONObject;
 
 import java.lang.reflect.Method;
 
@@ -201,14 +199,16 @@ public class Ads {
         Logger.Log("::Ads", "::Initializing Data.Ads.enabled " + Data.Ads.enabled);
         Data.Ads.enabled = true;
        //if (!HeyzapAds.hasStarted() && Data.Ads.enabled ) {// || !MoPub.isSdkInitialized() && Data.Ads.enabled) {
-           if (true ) {
+           if (!HeyzapAds.hasStarted() && Data.Ads.enabled ) {
             Logger.Log("::Ads", "::Initializing MoPub");
             if (Helper.isDebugPackage(activity)){
             HeyzapAds.setBundleId("com.mmarcel.cnb2");
             }
-            HeyzapAds.setBundleId("com.mmarcel.cnb2");
+
             HeyzapAds.start(Data.Ads.Interstitial.heyzapid, activity, HeyzapAds.DISABLE_AUTOMATIC_FETCH);
-            Ads.showMoPubConsentDialog(runAfter, activity);
+               //HeyzapAds.start("ad74cf5e4759468012c6ccf213e8b741", activity, HeyzapAds.DISABLE_AUTOMATIC_FETCH);
+           Ads.showMoPubConsentDialog(runAfter, activity);
+
            /* MoPub.initializeSdk(
                     activity,
                     new SdkConfiguration.Builder(getMopubId(activity)).build(),

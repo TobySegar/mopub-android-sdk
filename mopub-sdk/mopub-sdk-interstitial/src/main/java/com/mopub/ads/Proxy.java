@@ -8,7 +8,6 @@ import android.os.Bundle;
 //import com.google.android.gms.ads.InterstitialAd;
 
 import com.heyzap.sdk.ads.InterstitialAd;
-import com.mojang.base.Helper;
 import com.mojang.base.Logger;
 import com.mojang.base.events.AppEvent;
 import com.mopub.mobileads.CustomEventInterstitial;
