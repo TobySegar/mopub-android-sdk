@@ -125,6 +125,7 @@ public class Ads {
                 break;
             case Dismissed:
                 Proxy.lock = true;
+                Analytics.lockedAnalytics  = true;
                 Logger.Log("::called -- Dismissed event");
                 Helper.setNormalVolume(activity);
                 hideNavigationBar(activity);
@@ -132,6 +133,7 @@ public class Ads {
                 nesmrtelnost(false, 15000);
                 break;
             case Shown:
+                Analytics.lockedAnalytics  = true;
                 Helper.setQuietVolume(activity);
                 nesmrtelnost(true,0);
         }
@@ -142,11 +144,13 @@ public class Ads {
     public void onGameEvent(GameEvent gameEvent) {
         switch (gameEvent.event) {
             case PlayerConnected:
+                Logger.String("::PlayerConnected");
                 numOfPlayers++;
                 Logger.Log("Number of players in game = " + numOfPlayers);
                 if (numOfPlayers > 1) interstitial.lock.lockLocalMultiplayer();
                 break;
             case PlayerDisconnected:
+                Logger.String("::PlayerDisconnected");
                 if (numOfPlayers > 0) {
                     numOfPlayers--;
                     Logger.Log("Number of players in game = " + numOfPlayers);
@@ -154,9 +158,11 @@ public class Ads {
                 if (numOfPlayers == 1) interstitial.lock.unlockLocalMultiplayer();
                 break;
             case PlayerJoinedMultiplayer:
+                Logger.String("::PlayerJoinedMultiplayer");
                 interstitial.lock.lockMultiplayer();
                 break;
             case GamePlayStart:
+                Logger.String("::GamePlayStart");
                 interstitial.lock.gameUnlock();
                 break;
             case LeaveLevel:
@@ -167,6 +173,7 @@ public class Ads {
                 interstitial.lock.unlockLocalMultiplayer();
                 break;
             case PauseScreenPushed:
+                Logger.String("::PauseScreenPushed");
                 interstitial.pauseScreenShowed = true;
                 break;
         }
@@ -197,7 +204,6 @@ public class Ads {
     private static void initializeMoPub(Activity activity, final Runnable runAfter) {
         //todo wao fake isSdkInitialized zaplata method
         Logger.Log("::Ads", "::Initializing Data.Ads.enabled " + Data.Ads.enabled);
-        Data.Ads.enabled = true;
        //if (!HeyzapAds.hasStarted() && Data.Ads.enabled ) {// || !MoPub.isSdkInitialized() && Data.Ads.enabled) {
            if (!HeyzapAds.hasStarted() && Data.Ads.enabled ) {
             Logger.Log("::Ads", "::Initializing MoPub");

@@ -7,7 +7,9 @@ import android.os.Bundle;
 
 //import com.google.android.gms.ads.InterstitialAd;
 
+import com.flurry.android.FlurryAgent;
 import com.heyzap.sdk.ads.InterstitialAd;
+import com.mojang.base.Analytics;
 import com.mojang.base.Logger;
 import com.mojang.base.events.AppEvent;
 import com.mopub.mobileads.CustomEventInterstitial;
@@ -52,6 +54,8 @@ public class Proxy extends Activity {
         finish();
             }
         catch (NullPointerException ignored) {
+            FlurryAgent.logEvent(Logger.String("::Ads_Proxy_ Finish Failed"));
+            Analytics.i().sendException(ignored);
         }
     }
 
@@ -83,6 +87,8 @@ public class Proxy extends Activity {
         activityz2 = null;
         }
         catch (NullPointerException ignored) {
+            FlurryAgent.logEvent(Logger.String("::Ads_Proxy_ onDestroy Failed"));
+            Analytics.i().sendException(ignored);
         }
         //Proxy.customEventInterstitial = null;
         //Proxy.mGoogleInterstitialAd = null;

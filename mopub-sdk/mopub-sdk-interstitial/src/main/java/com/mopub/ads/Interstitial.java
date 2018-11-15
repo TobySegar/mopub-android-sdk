@@ -55,9 +55,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener, H
     public void onGameEvent(GameEvent gameEvent) {
         switch (gameEvent.event) {
             case StartSleepInBed:
+                Logger.String("::StartSleepInBed");
                 show(false, 0);
                 break;
             case BlockChanged:
+                Logger.String("::BlockChanged");
                 timesBlockChanged++;
                 if (timesBlockChanged == 3) {
                     show(false, 0);
@@ -65,9 +67,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener, H
                 }
                 break;
             case GamePlayStart:
+                Logger.String("::GamePlayStart Interstitial");
                 show(false, 5000);
                 break;
             case LeaveServer:
+                Logger.String("::LeaveServer");
                 show(false, 5000);
                 break;
         }
@@ -98,6 +102,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener, H
                     if (Proxy.instance!=null){
                     Proxy.instance.Finish();
                     Proxy.lock=false;
+                    Analytics.lockedAnalytics  = false;
                     }
                 }
             };
