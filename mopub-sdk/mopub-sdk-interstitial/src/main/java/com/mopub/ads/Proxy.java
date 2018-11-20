@@ -10,6 +10,8 @@ import android.os.Bundle;
 import com.flurry.android.FlurryAgent;
 import com.heyzap.sdk.ads.InterstitialAd;
 import com.mojang.base.Analytics;
+import com.mojang.base.Helper;
+import com.mojang.base.InternetObserver;
 import com.mojang.base.Logger;
 import com.mojang.base.events.AppEvent;
 import com.mopub.mobileads.CustomEventInterstitial;
@@ -43,6 +45,35 @@ public class Proxy extends Activity {
 //        context.startActivity(proxyIntent);
 //    }
 
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Logger.Log(proxy, "::create");
+        activityz2 = this;
+        instance = this;
+        if (!lock){
+        Runnable proxyAdsRunnable = new Runnable() {
+            @Override
+            public void run() {
+                InterstitialAd.display(activityz2);
+            }
+        };
+        Helper.runOnWorkerThread(proxyAdsRunnable);
+
+        }
+
+        //if (Proxy.customEventInterstitial != null) {
+        //    Proxy.customEventInterstitial.showInterstitial();
+        //}
+//        else if (mGoogleInterstitialAd != null) {
+//            mGoogleInterstitialAd.show();
+//        }
+        //Finish();
+    }
+
+
+
     public void Finish() {
             try {
         Logger.Log(proxy, "::Finish -- posting fake stop");
@@ -54,27 +85,12 @@ public class Proxy extends Activity {
         finish();
             }
         catch (NullPointerException ignored) {
-            FlurryAgent.logEvent(Logger.String("::Ads_Proxy_ Finish Failed"));
+            Analytics.report("Ads","Proxy_ Finish Failed");
             Analytics.i().sendException(ignored);
         }
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Logger.Log(proxy, "::create");
-        activityz2 = this;
-        instance = this;
-        if (!lock)
-        InterstitialAd.display(activityz2);
-        //if (Proxy.customEventInterstitial != null) {
-        //    Proxy.customEventInterstitial.showInterstitial();
-        //}
-//        else if (mGoogleInterstitialAd != null) {
-//            mGoogleInterstitialAd.show();
-//        }
-        //Finish();
-    }
+
 
     @Override
     protected void onDestroy() {
@@ -86,8 +102,9 @@ public class Proxy extends Activity {
         if (instance!=null)
         activityz2 = null;
         }
+
         catch (NullPointerException ignored) {
-            FlurryAgent.logEvent(Logger.String("::Ads_Proxy_ onDestroy Failed"));
+            Analytics.report("Ads","Proxy_ onDestroy Failed");
             Analytics.i().sendException(ignored);
         }
         //Proxy.customEventInterstitial = null;

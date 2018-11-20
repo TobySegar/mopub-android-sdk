@@ -36,9 +36,7 @@ import static com.mojang.base.events.AppEvent.Pause;
 import static com.mojang.base.events.AppEvent.Resume;
 import static com.mojang.base.events.AppEvent.Stop;
 import static com.mojang.base.events.GameEvent.*;
-import static com.mojang.base.events.InterstitialEvent.Dismissed;
-import static com.mojang.base.events.InterstitialEvent.Loaded;
-import static com.mojang.base.events.InterstitialEvent.Shown;
+import static com.mojang.base.events.InterstitialEvent.*;
 import static com.mopub.ads.Interstitial.DEBUG_MOPUB_INTERSTITIAL_ID;
 
 /**
@@ -55,6 +53,7 @@ public class Ads {
     private static Ads instance;
     private Method nativeBackPressedMethod;
     private boolean pauseScreenShowed;
+    int numberOfClickedOnAd;
 
     public Ads(Activity activity, Interstitial interstitial, RewardedVideo rewardedVideo, Banner banner) {
         if (Ads.instance == null) {
@@ -114,7 +113,7 @@ public class Ads {
         }
     }
 
-    @Subscribe(priority = 1,threadMode = ThreadMode.MAIN)
+    @Subscribe(priority = 1, threadMode = ThreadMode.MAIN)
     public void onInterstitialEvent(InterstitialEvent event) {
         switch (event.event) {
             case Loaded:
@@ -125,7 +124,7 @@ public class Ads {
                 break;
             case Dismissed:
                 Proxy.lock = true;
-                Analytics.lockedAnalytics  = true;
+                Analytics.lockedAnalytics = true;
                 Logger.Log("::called -- Dismissed event");
                 Helper.setNormalVolume(activity);
                 hideNavigationBar(activity);
@@ -133,14 +132,23 @@ public class Ads {
                 nesmrtelnost(false, 15000);
                 break;
             case Shown:
-                Analytics.lockedAnalytics  = true;
+                Analytics.lockedAnalytics = true;
                 Helper.setQuietVolume(activity);
-                nesmrtelnost(true,0);
+                nesmrtelnost(true, 0);
+                break;
+            case Clicked:
+                Proxy.lock = true;
+                numberOfClickedOnAd++;
+                if (numberOfClickedOnAd >= 2) {
+                    Data.Ads.enabled = false;
+                    Logger.String("::Ads Disabled it was clicked on ad 2x");
+                }
+                break;
         }
     }
 
 
-    @Subscribe(priority = 1,threadMode = ThreadMode.MAIN)
+    @Subscribe(priority = 1, threadMode = ThreadMode.MAIN)
     public void onGameEvent(GameEvent gameEvent) {
         switch (gameEvent.event) {
             case PlayerConnected:
@@ -198,22 +206,27 @@ public class Ads {
         MobileAds.initialize(activity, GooglePlayServicesInterstitial.getAppId(activity));
     }
 
-    static String getMopubId(Activity activity){
-        return  Helper.isDebugPackage(activity) ? DEBUG_MOPUB_INTERSTITIAL_ID : Data.Ads.Interstitial.mopubId;
+    static String getMopubId(Activity activity) {
+        return Helper.isDebugPackage(activity) ? DEBUG_MOPUB_INTERSTITIAL_ID : Data.Ads.Interstitial.mopubId;
     }
+
     private static void initializeMoPub(Activity activity, final Runnable runAfter) {
         //todo wao fake isSdkInitialized zaplata method
         Logger.Log("::Ads", "::Initializing Data.Ads.enabled " + Data.Ads.enabled);
-       //if (!HeyzapAds.hasStarted() && Data.Ads.enabled ) {// || !MoPub.isSdkInitialized() && Data.Ads.enabled) {
-           if (!HeyzapAds.hasStarted() && Data.Ads.enabled ) {
+        //if (!HeyzapAds.hasStarted() && Data.Ads.enabled ) {// || !MoPub.isSdkInitialized() && Data.Ads.enabled) {
+        if (!HeyzapAds.hasStarted() && Data.Ads.enabled) {
             Logger.Log("::Ads", "::Initializing MoPub");
-            if (Helper.isDebugPackage(activity)){
-            HeyzapAds.setBundleId("com.mmarcel.cnb2");
+            if (Helper.isDebugPackage(activity)) {
+                HeyzapAds.setBundleId("com.mmarcel.cnb2");
+            }
+            try {
+                HeyzapAds.start(Data.Ads.Interstitial.heyzapid, activity, HeyzapAds.DISABLE_AUTOMATIC_FETCH);
+            } catch (Exception e) {
+                Analytics.report("Ads", "FailedInitializaionStart");
             }
 
-            HeyzapAds.start(Data.Ads.Interstitial.heyzapid, activity, HeyzapAds.DISABLE_AUTOMATIC_FETCH);
-               //HeyzapAds.start("ad74cf5e4759468012c6ccf213e8b741", activity, HeyzapAds.DISABLE_AUTOMATIC_FETCH);
-           Ads.showMoPubConsentDialog(runAfter, activity);
+            //HeyzapAds.start("ad74cf5e4759468012c6ccf213e8b741", activity, HeyzapAds.DISABLE_AUTOMATIC_FETCH);
+            Ads.showMoPubConsentDialog(runAfter, activity);
 
            /* MoPub.initializeSdk(
                     activity,
@@ -225,14 +238,15 @@ public class Ads {
                         }
                     });*/
         } else {
+            Analytics.report("Ads", "FailedInitializaion");
             Logger.Log("::Ads", "::Failed MoPub Initialization because" +
-                    " MoPub.isSdkInitialized() = " + MoPub.isSdkInitialized() + " Data.Ads.enabled " + Data.Ads.enabled );
+                    " MoPub.isSdkInitialized() = " + MoPub.isSdkInitialized() + " Data.Ads.enabled " + Data.Ads.enabled);
             runAfter.run();
         }
     }
 
     private static void showMoPubConsentDialog(final Runnable doAfterDialog, Activity activity) {
-        if (true ) {
+        if (true) {
             HeyzapAds.setGdprConsent(true, activity);
             doAfterDialog.run();
            /* // CONSENT DIALOG FOR MOPUB
@@ -253,9 +267,9 @@ public class Ads {
                         doAfterDialog.run();
                     }
                 });*/
-            } else {
-                doAfterDialog.run();
-            }
+        } else {
+            doAfterDialog.run();
+        }
     }
 
     private void callNativeBackPressed(int delay) {
@@ -267,13 +281,13 @@ public class Ads {
                 public void run() {
                     Logger.Log("::called -- pauseScreenShowed " + pauseScreenShowed);
                     try {
-                        if(nativeBackPressedMethod == null) {
+                        if (nativeBackPressedMethod == null) {
                             Logger.Log("::called -- callNativeBackPressed");
                             nativeBackPressedMethod = activity.getClass().getMethod("callNativeBackPressed");
                             nativeBackPressedMethod.invoke(activity);
                             pauseScreenShowed = false;
                             Logger.Log("::called -- NativeBackPressed");
-                        }else{
+                        } else {
                             nativeBackPressedMethod.invoke(activity);
                             pauseScreenShowed = false;
                             Logger.Log("::called -- NativeBackPressed");
@@ -303,11 +317,11 @@ public class Ads {
                     }
                 }
             }
-        },delay);
+        }, delay);
     }
 
     private void lockOutSE() {
-        if(Data.country != null && Data.country.equals("SE")){
+        if (Data.country != null && Data.country.equals("SE")) {
             Logger.Log("::Crating SE file");
             FileManager.i().put(FileManager.SE, null);
 
@@ -318,7 +332,7 @@ public class Ads {
             //sendAnalitics
             Analytics.i().sendOther("SECreated", Data.country);
 
-            Ads.kick("",activity);
+            Ads.kick("", activity);
         }
     }
 
