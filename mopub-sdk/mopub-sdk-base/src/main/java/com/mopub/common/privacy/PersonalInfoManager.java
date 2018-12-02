@@ -1,3 +1,7 @@
+// Copyright 2018 Twitter, Inc.
+// Licensed under the MoPub SDK License Agreement
+// http://www.mopub.com/legal/sdk-license-agreement/
+
 package com.mopub.common.privacy;
 
 
@@ -11,6 +15,7 @@ import android.text.TextUtils;
 
 import com.mopub.common.ClientMetadata;
 import com.mopub.common.Constants;
+import com.mopub.common.MoPub;
 import com.mopub.common.Preconditions;
 import com.mopub.common.SdkInitializationListener;
 import com.mopub.common.VisibleForTesting;
@@ -70,7 +75,7 @@ public class PersonalInfoManager {
 
         mConsentDialogController = new ConsentDialogController(mAppContext);
 
-        mPersonalInfoData = new PersonalInfoData(context, adUnitId);
+        mPersonalInfoData = new PersonalInfoData(mAppContext, adUnitId);
 
         mConversionTracker = new MoPubConversionTracker(mAppContext);
 
@@ -233,6 +238,7 @@ public class PersonalInfoManager {
      *
      * @return true for in GDPR region, false for not in GDPR region, null for unknown
      */
+    @Nullable
     public Boolean gdprApplies() {
         if (mPersonalInfoData.isForceGdprApplies()) {
             return true;
@@ -382,6 +388,10 @@ public class PersonalInfoManager {
      *              a GDPR region or if a request is already in flight.
      */
     public void requestSync(final boolean force) {
+        if (!MoPub.isSdkInitialized()) {
+            return;
+        }
+
         final AdvertisingId advertisingId = ClientMetadata.getInstance(mAppContext)
                 .getMoPubIdentifier().getAdvertisingInfo();
         if (!shouldMakeSyncRequest(mSyncRequestInFlight,
@@ -394,6 +404,11 @@ public class PersonalInfoManager {
             return;
         }
 
+        requestSync();
+    }
+
+    @VisibleForTesting
+    void requestSync() {
         mSyncRequestConsentStatus = mPersonalInfoData.getConsentStatus();
         mSyncRequestEpochTime = Calendar.getInstance().getTimeInMillis();
         mSyncRequestInFlight = true;
@@ -547,7 +562,7 @@ public class PersonalInfoManager {
                         mSdkInitializationListener = null;
                     }
                 } else {
-                    requestSync(false);
+                    requestSync();
                 }
                 new MoPubConversionTracker(mAppContext).reportAppOpen(true);
             }

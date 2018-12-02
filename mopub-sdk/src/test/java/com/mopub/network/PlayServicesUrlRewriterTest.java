@@ -1,3 +1,7 @@
+// Copyright 2018 Twitter, Inc.
+// Licensed under the MoPub SDK License Agreement
+// http://www.mopub.com/legal/sdk-license-agreement/
+
 package com.mopub.network;
 
 import android.app.Activity;
@@ -51,7 +55,6 @@ public class PlayServicesUrlRewriterTest {
                 .execute();
 
         ClientMetadata.getInstance(context);
-        GpsHelper.setClassNamesForTesting();
         subject = new PlayServicesUrlRewriter();
     }
 

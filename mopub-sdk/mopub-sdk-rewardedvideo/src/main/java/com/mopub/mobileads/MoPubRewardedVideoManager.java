@@ -1,3 +1,7 @@
+// Copyright 2018 Twitter, Inc.
+// Licensed under the MoPub SDK License Agreement
+// http://www.mopub.com/legal/sdk-license-agreement/
+
 package com.mopub.mobileads;
 
 import android.app.Activity;
@@ -766,6 +770,7 @@ public class MoPubRewardedVideoManager {
     private static void onRewardedVideoPlaybackErrorAction(@NonNull final String adUnitId, @NonNull final MoPubErrorCode errorCode) {
         Preconditions.checkNotNull(adUnitId);
         Preconditions.checkNotNull(errorCode);
+        sInstance.rewardedAdsLoaders.markFail(adUnitId);
         if (sInstance.mVideoListener != null) {
             sInstance.mVideoListener.onRewardedVideoPlaybackError(adUnitId, errorCode);
         }
@@ -826,6 +831,8 @@ public class MoPubRewardedVideoManager {
 
     private static void onRewardedVideoClosedAction(@NonNull final String adUnitId) {
         Preconditions.checkNotNull(adUnitId);
+        // remove adloader from map
+        sInstance.rewardedAdsLoaders.markPlayed(adUnitId);
         if (sInstance.mVideoListener != null) {
             sInstance.mVideoListener.onRewardedVideoClosed(adUnitId);
         }
@@ -936,9 +943,8 @@ public class MoPubRewardedVideoManager {
     }
 
     private static void logErrorNotInitialized() {
-        MoPubLog.e("MoPub rewarded ad was not initialized. You must call " +
-                "MoPub.initializeRewardedVideo() before loading or attempting " +
-                "to play rewarded ads.");
+        MoPubLog.e("MoPub rewarded ads must be initialized with an Activity Context " +
+                "before calling rewarded ads methods.");
     }
 
     /**

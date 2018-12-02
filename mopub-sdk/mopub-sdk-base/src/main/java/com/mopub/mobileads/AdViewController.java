@@ -1,3 +1,7 @@
+// Copyright 2018 Twitter, Inc.
+// Licensed under the MoPub SDK License Agreement
+// http://www.mopub.com/legal/sdk-license-agreement/
+
 package com.mopub.mobileads;
 
 import android.annotation.SuppressLint;
@@ -136,6 +140,7 @@ public class AdViewController {
 
     @VisibleForTesting
     void onAdLoadSuccess(@NonNull final AdResponse adResponse) {
+    //Change we extract and change mAdresponse adapter class name
         mBackoffPower = 1;
         mAdResponse = changeResponseCustomClassPath(adResponse);
 
@@ -149,7 +154,7 @@ public class AdViewController {
 
         mActiveRequest = null;
 
-        loadCustomEvent(mMoPubView, customEventClassName,
+        loadCustomEvent(mMoPubView, adResponse.getCustomEventClassName(),
                 adResponse.getServerExtras());
 
         scheduleRefreshTimerIfEnabled();

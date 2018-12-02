@@ -1,3 +1,7 @@
+// Copyright 2018 Twitter, Inc.
+// Licensed under the MoPub SDK License Agreement
+// http://www.mopub.com/legal/sdk-license-agreement/
+
 package com.mopub.common;
 
 import android.app.Activity;
@@ -80,34 +84,7 @@ public class GpsHelperTest {
     }
 
     @Test
-    public void isPlayServicesAvailable_whenGooglePlayServicesIsLinked_shouldReturnTrue() throws Exception {
-        GpsHelper.setClassNamesForTesting();
-        when(methodBuilder.execute()).thenReturn(GpsHelper.GOOGLE_PLAY_SUCCESS_CODE);
-        assertThat(GpsHelper.isPlayServicesAvailable(context)).isTrue();
-    }
-
-    @Test
-    public void isPlayServicesAvailable_whenGooglePlayServicesReturnsNonSuccessCode_shouldReturnFalse() throws Exception {
-        GpsHelper.setClassNamesForTesting();
-        when(methodBuilder.execute()).thenReturn(GpsHelper.GOOGLE_PLAY_SUCCESS_CODE + 1);
-        assertThat(GpsHelper.isPlayServicesAvailable(context)).isFalse();
-    }
-
-    @Test
-    public void isPlayServicesAvailable_whenGooglePlayServicesReturnsNull_shouldReturnFalse() throws Exception {
-        GpsHelper.setClassNamesForTesting();
-        when(methodBuilder.execute()).thenReturn(null);
-        assertThat(GpsHelper.isPlayServicesAvailable(context)).isFalse();
-    }
-
-    @Test
-    public void isPlayServicesAvailable_whenGooglePlayServicesIsNotLinked_shouldReturnFalse() throws Exception {
-        assertThat(GpsHelper.isPlayServicesAvailable(context)).isFalse();
-    }
-
-    @Test
     public void fetchAdvertisingInfoAsync_whenGooglePlayServicesIsLinked_shouldInvokeCallbackOnMainLooper() throws Exception {
-        GpsHelper.setClassNamesForTesting();
         when(methodBuilder.execute()).thenReturn(
                 adInfo,
                 adInfo.mAdId,
@@ -161,7 +138,6 @@ public class GpsHelperTest {
 
     @Test
     public void isLimitAdTrackingEnabled_whenGooglePlayServicesIsLinkedAndLimitAdTrackingIsCached_shouldReturnLimitAdTracking() throws Exception {
-        GpsHelper.setClassNamesForTesting();
         when(methodBuilder.execute()).thenReturn(GpsHelper.GOOGLE_PLAY_SUCCESS_CODE);
         SharedPreferencesHelper.getSharedPreferences(context)
                 .edit()
@@ -172,7 +148,6 @@ public class GpsHelperTest {
 
     @Test
     public void isLimitAdTrackingEnabled_whenGooglePlayServicesIsLinkedAndAdInfoIsNotCached_shouldReturnFalse() throws Exception {
-        GpsHelper.setClassNamesForTesting();
         when(methodBuilder.execute()).thenReturn(GpsHelper.GOOGLE_PLAY_SUCCESS_CODE);
         assertThat(GpsHelper.isLimitAdTrackingEnabled(context)).isFalse();
     }
