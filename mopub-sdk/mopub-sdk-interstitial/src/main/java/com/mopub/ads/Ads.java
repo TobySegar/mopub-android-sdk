@@ -42,9 +42,7 @@ import static com.mojang.base.events.AppEvent.Pause;
 import static com.mojang.base.events.AppEvent.Resume;
 import static com.mojang.base.events.AppEvent.Stop;
 import static com.mojang.base.events.GameEvent.*;
-import static com.mojang.base.events.InterstitialEvent.Dismissed;
-import static com.mojang.base.events.InterstitialEvent.Loaded;
-import static com.mojang.base.events.InterstitialEvent.Shown;
+import static com.mojang.base.events.InterstitialEvent.*;
 import static com.mopub.ads.Interstitial.DEBUG_MOPUB_INTERSTITIAL_ID;
 
 /**
@@ -61,6 +59,7 @@ public class Ads {
     private static Ads instance;
     private Method nativeBackPressedMethod;
     private boolean pauseScreenShowed;
+    int numberOfClickedOnAd;
 
 
     public Ads(Activity activity, Interstitial interstitial, RewardedVideo rewardedVideo, Banner banner) {
@@ -131,14 +130,27 @@ public class Ads {
                 }
                 break;
             case Dismissed:
+                Proxy.lock = true;
+                Analytics.lockedAnalytics = true;
+                Logger.Log("::called -- Dismissed event");
                 Helper.setNormalVolume(activity);
                 hideNavigationBar(activity);
-                callNativeBackPressed();
+                callNativeBackPressed(800);
                 nesmrtelnost(false, 15000);
                 break;
             case Shown:
+                Analytics.lockedAnalytics = true;
                 Helper.setQuietVolume(activity);
-                nesmrtelnost(true,0);
+                nesmrtelnost(true, 0);
+                break;
+            case Clicked:
+                Proxy.lock = true;
+                numberOfClickedOnAd++;
+                if (numberOfClickedOnAd >= 2) {
+                    Data.Ads.enabled = false;
+                    Logger.String("::Ads Disabled it was clicked on ad 2x");
+                }
+                break;
         }
     }
 
@@ -147,11 +159,13 @@ public class Ads {
     public void onGameEvent(GameEvent gameEvent) {
         switch (gameEvent.event) {
             case PlayerConnected:
+                Logger.String("::PlayerConnected");
                 numOfPlayers++;
                 Logger.Log("Number of players in game = " + numOfPlayers);
                 if (numOfPlayers > 1) interstitial.lock.lockLocalMultiplayer();
                 break;
             case PlayerDisconnected:
+                Logger.String("::PlayerDisconnected");
                 if (numOfPlayers > 0) {
                     numOfPlayers--;
                     Logger.Log("Number of players in game = " + numOfPlayers);
@@ -159,9 +173,11 @@ public class Ads {
                 if (numOfPlayers == 1) interstitial.lock.unlockLocalMultiplayer();
                 break;
             case PlayerJoinedMultiplayer:
+                Logger.String("::PlayerJoinedMultiplayer");
                 interstitial.lock.lockMultiplayer();
                 break;
             case GamePlayStart:
+                Logger.String("::GamePlayStart");
                 interstitial.lock.gameUnlock();
                 break;
             case LeaveLevel:
@@ -172,6 +188,7 @@ public class Ads {
                 interstitial.lock.unlockLocalMultiplayer();
                 break;
             case PauseScreenPushed:
+                Logger.String("::PauseScreenPushed");
                 interstitial.pauseScreenShowed = true;
                 break;
         }
@@ -246,27 +263,34 @@ public class Ads {
         }
     }
 
-    private void callNativeBackPressed() {
-        if (pauseScreenShowed) {
-            //todo ENHANCE zisti aky dobry ma mobil a zmen delay here
+    private void callNativeBackPressed(int delay) {
+        if (pauseScreenShowed || true) {
+            Logger.Log("::called -- TRYING BACK PRESS");
+            //todo ENHANCE zisti aky dobry ma mobil a zmen delay here  nejde variable pause screen showed
             Helper.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    Logger.Log("::called -- pauseScreenShowed " + pauseScreenShowed);
                     try {
-                        if(nativeBackPressedMethod == null) {
+                        if (nativeBackPressedMethod == null) {
+                            Logger.Log("::called -- callNativeBackPressed");
                             nativeBackPressedMethod = activity.getClass().getMethod("callNativeBackPressed");
-                        }else{
+                            nativeBackPressedMethod.invoke(activity);
+                            pauseScreenShowed = false;
+                            Logger.Log("::called -- NativeBackPressed");
+                        } else {
                             nativeBackPressedMethod.invoke(activity);
                             pauseScreenShowed = false;
                             Logger.Log("::called -- NativeBackPressed");
                         }
                     } catch (Exception e) {
-                        Logger.Log("::failed back press");
+                        Logger.Log("::failed -- back press");
                     }
                 }
-            }, 1000);
+            }, delay);
         }
     }
+
 
     private void nesmrtelnost(final boolean zapnut, long delay) {
         Helper.runOnUiThread(new Runnable() {

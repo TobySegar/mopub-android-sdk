@@ -11,6 +11,7 @@ repositories {
     google()
     //maven { url 'https://s3.amazonaws.com/moat-sdk-builds'}
     maven { url "https://maven.google.com" }
+    maven {   url "https://dl.bintray.com/ironsource-mobile/android-sdk"}
     jcenter() // includes the MoPub SDK and AVID library
     maven { url "http://dl.bintray.com/ironsource-mobile/android-adapters"}
 }
@@ -48,10 +49,10 @@ dependencies {
     compile files('libs/mediationsdk-6.7.11@jar')
 
 // Facebook Audience Network
-    compile 'com.facebook.android:audience-network-sdk:5.0.0'
+    compile 'com.facebook.android:audience-network-sdk:5.1.0'
 
     // flurry ads
-    compile 'com.flurry.android:ads:10.1.0@aar'
+    compile 'com.flurry.android:ads:11.1.1@aar'
 
 }
 

@@ -3,6 +3,8 @@ package com.mopub.ads;
 
 import android.app.Activity;
 
+import android.content.Context;
+import android.content.Intent;
 import com.mojang.base.*;
 import com.mojang.base.events.GameEvent;
 import com.mojang.base.events.InterstitialEvent;
@@ -25,6 +27,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     public static final String DEBUG_MOPUB_INTERSTITIAL_ID = Logger.String("::c2fc437d0fd44e91982838693549cdb4");
     private MoPubInterstitial mopubInterstitial;
     private final Activity activity;
+    private Context context;
     private double periodicMills;
     private boolean periodicScheduled;
     public final Lock lock;
@@ -32,23 +35,30 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private Runnable loadRunnable;
     private Runnable gapLockRunnable;
     private Runnable periodicShowRunnable;
+    private Runnable proxyFinishRunnable;
     private int timesBlockChanged;
-
+    Proxy prxy;
+    Intent i;
 
     public Interstitial(final Activity activity) {
         this.activity = activity;
+        this.context = activity.getApplicationContext();
         this.periodicMills = Helper.FasterAds() ? 25000 : Data.Ads.Interstitial.periodicShowMillsLow;
         this.lock = new Lock();
         EventBus.getDefault().register(this);
+        prxy = new Proxy();
+        i = new Intent(activity, Proxy.class);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGameEvent(GameEvent gameEvent) {
         switch (gameEvent.event) {
             case StartSleepInBed:
+                Logger.String("::StartSleepInBed");
                 show(false, 0);
                 break;
             case BlockChanged:
+                Logger.String("::BlockChanged");
                 timesBlockChanged++;
                 if (timesBlockChanged == 3) {
                     show(false, 0);
@@ -56,9 +66,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 }
                 break;
             case GamePlayStart:
+                Logger.String("::GamePlayStart Interstitial");
                 show(false, 5000);
                 break;
             case LeaveServer:
+                Logger.String("::LeaveServer");
                 show(false, 5000);
                 break;
         }
@@ -75,11 +87,30 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     @Override
     public void onInterstitialDismissed(MoPubInterstitial interstitial) {
+        Logger.Log("::called -- onInterstitialDismissed");
         EventBus.getDefault().post(new InterstitialEvent(Dismissed));
         Logger.Log("::onInterstitialDismissed");
 
+        //todo info: no gap for developers
+        if (Helper.isDebugPackage(context))
+            Data.Ads.Interstitial.minimalGapMills = 10;
+
         gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
         load(1000);
+        if (Proxy.isProxyBeingUsed) {
+
+            proxyFinishRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    if (Proxy.instance != null) {
+                        Proxy.instance.Finish();
+                        Proxy.lock = false;
+                        Analytics.lockedAnalytics = false;
+                    }
+                }
+            };
+            Helper.runOnWorkerThread(proxyFinishRunnable, 600);
+        }
     }
 
     @Override
@@ -110,7 +141,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         Logger.Log("::onInterstitialClicked");
     }
 
-    private void show(final boolean isPeriodicShow, long delay) {
+    public void show(final boolean isPeriodicShow, long delay) {
         Helper.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -118,10 +149,20 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 boolean isLocked = isPeriodicShow ? lock.isAnyLocked() : lock.isHardLocked();
                 boolean isMopubReady = !isMopubNull && mopubInterstitial.isReady();
                 Logger.Log("::I", "::isLocked: " + "::multiplayerLocalOnline [" + lock.localMultiplayer + ":: " + lock.onlineMultiplayer + "::]" + ":: " + "::internet [" + lock.internet + "::]" + ":: " + "::gap [" + lock.gap + "::]" + ":: " + "::stop [" + lock.stop + "::] " + "::game [" + lock.game + "::]");
-                Logger.Log("::[isMopubNull(false) = " + isMopubNull + "::] " + "::[isSoftLocked(false) = " + lock.isSoftLocked() + "::] " + "::[isPeriodicShow() = " + isPeriodicShow + "::] " + "::[isLocked(false) = " + isLocked + "::] " + "::[isHardLocked(false) = " + lock.isHardLocked() + "::] " + "::[isMopubReady(true) = " + isMopubReady + "::]");
-                if (!isMopubNull && !isLocked && isMopubReady) {
-                    Logger.Log("::Showing mopubInterstitial");
-                    mopubInterstitial.show();
+                Logger.Log("::[isMopubNull(false) = " + isMopubNull + "::] " + "::[isSoftLocked(false) = " + lock.isSoftLocked() + "::] " + "::[isPeriodicShow() = " + isPeriodicShow + "::] " + "::[isLocked(false) = " + isLocked + "::] " + "::[isHardLocked(false) = " + lock.isHardLocked() + "::] " + "::[isMopubReady(true) = " + isMopubReady + "::]" + "::[areAdsEnabled(true) = " + Data.Ads.enabled + "::]");
+                if (!isMopubNull && !isLocked && isMopubReady && Data.Ads.enabled) {
+                    if (mopubInterstitial.isReady()) {
+                        Runnable proxyStartRunnable = new Runnable() {
+                            @Override
+                            public void run() {
+                                prxy.startProxyActivity(context , mopubInterstitial);
+                            }
+                        };
+                        Helper.runOnWorkerThread(proxyStartRunnable);
+                    } else {
+                        Logger.Log("::InterstitialAd not available");
+                        Analytics.report("Ads", "InterstitialAdNotAvailable");
+                    }
                 }
             }
         }, delay);
