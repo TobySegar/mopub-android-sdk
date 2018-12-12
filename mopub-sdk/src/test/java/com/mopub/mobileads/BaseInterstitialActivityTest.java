@@ -62,7 +62,8 @@ public class BaseInterstitialActivityTest {
         Intent intent = new Intent(context, TestInterstitialActivity.class);
         intent.putExtra(BROADCAST_IDENTIFIER_KEY, broadcastIdentifier);
 
-        subject = Robolectric.buildActivity(TestInterstitialActivity.class, intent)
+        subject = Robolectric.buildActivity(TestInterstitialActivity.class)
+                .withIntent(intent)
                 .create().get();
         assertThat(subject.getBroadcastIdentifier()).isEqualTo(2222L);
     }
@@ -73,7 +74,8 @@ public class BaseInterstitialActivityTest {
         Intent intent = new Intent(context, TestInterstitialActivity.class);
         // This intent is missing a broadcastidentifier extra.
 
-        subject = Robolectric.buildActivity(TestInterstitialActivity.class, intent)
+        subject = Robolectric.buildActivity(TestInterstitialActivity.class)
+                .withIntent(intent)
                 .create().get();
 
         assertThat(subject.getBroadcastIdentifier()).isNull();

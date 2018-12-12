@@ -6,7 +6,6 @@ import android.content.res.Resources;
 import android.graphics.Point;
 import android.location.Location;
 import android.location.LocationManager;
-import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
 import android.telephony.TelephonyManager;
@@ -17,16 +16,10 @@ import android.view.WindowManager;
 
 import com.mopub.common.LocationService;
 import com.mopub.common.MoPub;
-import com.mopub.common.privacy.ConsentStatus;
-import com.mopub.common.privacy.MoPubIdentifierTest;
-import com.mopub.common.privacy.PersonalInfoManager;
 import com.mopub.common.test.support.SdkTestRunner;
-import com.mopub.common.util.Reflection;
 import com.mopub.mobileads.BuildConfig;
-import com.mopub.mobileads.test.support.MoPubShadowConnectivityManager;
 import com.mopub.mobileads.test.support.MoPubShadowTelephonyManager;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +30,6 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLocationManager;
-import org.robolectric.shadows.ShadowNetworkInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,7 +46,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @RunWith(SdkTestRunner.class)
-@Config(constants = BuildConfig.class, shadows = {MoPubShadowTelephonyManager.class, MoPubShadowConnectivityManager.class})
+@Config(constants = BuildConfig.class, shadows = {MoPubShadowTelephonyManager.class})
 public class NativeUrlGeneratorTest {
     public static final String AD_UNIT_ID = "1234";
     private static final int TEST_SCREEN_WIDTH = 999;
@@ -63,22 +55,15 @@ public class NativeUrlGeneratorTest {
     private Activity context;
     private NativeUrlGenerator subject;
     private MoPubShadowTelephonyManager shadowTelephonyManager;
-    private MoPubShadowConnectivityManager shadowConnectivityManager;
-    private PersonalInfoManager mockPersonalInfoManager;
 
     @Before
-    public void setup() throws Exception {
+    public void setup() {
         context = spy(Robolectric.buildActivity(Activity.class).create().get());
         Shadows.shadowOf(context).grantPermissions(ACCESS_NETWORK_STATE);
         Shadows.shadowOf(context).grantPermissions(ACCESS_FINE_LOCATION);
         when(context.getPackageName()).thenReturn("testBundle");
         shadowTelephonyManager = (MoPubShadowTelephonyManager)
                 Shadows.shadowOf((TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE));
-        shadowConnectivityManager = (MoPubShadowConnectivityManager)
-                Shadows.shadowOf((ConnectivityManager) RuntimeEnvironment.application.getSystemService(Context.CONNECTIVITY_SERVICE));
-        shadowConnectivityManager.setActiveNetworkInfo(ShadowNetworkInfo.newInstance(null,
-                ConnectivityManager.TYPE_MOBILE, TelephonyManager.NETWORK_TYPE_UNKNOWN, true,
-                true));
 
         // Set the expected screen dimensions to arbitrary numbers
         final Resources spyResources = spy(context.getResources());
@@ -109,93 +94,7 @@ public class NativeUrlGeneratorTest {
             when(context.getApplicationContext()).thenReturn(spyApplicationContext);
         }
 
-        mockPersonalInfoManager = mock(PersonalInfoManager.class);
-        when(mockPersonalInfoManager.getPersonalInfoConsentStatus()).thenReturn(ConsentStatus.UNKNOWN);
         LocationService.clearLastKnownLocation();
-        MoPubIdentifierTest.writeAdvertisingInfoToSharedPreferences(context, false);
-    }
-
-    @After
-    public void tearDown(){
-        MoPubIdentifierTest.clearPreferences(context);
-    }
-
-    @Test
-    public void requestParametersBuilder_whenKeywordsHaveBeenProvidedButNoUserConsent_shouldNotSaveKeywords() throws Exception {
-        when(mockPersonalInfoManager.canCollectPersonalInformation()).thenReturn(false);
-        new Reflection.MethodBuilder(null, "setPersonalInfoManager")
-                .setStatic(MoPub.class)
-                .setAccessible()
-                .addParam(PersonalInfoManager.class, mockPersonalInfoManager)
-                .execute();
-
-        RequestParameters requestParameters = new RequestParameters.Builder()
-                .keywords("keywords")
-                .userDataKeywords("user_data_keywords")
-                .build();
-
-        assertThat(requestParameters.getKeywords()).isEqualTo("keywords");
-        assertThat(requestParameters.getUserDataKeywords()).isNull();
-    }
-
-    @Test
-    public void requestParametersBuilder_whenKeywordsHaveBeenProvidedAndUserConsent_shouldSaveKeywords() throws Exception {
-        when(mockPersonalInfoManager.canCollectPersonalInformation()).thenReturn(true);
-        new Reflection.MethodBuilder(null, "setPersonalInfoManager")
-                .setStatic(MoPub.class)
-                .setAccessible()
-                .addParam(PersonalInfoManager.class, mockPersonalInfoManager)
-                .execute();
-
-        RequestParameters requestParameters = new RequestParameters.Builder()
-                .keywords("keywords")
-                .userDataKeywords("user_data_keywords")
-                .build();
-
-        assertThat(requestParameters.getKeywords()).isEqualTo("keywords");
-        assertThat(requestParameters.getUserDataKeywords()).isEqualTo("user_data_keywords");
-    }
-
-    @Test
-    public void generateUrlString_whenKeywordsHaveBeenProvidedButNoUserConsent_shouldNotUseKeywords() throws Exception {
-        when(mockPersonalInfoManager.canCollectPersonalInformation()).thenReturn(false);
-        new Reflection.MethodBuilder(null, "setPersonalInfoManager")
-                .setStatic(MoPub.class)
-                .setAccessible()
-                .addParam(PersonalInfoManager.class, mockPersonalInfoManager)
-                .execute();
-
-        RequestParameters requestParameters = new RequestParameters.Builder()
-                .keywords("keywords")
-                .userDataKeywords("user_data_keywords")
-                .build();
-        subject = new NativeUrlGenerator(context).withAdUnitId(AD_UNIT_ID);
-        String adUrl = subject.withRequest(requestParameters)
-                .generateUrlString("ads.mopub.com");
-
-        assertThat(getParameterFromRequestUrl(adUrl, "q")).isEqualTo("keywords");
-        assertThat(getParameterFromRequestUrl(adUrl, "user_data_q")).isEqualTo("");
-    }
-
-    @Test
-    public void generateUrlString_whenKeywordsHaveBeenProvidedAndUserConsent_shouldUseKeywords() throws Exception {
-        when(mockPersonalInfoManager.canCollectPersonalInformation()).thenReturn(true);
-        new Reflection.MethodBuilder(null, "setPersonalInfoManager")
-                .setStatic(MoPub.class)
-                .setAccessible()
-                .addParam(PersonalInfoManager.class, mockPersonalInfoManager)
-                .execute();
-
-        RequestParameters requestParameters = new RequestParameters.Builder()
-                .keywords("keywords")
-                .userDataKeywords("user_data_keywords")
-                .build();
-        subject = new NativeUrlGenerator(context).withAdUnitId(AD_UNIT_ID);
-        String adUrl = subject.withRequest(requestParameters)
-                .generateUrlString("ads.mopub.com");
-
-        assertThat(getParameterFromRequestUrl(adUrl, "q")).isEqualTo("keywords");
-        assertThat(getParameterFromRequestUrl(adUrl, "user_data_q")).isEqualTo("user_data_keywords");
     }
 
     @Test
@@ -230,13 +129,6 @@ public class NativeUrlGeneratorTest {
     public void generateUrlString_shouldNotIncludeDesiredAssetsIfNotSet() throws Exception {
         subject = new NativeUrlGenerator(context).withAdUnitId(AD_UNIT_ID);
 
-        when(mockPersonalInfoManager.canCollectPersonalInformation()).thenReturn(false);
-        new Reflection.MethodBuilder(null, "setPersonalInfoManager")
-                .setStatic(MoPub.class)
-                .setAccessible()
-                .addParam(PersonalInfoManager.class, mockPersonalInfoManager)
-                .execute();
-
         String requestString = generateMinimumUrlString();
         List<String> desiredAssets = getDesiredAssetsListFromRequestUrlString(requestString);
 
@@ -257,14 +149,7 @@ public class NativeUrlGeneratorTest {
     }
 
     @Test
-    public void generateUrlString_needsButDoesNotHaveReadPhoneState_shouldNotContainOperatorName() throws Exception {
-        when(mockPersonalInfoManager.canCollectPersonalInformation()).thenReturn(false);
-        new Reflection.MethodBuilder(null, "setPersonalInfoManager")
-                .setStatic(MoPub.class)
-                .setAccessible()
-                .addParam(PersonalInfoManager.class, mockPersonalInfoManager)
-                .execute();
-
+    public void generateUrlString_needsButDoesNotHaveReadPhoneState_shouldNotContainOperatorName() {
         shadowTelephonyManager.setNeedsReadPhoneState(true);
         shadowTelephonyManager.setReadPhoneStatePermission(false);
         shadowTelephonyManager.setNetworkOperatorName("TEST_CARRIER");
@@ -300,14 +185,7 @@ public class NativeUrlGeneratorTest {
     }
 
     @Test
-    public void generateUrlString_whenLocationServiceGpsProviderHasMostRecentLocation_shouldUseLocationServiceValue() throws Exception {
-        when(mockPersonalInfoManager.canCollectPersonalInformation()).thenReturn(true);
-        new Reflection.MethodBuilder(null, "setPersonalInfoManager")
-                .setStatic(MoPub.class)
-                .setAccessible()
-                .addParam(PersonalInfoManager.class, mockPersonalInfoManager)
-                .execute();
-
+    public void generateUrlString_whenLocationServiceGpsProviderHasMostRecentLocation_shouldUseLocationServiceValue() {
         Location locationFromDeveloper = new Location("");
         locationFromDeveloper.setLatitude(42);
         locationFromDeveloper.setLongitude(-42);
@@ -340,54 +218,7 @@ public class NativeUrlGeneratorTest {
     }
 
     @Test
-    public void generateUrlString_whenConsentIsFalse_shouldNotHaveLocationValue() throws Exception {
-        when(mockPersonalInfoManager.canCollectPersonalInformation()).thenReturn(false);
-        new Reflection.MethodBuilder(null, "setPersonalInfoManager")
-                .setStatic(MoPub.class)
-                .setAccessible()
-                .addParam(PersonalInfoManager.class, mockPersonalInfoManager)
-                .execute();
-
-        Location locationFromDeveloper = new Location("");
-        locationFromDeveloper.setLatitude(42);
-        locationFromDeveloper.setLongitude(-42);
-        locationFromDeveloper.setAccuracy(3.5f);
-        locationFromDeveloper.setTime(1000);
-
-        // Mock out the LocationManager's last known location to be more recent than the
-        // developer-supplied location.
-        ShadowLocationManager shadowLocationManager = Shadows.shadowOf(
-                (LocationManager) RuntimeEnvironment.application.getSystemService(Context.LOCATION_SERVICE));
-        Location locationFromSdk = new Location("");
-        locationFromSdk.setLatitude(37);
-        locationFromSdk.setLongitude(-122);
-        locationFromSdk.setAccuracy(5.0f);
-        locationFromSdk.setTime(System.currentTimeMillis() - 555555);
-        shadowLocationManager.setLastKnownLocation(LocationManager.GPS_PROVIDER, locationFromSdk);
-
-        RequestParameters requestParameters = new RequestParameters.Builder()
-                .location(locationFromDeveloper)
-                .build();
-        subject = new NativeUrlGenerator(context).withAdUnitId(AD_UNIT_ID);
-        String adUrl = subject.withRequest(requestParameters)
-                .generateUrlString("ads.mopub.com");
-        assertThat(getParameterFromRequestUrl(adUrl, "ll")).isEqualTo("");
-        assertThat(getParameterFromRequestUrl(adUrl, "lla")).isEqualTo("");
-        assertThat(getParameterFromRequestUrl(adUrl, "llsdk")).isEqualTo("");
-        // Only test to the full second (as there may be small differences)
-        assertThat(getParameterFromRequestUrl(adUrl, "llf")).startsWith("");
-    }
-
-    @Test
-    public void generateUrlString_whenDeveloperSuppliesMoreRecentLocationThanLocationService_shouldUseDeveloperSuppliedLocation() throws Exception {
-
-        when(mockPersonalInfoManager.canCollectPersonalInformation()).thenReturn(true);
-        new Reflection.MethodBuilder(null, "setPersonalInfoManager")
-                .setStatic(MoPub.class)
-                .setAccessible()
-                .addParam(PersonalInfoManager.class, mockPersonalInfoManager)
-                .execute();
-
+    public void generateUrlString_whenDeveloperSuppliesMoreRecentLocationThanLocationService_shouldUseDeveloperSuppliedLocation() {
         Location locationFromDeveloper = new Location("");
         locationFromDeveloper.setLatitude(42);
         locationFromDeveloper.setLongitude(-42);
@@ -421,14 +252,7 @@ public class NativeUrlGeneratorTest {
     }
 
     @Test
-    public void generateUrlString_whenLocationServiceNetworkProviderHasMostRecentLocation_shouldUseLocationServiceValue() throws Exception {
-        when(mockPersonalInfoManager.canCollectPersonalInformation()).thenReturn(true);
-        new Reflection.MethodBuilder(null, "setPersonalInfoManager")
-                .setStatic(MoPub.class)
-                .setAccessible()
-                .addParam(PersonalInfoManager.class, mockPersonalInfoManager)
-                .execute();
-
+    public void generateUrlString_whenLocationServiceNetworkProviderHasMostRecentLocation_shouldUseLocationServiceValue() {
         Location locationFromDeveloper = new Location("");
         locationFromDeveloper.setLatitude(42);
         locationFromDeveloper.setLongitude(-42);
@@ -467,23 +291,21 @@ public class NativeUrlGeneratorTest {
         final String adUrl = generateMinimumUrlString();
 
         assertThat(adUrl).isEqualTo(
-                "https://ads.mopub.com/m/ad?id=" +
+                "http://ads.mopub.com/m/ad?id=" +
                         AD_UNIT_ID +
-                        "&nv=" + Uri.encode(MoPub.SDK_VERSION) +
-                        "&dn=unknown%2Crobolectric%2Crobolectric" +
+                        "&nsv=" + Uri.encode(MoPub.SDK_VERSION) +
+                        "&dn=unknown%2Cunknown%2Cunknown" +
                         "&bundle=testBundle" +
                         "&z=-0700" +
-                        "&o=p" +
+                        "&o=u" +
                         "&w=" +
                         TEST_SCREEN_WIDTH +
                         "&h=" +
                         TEST_SCREEN_HEIGHT +
-                        "&sc=" +
+                        "&sc_a=" +
                         TEST_DENSITY +
-                        "&ct=3&av=" + Uri.encode(BuildConfig.VERSION_NAME) +
-                        "&udid=mp_tmpl_advertising_id&dnt=mp_tmpl_do_not_track" +
-                        "&gdpr_applies=0" +
-                        "&current_consent_status=unknown");
+                        "&ct=3&av=" + BuildConfig.VERSION_NAME +
+                        "&udid=mp_tmpl_advertising_id&dnt=mp_tmpl_do_not_track");
     }
 
     @Test
@@ -542,7 +364,7 @@ public class NativeUrlGeneratorTest {
         return networkOperatorName;
     }
 
-    public static String getParameterFromRequestUrl(String requestString, String key) {
+    private String getParameterFromRequestUrl(String requestString, String key) {
         Uri requestUri = Uri.parse(requestString);
         String parameter = requestUri.getQueryParameter(key);
 

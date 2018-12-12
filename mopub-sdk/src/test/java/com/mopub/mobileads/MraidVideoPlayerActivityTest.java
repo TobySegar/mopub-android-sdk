@@ -171,8 +171,7 @@ public class MraidVideoPlayerActivityTest {
         final ShadowActivity.IntentForResult intentForResult = Shadows.shadowOf(subject).getNextStartedActivityForResult();
 
         assertThat(intentForResult.intent.getComponent().getClassName()).isEqualTo("com.mopub.common.MoPubBrowser");
-        assertThat(intentForResult.intent.getExtras().getString("hello")).isEqualTo(expectedExtras.getString("hello"));
-        assertThat(intentForResult.intent.getExtras().size()).isEqualTo(expectedExtras.size());
+        assertThat(intentForResult.intent.getExtras()).isEqualTo(expectedExtras);
         assertThat(intentForResult.requestCode).isEqualTo(100);
     }
 
@@ -199,7 +198,8 @@ public class MraidVideoPlayerActivityTest {
     private void initializeSubjectForMraid() {
         intent.putExtra(BaseVideoPlayerActivity.VIDEO_CLASS_EXTRAS_KEY, "mraid");
 
-        subject = Robolectric.buildActivity(MraidVideoPlayerActivity.class, intent)
+        subject = Robolectric.buildActivity(MraidVideoPlayerActivity.class)
+                .withIntent(intent)
                 .create()
                 .get();
     }
@@ -210,7 +210,8 @@ public class MraidVideoPlayerActivityTest {
         vastVideoConfig.setDiskMediaFileUrl("video_path");
         intent.putExtra(VastVideoViewController.VAST_VIDEO_CONFIG, vastVideoConfig);
 
-        subject = Robolectric.buildActivity(MraidVideoPlayerActivity.class, intent)
+        subject = Robolectric.buildActivity(MraidVideoPlayerActivity.class)
+                .withIntent(intent)
                 .create()
                 .get();
     }
@@ -234,7 +235,8 @@ public class MraidVideoPlayerActivityTest {
         NativeVideoController.setForId(123, mockVideoController);
         intent.putExtras(additionalExtras);
 
-        subject = Robolectric.buildActivity(MraidVideoPlayerActivity.class, intent)
+        subject = Robolectric.buildActivity(MraidVideoPlayerActivity.class)
+                .withIntent(intent)
                 .create()
                 .get();
     }

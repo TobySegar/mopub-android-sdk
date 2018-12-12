@@ -9,7 +9,6 @@ import android.support.annotation.Nullable;
 import com.mopub.TestSdkHelper;
 import com.mopub.mobileads.BuildConfig;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +45,6 @@ public class CustomSSLSocketFactoryTest {
     private CustomSSLSocketFactory subject;
     private SSLCertificateSocketFactory mockSSLCertificateSocketFactory;
     private SSLSocketWithSetHostname mockSSLSocket;
-    private int previousSdkVersion;
 
     @SuppressLint("SSLCertificateSocketFactoryCreateSocket")
     @Before
@@ -61,12 +59,6 @@ public class CustomSSLSocketFactoryTest {
                 mockInetAddress);
         subject = CustomSSLSocketFactory.getDefault(0);
         subject.setCertificateSocketFactory(mockSSLCertificateSocketFactory);
-        previousSdkVersion = Build.VERSION.SDK_INT;
-    }
-
-    @After
-    public void tearDown() {
-        TestSdkHelper.setReportedSdkLevel(previousSdkVersion);
     }
 
     @Test
@@ -79,11 +71,6 @@ public class CustomSSLSocketFactoryTest {
         subject.createSocket(mockSocket, "hostname", 443, true);
 
         verify(mockSocket).close();
-        verify(mockSSLSocket).getSupportedProtocols();
-        verify(mockSSLSocket).setEnabledProtocols(any(String[].class));
-        verify(mockSSLSocket).startHandshake();
-        verify(mockSSLSocket).getSession();
-        verify(mockSSLSocket).setHostname(any(String.class));
         verifyNoMoreInteractions(mockSocket);
     }
 

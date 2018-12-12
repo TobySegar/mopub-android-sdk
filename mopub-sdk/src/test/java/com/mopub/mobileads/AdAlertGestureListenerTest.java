@@ -20,7 +20,7 @@ import static com.mopub.mobileads.AdAlertGestureListener.ZigZagState.GOING_LEFT;
 import static com.mopub.mobileads.AdAlertGestureListener.ZigZagState.GOING_RIGHT;
 import static com.mopub.mobileads.AdAlertGestureListener.ZigZagState.UNSET;
 import static org.fest.assertions.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.stub;
 
 @RunWith(SdkTestRunner.class)
 @Config(constants = BuildConfig.class)
@@ -41,7 +41,7 @@ public class AdAlertGestureListenerTest {
 
     @Before
     public void setup() {
-        when(mockView.getContext()).thenReturn(mockContext);
+        stub(mockView.getContext()).toReturn(mockContext);
 
         subject = new AdAlertGestureListener(mockView, mockAdReport);
 
@@ -54,21 +54,21 @@ public class AdAlertGestureListenerTest {
 
     @Test
     public void constructor_shouldSetThresholdToOneThirdOfViewsWidth() throws Exception {
-        when(mockView.getWidth()).thenReturn(150);
+        stub(mockView.getWidth()).toReturn(150);
         subject = new AdAlertGestureListener(mockView, mockAdReport);
         assertThat(subject.getMinimumDipsInZigZag()).isEqualTo(50);
     }
 
     @Test
     public void constructor_whenViewWidthIsWiderThanThreeTimesMaxThreshold_shouldSetThresholdTo100() throws Exception {
-        when(mockView.getWidth()).thenReturn(500);
+        stub(mockView.getWidth()).toReturn(500);
         subject = new AdAlertGestureListener(mockView, mockAdReport);
         assertThat(subject.getMinimumDipsInZigZag()).isEqualTo(100);
     }
 
     @Test
     public void constructor_whenViewWidthIs0_shouldSetThresholdTo100() throws Exception {
-        when(mockView.getWidth()).thenReturn(0);
+        stub(mockView.getWidth()).toReturn(0);
         subject = new AdAlertGestureListener(mockView, mockAdReport);
         assertThat(subject.getMinimumDipsInZigZag()).isEqualTo(100);
     }

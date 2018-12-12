@@ -11,7 +11,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.robolectric.Robolectric;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowGestureDetector;
@@ -20,7 +19,7 @@ import static com.mopub.mobileads.ViewGestureDetector.UserClickListener;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.stub;
 import static org.mockito.Mockito.verify;
 
 
@@ -35,10 +34,10 @@ public class ViewGestureDetectorTest {
 
     @Before
     public void setUp() throws Exception {
-        context = Robolectric.buildActivity(Activity.class).create().get();
+        context = new Activity();
         view = mock(View.class);
-        when(view.getWidth()).thenReturn(320);
-        when(view.getHeight()).thenReturn(50);
+        stub(view.getWidth()).toReturn(320);
+        stub(view.getHeight()).toReturn(50);
 
         adAlertGestureListener = mock(AdAlertGestureListener.class);
 

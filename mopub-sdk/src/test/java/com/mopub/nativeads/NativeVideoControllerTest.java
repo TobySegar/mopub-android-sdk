@@ -6,29 +6,19 @@ import android.graphics.SurfaceTexture;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.view.Surface;
 import android.view.TextureView;
 
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.ExoPlayer.ExoPlayerMessage;
-import com.google.android.exoplayer2.LoadControl;
-import com.google.android.exoplayer2.PlayerMessage;
-import com.google.android.exoplayer2.Renderer;
-import com.google.android.exoplayer2.Timeline;
-import com.google.android.exoplayer2.audio.MediaCodecAudioRenderer;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.trackselection.TrackSelector;
-import com.google.android.exoplayer2.video.MediaCodecVideoRenderer;
+import com.google.android.exoplayer.ExoPlaybackException;
+import com.google.android.exoplayer.ExoPlayer;
+import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
+import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.mopub.common.test.support.SdkTestRunner;
 import com.mopub.mobileads.BuildConfig;
 import com.mopub.mobileads.VastTracker;
 import com.mopub.mobileads.VastVideoConfig;
+import com.mopub.nativeads.NativeVideoController.ExoPlayerFactory;
 import com.mopub.nativeads.NativeVideoController.Listener;
-import com.mopub.nativeads.NativeVideoController.MoPubExoPlayerFactory;
 import com.mopub.nativeads.NativeVideoController.NativeVideoProgressRunnable;
 import com.mopub.nativeads.NativeVideoController.NativeVideoProgressRunnable.ProgressListener;
 import com.mopub.nativeads.NativeVideoController.VisibilityTrackingEvent;
@@ -40,14 +30,11 @@ import com.mopub.network.TrackingRequest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.annotation.Config;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,11 +52,9 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -95,10 +80,6 @@ public class NativeVideoControllerTest {
     @Mock private VisibilityChecker mockVisibilityChecker;
     @Mock private MoPubRequestQueue mockRequestQueue;
     @Mock private AudioManager mockAudioManager;
-    @Mock private MediaCodecVideoRenderer mockVideoRenderer;
-    @Mock private MediaCodecAudioRenderer mockAudioRenderer;
-    @Mock private TrackSelector mockTrackSelector;
-    @Mock private LoadControl mockLoadControl;
 
     @Before
     public void setUp() {
@@ -160,13 +141,14 @@ public class NativeVideoControllerTest {
                 activity,
                 vastVideoConfig,
                 mockNativeVideoProgressRunnable,
-                new MoPubExoPlayerFactory() {
+                new ExoPlayerFactory() {
                     @Override
-                    public ExoPlayer newInstance(@NonNull final Renderer[] renderers,
-                            @NonNull final TrackSelector trackSelector, @Nullable LoadControl loadControl) {
+                    public ExoPlayer newInstance(int rendererCount, int minBufferMs,
+                            int minRebufferMs) {
                         return mockExoPlayer;
                     }
                 },
+                null,
                 mockAudioManager);
 
         nativeVideoProgressRunnable = new NativeVideoProgressRunnable(activity,
@@ -185,14 +167,14 @@ public class NativeVideoControllerTest {
     @Test
     public void createForId_shouldAddNativeVideoControllerToMap_shouldReturnNativeVideoController() {
         NativeVideoController nativeVideoController =
-                createForId(123, activity, visibilityTrackingEvents, vastVideoConfig);
+                createForId(123, activity, visibilityTrackingEvents, vastVideoConfig, null);
         assertThat(nativeVideoController).isEqualTo(getForId(123));
     }
 
     @Test
     public void remove_shouldRemoveNativeVideoControllerFromMap() {
         NativeVideoController nativeVideoController =
-                createForId(123, activity, visibilityTrackingEvents, vastVideoConfig);
+                createForId(123, activity, visibilityTrackingEvents, vastVideoConfig, null);
         assertThat(nativeVideoController).isEqualTo(getForId(123));
         remove(123);
         assertThat(getForId(123)).isNull();
@@ -235,21 +217,12 @@ public class NativeVideoControllerTest {
     @Test
     public void setAudioEnabled_withTrue_shouldSetVolumeOnExoPlayer() {
         subject.prepare(this);
-        reset(mockExoPlayer);
-
-        PlayerMessage message = new PlayerMessage(mock(PlayerMessage.Sender.class), null, Timeline.EMPTY, 0, null);
-        when(mockExoPlayer.createMessage(any(PlayerMessage.Target.class)))
-                .thenReturn(message);
-
         subject.setAudioEnabled(true);
 
-        ArgumentCaptor<MediaCodecAudioRenderer> captor = ArgumentCaptor.forClass(MediaCodecAudioRenderer.class);
-        verify(mockExoPlayer).createMessage(captor.capture());
-
-        PlayerMessage.Target target = captor.getValue();
-        assertThat(target).isInstanceOf(MediaCodecAudioRenderer.class);
-        assertThat(message.getType()).isEqualTo(C.MSG_SET_VOLUME);
-        assertThat(message.getPayload()).isEqualTo(1.0f);
+        verify(mockExoPlayer).sendMessage(
+                any(MediaCodecAudioTrackRenderer.class),
+                eq(MediaCodecAudioTrackRenderer.MSG_SET_VOLUME),
+                eq(1.0f));
     }
 
     @Test
@@ -259,19 +232,12 @@ public class NativeVideoControllerTest {
         subject.setAudioEnabled(true);
         reset(mockExoPlayer);
 
-        PlayerMessage message = new PlayerMessage(mock(PlayerMessage.Sender.class), null, Timeline.EMPTY, 0, null);
-        when(mockExoPlayer.createMessage(any(PlayerMessage.Target.class)))
-                .thenReturn(message);
-
         subject.setAudioEnabled(false);
 
-        ArgumentCaptor<MediaCodecAudioRenderer> captor = ArgumentCaptor.forClass(MediaCodecAudioRenderer.class);
-        verify(mockExoPlayer).createMessage(captor.capture());
-
-        PlayerMessage.Target target = captor.getValue();
-        assertThat(target).isInstanceOf(MediaCodecAudioRenderer.class);
-        assertThat(message.getType()).isEqualTo(C.MSG_SET_VOLUME);
-        assertThat(message.getPayload()).isEqualTo(0.0f);
+        verify(mockExoPlayer).sendMessage(
+                any(MediaCodecAudioTrackRenderer.class),
+                eq(MediaCodecAudioTrackRenderer.MSG_SET_VOLUME),
+                eq(0.0f));
     }
 
     @Test
@@ -295,31 +261,25 @@ public class NativeVideoControllerTest {
     public void setAudioVolume_withAudioEnabled_shouldSetExoPlayerVolume() throws Exception {
         subject.prepare(this);
         subject.setAudioEnabled(true);
-        reset(mockExoPlayer);
-
-        PlayerMessage message = new PlayerMessage(mock(PlayerMessage.Sender.class), null, Timeline.EMPTY, 0, null);
-        when(mockExoPlayer.createMessage(any(PlayerMessage.Target.class)))
-                .thenReturn(message);
 
         subject.setAudioVolume(0.3f);
 
-        ArgumentCaptor<MediaCodecAudioRenderer> captor = ArgumentCaptor.forClass(MediaCodecAudioRenderer.class);
-        verify(mockExoPlayer).createMessage(captor.capture());
-
-        MediaCodecAudioRenderer target = captor.getValue();
-        assertThat(target).isInstanceOf(MediaCodecAudioRenderer.class);
-        assertThat(message.getType()).isEqualTo(C.MSG_SET_VOLUME);
-        assertThat(message.getPayload()).isEqualTo(0.3f);
+        verify(mockExoPlayer).sendMessage(
+                any(MediaCodecAudioTrackRenderer.class),
+                eq(MediaCodecAudioTrackRenderer.MSG_SET_VOLUME),
+                eq(0.3f));
     }
 
     @Test
     public void setAudioVolume_withAudioDisabled_shouldDoNothing() throws Exception {
         subject.prepare(this);
-        reset(mockExoPlayer);
 
         subject.setAudioVolume(0.3f);
 
-        verify(mockExoPlayer, never()).sendMessages(any(ExoPlayerMessage.class));
+        verify(mockExoPlayer, never()).sendMessage(
+                any(MediaCodecAudioTrackRenderer.class),
+                eq(MediaCodecAudioTrackRenderer.MSG_SET_VOLUME),
+                eq(0.3f));
     }
 
     @Test
@@ -327,19 +287,12 @@ public class NativeVideoControllerTest {
         subject.prepare(this);
         reset(mockExoPlayer);
 
-        PlayerMessage message = new PlayerMessage(mock(PlayerMessage.Sender.class), null, Timeline.EMPTY, 0, null);
-        when(mockExoPlayer.createMessage(any(PlayerMessage.Target.class)))
-                .thenReturn(message);
-
         subject.setTextureView(mockTextureView);
 
-        ArgumentCaptor<MediaCodecVideoRenderer> captor = ArgumentCaptor.forClass(MediaCodecVideoRenderer.class);
-        verify(mockExoPlayer).createMessage(captor.capture());
-
-        PlayerMessage.Target target = captor.getValue();
-        assertThat(target).isInstanceOf(MediaCodecVideoRenderer.class);
-        assertThat(message.getType()).isEqualTo(C.MSG_SET_SURFACE);
-        assertThat(message.getPayload()).isInstanceOf(Surface.class);
+        verify(mockNativeVideoProgressRunnable).setTextureView(mockTextureView);
+        verify(mockExoPlayer).sendMessage(any(MediaCodecVideoTrackRenderer.class),
+                eq(MediaCodecVideoTrackRenderer.MSG_SET_SURFACE),
+                any(Surface.class));
     }
 
     @Test
@@ -351,32 +304,10 @@ public class NativeVideoControllerTest {
         reset(mockExoPlayer);
         reset(mockNativeVideoProgressRunnable);
         // This will clear the previous player
-
-        PlayerMessage.Sender mockSender = mock(PlayerMessage.Sender.class);
-        when(mockExoPlayer.createMessage(any(PlayerMessage.Target.class)))
-                .thenReturn(new PlayerMessage(mockSender, null, Timeline.EMPTY, 0, null))
-                .thenReturn(new PlayerMessage(mockSender, null, Timeline.EMPTY, 0, null))
-                .thenReturn(new PlayerMessage(mockSender, null, Timeline.EMPTY, 0, null));
-
         subject.prepare(this);
 
-        // Ensure the first two calls zero out the surface and disable audio
-        ArgumentCaptor<PlayerMessage.Target> targetCaptor = ArgumentCaptor.forClass(PlayerMessage.Target.class);
-        verify(mockExoPlayer, atLeast(2)).createMessage(targetCaptor.capture());
-
-        ArgumentCaptor<PlayerMessage> messageCaptor = ArgumentCaptor.forClass(PlayerMessage.class);
-        verify(mockSender, atLeast(2)).sendMessage(messageCaptor.capture());
-
-        List<PlayerMessage> messages = messageCaptor.getAllValues();
-        assertThat(messages.get(0).getType()).isEqualTo(C.MSG_SET_SURFACE);
-        assertThat(messages.get(0).getPayload()).isNull();
-        assertThat(messages.get(1).getType()).isEqualTo(C.MSG_SET_VOLUME);
-        assertThat(messages.get(1).getPayload()).isEqualTo(0f);
-
-        List<PlayerMessage.Target> targets = targetCaptor.getAllValues();
-        assertThat(targets.get(0)).isInstanceOf(MediaCodecVideoRenderer.class);
-        assertThat(targets.get(1)).isInstanceOf(MediaCodecAudioRenderer.class);
-
+        verify(mockExoPlayer).sendMessage(any(MediaCodecVideoTrackRenderer.class),
+                eq(MediaCodecVideoTrackRenderer.MSG_SET_SURFACE), eq(null));
         verify(mockExoPlayer).stop();
         verify(mockExoPlayer).release();
         verify(mockNativeVideoProgressRunnable).stop();
@@ -385,52 +316,37 @@ public class NativeVideoControllerTest {
 
     @Test
     public void prepare_shouldPreparePlayer() {
-        MoPubExoPlayerFactory mockMoPubExoPlayerFactory = mock(MoPubExoPlayerFactory.class);
-        when(mockMoPubExoPlayerFactory.newInstance(
-                any(Renderer[].class),
-                any(TrackSelector.class),
-                any(LoadControl.class))
-        ).thenReturn(mockExoPlayer);
-
-        PlayerMessage.Sender mockSender = mock(PlayerMessage.Sender.class);
-        when(mockExoPlayer.createMessage(any(PlayerMessage.Target.class)))
-                .thenReturn(new PlayerMessage(mockSender, null, Timeline.EMPTY, 0, null))
-                .thenReturn(new PlayerMessage(mockSender, null, Timeline.EMPTY, 0, null));
-
+        ExoPlayerFactory mockExoPlayerFactory = mock(ExoPlayerFactory.class);
+        when(mockExoPlayerFactory.newInstance(2, 1000, 5000)).thenReturn(mockExoPlayer);
         subject = createForId(123,
                 activity,
                 vastVideoConfig,
                 mockNativeVideoProgressRunnable,
-                mockMoPubExoPlayerFactory,
+                mockExoPlayerFactory,
+                null,
                 mockAudioManager);
         subject.prepare(this);
 
-        verify(mockMoPubExoPlayerFactory).newInstance(any(Renderer[].class),
-                any(TrackSelector.class), any(LoadControl.class));
+        verify(mockExoPlayerFactory).newInstance(2, 1000, 5000);
         verify(mockNativeVideoProgressRunnable).setExoPlayer(mockExoPlayer);
         verify(mockNativeVideoProgressRunnable).startRepeating(50);
         verify(mockExoPlayer).addListener(subject);
-        verify(mockExoPlayer).prepare(any(MediaSource.class));
+        verify(mockExoPlayer).prepare(any(MediaCodecAudioTrackRenderer.class),
+                any(MediaCodecVideoTrackRenderer.class));
 
-        // set audio and surface
-        ArgumentCaptor<PlayerMessage.Target> captor = ArgumentCaptor.forClass(PlayerMessage.Target.class);
-        verify(mockExoPlayer, times(2)).createMessage(captor.capture());
-
-        ArgumentCaptor<PlayerMessage> messageCaptor = ArgumentCaptor.forClass(PlayerMessage.class);
-        verify(mockSender, times(2)).sendMessage(messageCaptor.capture());
-
-        List<PlayerMessage> messages = messageCaptor.getAllValues();
-        assertThat(messages.get(0).getType()).isEqualTo(C.MSG_SET_VOLUME);
-        assertThat(messages.get(0).getPayload()).isEqualTo(0f);
-        assertThat(messages.get(1).getType()).isEqualTo(C.MSG_SET_SURFACE);
-        assertThat(messages.get(1).getPayload()).isNull();
-
-        List<PlayerMessage.Target> targets = captor.getAllValues();
-        assertThat(targets.get(0)).isInstanceOf(MediaCodecAudioRenderer.class);
-        assertThat(targets.get(1)).isInstanceOf(MediaCodecVideoRenderer.class);
+        // set audio
+        verify(mockExoPlayer).sendMessage(
+                any(MediaCodecAudioTrackRenderer.class),
+                eq(MediaCodecAudioTrackRenderer.MSG_SET_VOLUME),
+                eq(0.0f));
 
         // play when ready
         verify(mockExoPlayer).setPlayWhenReady(false);
+
+        // set surface
+        verify(mockExoPlayer).sendMessage(any(MediaCodecVideoTrackRenderer.class),
+                eq(MediaCodecVideoTrackRenderer.MSG_SET_SURFACE),
+                eq(null));
     }
 
     @Test
@@ -441,24 +357,13 @@ public class NativeVideoControllerTest {
 
         reset(mockExoPlayer);
         reset(mockNativeVideoProgressRunnable);
-
-        PlayerMessage playerMessage = new PlayerMessage(mock(PlayerMessage.Sender.class), null, Timeline.EMPTY, 0, null);
-        when(mockExoPlayer.createMessage(any(MediaCodecVideoRenderer.class)))
-                .thenReturn(playerMessage);
-
         subject.clear();
 
         verify(mockExoPlayer).setPlayWhenReady(false);
 
         // clear exo player
-        ArgumentCaptor<MediaCodecVideoRenderer> targetArgumentCaptor = ArgumentCaptor.forClass(MediaCodecVideoRenderer.class);
-        verify(mockExoPlayer).createMessage(targetArgumentCaptor.capture());
-        MediaCodecVideoRenderer messageTarget = targetArgumentCaptor.getValue();
-
-        assertThat(messageTarget).isInstanceOf(MediaCodecVideoRenderer.class);
-        assertThat(playerMessage.getType()).isEqualTo(C.MSG_SET_SURFACE);
-        assertThat(playerMessage.getPayload()).isNull();
-
+        verify(mockExoPlayer).sendMessage(any(MediaCodecVideoTrackRenderer.class),
+                eq(MediaCodecVideoTrackRenderer.MSG_SET_SURFACE), eq(null));
         verify(mockExoPlayer).stop();
         verify(mockExoPlayer).release();
         verify(mockNativeVideoProgressRunnable).setExoPlayer(null);
@@ -470,22 +375,11 @@ public class NativeVideoControllerTest {
 
         reset(mockExoPlayer);
         reset(mockNativeVideoProgressRunnable);
-
-        PlayerMessage message = new PlayerMessage(mock(PlayerMessage.Sender.class), null, Timeline.EMPTY, 0, null);
-        when(mockExoPlayer.createMessage(any(PlayerMessage.Target.class)))
-                .thenReturn(message);
-
-        // release should clear exo player here
         subject.release(this);
 
-        ArgumentCaptor<MediaCodecVideoRenderer> captor = ArgumentCaptor.forClass(MediaCodecVideoRenderer.class);
-        verify(mockExoPlayer).createMessage(captor.capture());
-        MediaCodecVideoRenderer target = captor.getValue();
-
-        assertThat(target).isInstanceOf(MediaCodecVideoRenderer.class);
-        assertThat(message.getType()).isEqualTo(C.MSG_SET_SURFACE);
-        assertThat(message.getPayload()).isNull();
-
+        // clear exo player
+        verify(mockExoPlayer).sendMessage(any(MediaCodecVideoTrackRenderer.class),
+                eq(MediaCodecVideoTrackRenderer.MSG_SET_SURFACE), eq(null));
         verify(mockExoPlayer).stop();
         verify(mockExoPlayer).release();
         verify(mockNativeVideoProgressRunnable).setExoPlayer(null);
@@ -556,7 +450,7 @@ public class NativeVideoControllerTest {
 
     @Test
     public void onPlayerError_shouldNotifyListener_shouldRequestProgressRunnableToStop() {
-        ExoPlaybackException exoPlaybackException = ExoPlaybackException.createForSource(new IOException(""));
+        ExoPlaybackException exoPlaybackException = new ExoPlaybackException("exception");
         subject.setListener(mockListener);
         subject.onPlayerError(exoPlaybackException);
 
@@ -570,13 +464,14 @@ public class NativeVideoControllerTest {
                 activity,
                 mockVastVideoConfig,
                 mockNativeVideoProgressRunnable,
-                new MoPubExoPlayerFactory() {
+                new ExoPlayerFactory() {
                     @Override
-                    public ExoPlayer newInstance(Renderer[] renderers, TrackSelector trackSelector,
-                            LoadControl loadControl) {
+                    public ExoPlayer newInstance(int rendererCount, int minBufferMs,
+                            int minRebufferMs) {
                         return mockExoPlayer;
                     }
                 },
+                null,
                 mockAudioManager);
 
         subject.handleCtaClick(activity);
@@ -590,10 +485,8 @@ public class NativeVideoControllerTest {
         when(mockExoPlayer.getCurrentPosition()).thenReturn(10L);
         when(mockExoPlayer.getDuration()).thenReturn(25L);
         when(mockExoPlayer.getPlayWhenReady()).thenReturn(true);
-        when(mockVisibilityChecker.isVisible(mockTextureView, mockTextureView,
-                10, null)).thenReturn(true);
-        when(mockVisibilityChecker.isVisible(mockTextureView, mockTextureView,
-                20, null)).thenReturn(false);
+        when(mockVisibilityChecker.isVisible(mockTextureView, mockTextureView, 10)).thenReturn(true);
+        when(mockVisibilityChecker.isVisible(mockTextureView, mockTextureView, 20)).thenReturn(false);
 
         nativeVideoProgressRunnable.setUpdateIntervalMillis(10);
         nativeVideoProgressRunnable.doWork();
@@ -693,8 +586,7 @@ public class NativeVideoControllerTest {
     public void NativeVideoProgressRunnable_checkImpressionTrackers_withForceTriggerFalse_shouldOnlyTriggerNotTrackedEvents_shouldNotStopRunnable() {
         when(mockExoPlayer.getCurrentPosition()).thenReturn(50L);
         when(mockExoPlayer.getDuration()).thenReturn(50L);
-        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), anyInt(),
-                Matchers.isNull(Integer.class)))
+        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), anyInt()))
                 .thenReturn(true);
         spyNativeVideoProgressRunnable.setUpdateIntervalMillis(50);
 
@@ -714,8 +606,7 @@ public class NativeVideoControllerTest {
         // Enough time has passed for all impressions to trigger organically
         when(mockExoPlayer.getCurrentPosition()).thenReturn(50L);
         when(mockExoPlayer.getDuration()).thenReturn(50L);
-        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), anyInt(),
-                Matchers.isNull(Integer.class)))
+        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), anyInt()))
                 .thenReturn(true);
         spyNativeVideoProgressRunnable.setUpdateIntervalMillis(50);
         spyNativeVideoProgressRunnable.requestStop();
@@ -737,8 +628,7 @@ public class NativeVideoControllerTest {
         // be triggered because forceTrigger is true
         when(mockExoPlayer.getCurrentPosition()).thenReturn(5L);
         when(mockExoPlayer.getDuration()).thenReturn(50L);
-        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), anyInt(),
-                Matchers.isNull(Integer.class)))
+        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), anyInt()))
                 .thenReturn(true);
         spyNativeVideoProgressRunnable.setUpdateIntervalMillis(50);
 
@@ -757,8 +647,7 @@ public class NativeVideoControllerTest {
     public void NativeVideoProgressRunnable_checkImpressionTrackers_withForceTriggerTrue_withStopRequested_shouldOnlyTriggerNotTrackedEvents_shouldStopRunnable() {
         when(mockExoPlayer.getCurrentPosition()).thenReturn(50L);
         when(mockExoPlayer.getDuration()).thenReturn(50L);
-        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), anyInt(),
-                Matchers.isNull(Integer.class)))
+        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), anyInt()))
                 .thenReturn(true);
         spyNativeVideoProgressRunnable.setUpdateIntervalMillis(50);
         spyNativeVideoProgressRunnable.requestStop();
@@ -784,20 +673,16 @@ public class NativeVideoControllerTest {
         // track: whether the impression should be organically triggered
 
         // trackingUrl1: visible & played = track
-        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView),
-                eq(10), Matchers.isNull(Integer.class)))
+        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), eq(10)))
                 .thenReturn(true);
         // trackingUrl2: visible & !played = !track
-        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView),
-                eq(20), Matchers.isNull(Integer.class)))
+        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), eq(20)))
                 .thenReturn(true);
         // trackingUrl3: already tracked = !track
-        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView),
-                eq(30), Matchers.isNull(Integer.class)))
+        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), eq(30)))
                 .thenReturn(true);
         // trackingUrl4: !visible & played = !track
-        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView),
-                eq(9), Matchers.isNull(Integer.class)))
+        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), eq(9)))
                 .thenReturn(false);
         spyNativeVideoProgressRunnable.setUpdateIntervalMillis(10);
         spyNativeVideoProgressRunnable.requestStop();
@@ -825,20 +710,16 @@ public class NativeVideoControllerTest {
         // track: whether the impression should be organically triggered
 
         // trackingUrl1: visible & played = track
-        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView),
-                eq(10), Matchers.isNull(Integer.class)))
+        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), eq(10)))
                 .thenReturn(true);
         // trackingUrl2: visible & !played = !track
-        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView),
-                eq(20), Matchers.isNull(Integer.class)))
+        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), eq(20)))
                 .thenReturn(true);
         // trackingUrl3: already tracked = !track
-        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView),
-                eq(30), Matchers.isNull(Integer.class)))
+        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), eq(30)))
                 .thenReturn(true);
         // trackingUrl4: !visible & played = !track
-        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView),
-                eq(9), Matchers.isNull(Integer.class)))
+        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), eq(9)))
                 .thenReturn(false);
         spyNativeVideoProgressRunnable.setUpdateIntervalMillis(10);
 
@@ -866,20 +747,16 @@ public class NativeVideoControllerTest {
         // track: whether the impression should be organically triggered
 
         // trackingUrl1: visible & played = track
-        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView),
-                eq(10), Matchers.isNull(Integer.class)))
+        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), eq(10)))
                 .thenReturn(true);
         // trackingUrl2: visible & !played = !track
-        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView),
-                eq(20), Matchers.isNull(Integer.class)))
+        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), eq(20)))
                 .thenReturn(true);
         // trackingUrl3: already tracked = !track
-        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView),
-                eq(30), Matchers.isNull(Integer.class)))
+        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), eq(30)))
                 .thenReturn(true);
         // trackingUrl4: !visible & played = !track
-        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView),
-                eq(9), Matchers.isNull(Integer.class)))
+        when(mockVisibilityChecker.isVisible(eq(mockTextureView), eq(mockTextureView), eq(9)))
                 .thenReturn(false);
         spyNativeVideoProgressRunnable.setUpdateIntervalMillis(10);
         spyNativeVideoProgressRunnable.requestStop();

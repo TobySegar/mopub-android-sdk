@@ -11,15 +11,15 @@ import android.os.Bundle;
 import com.mopub.common.MoPub;
 import com.mopub.common.MoPub.BrowserAgent;
 import com.mopub.common.MoPubBrowser;
-import com.mopub.common.test.support.SdkTestRunner;
 import com.mopub.exceptions.IntentNotResolvableException;
 import com.mopub.exceptions.UrlParseException;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.shadows.ShadowApplication;
 
 import java.util.ArrayList;
@@ -29,10 +29,9 @@ import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.robolectric.Shadows.shadowOf;
+import static org.mockito.Mockito.stub;
 
-@RunWith(SdkTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class IntentsTest {
     private Activity activityContext;
     private Context applicationContext;
@@ -41,11 +40,6 @@ public class IntentsTest {
     public void setUp() {
         activityContext = Robolectric.buildActivity(Activity.class).create().get();
         applicationContext = activityContext.getApplicationContext();
-        MoPub.resetBrowserAgent();
-    }
-
-    @After
-    public void tearDown() {
         MoPub.resetBrowserAgent();
     }
 
@@ -59,7 +53,7 @@ public class IntentsTest {
 
     @Test
     public void getStartActivityIntent_withActivityContext_shouldReturnIntentWithoutNewTaskFlag() throws Exception {
-        Context context = Robolectric.buildActivity(Activity.class).create().get();
+        Context context = new Activity();
 
         final Intent intent = Intents.getStartActivityIntent(context, MoPubBrowser.class, null);
 
@@ -70,8 +64,7 @@ public class IntentsTest {
 
     @Test
     public void getStartActivityIntent_withApplicationContext_shouldReturnIntentWithNewTaskFlag() throws Exception {
-        Context context = Robolectric.buildActivity(Activity.class)
-                .create().get().getApplicationContext();
+        Context context = new Activity().getApplicationContext();
 
         final Intent intent = Intents.getStartActivityIntent(context, MoPubBrowser.class, null);
 
@@ -82,7 +75,7 @@ public class IntentsTest {
 
     @Test
     public void getStartActivityIntent_withBundle_shouldReturnIntentWithExtras() throws Exception {
-        Context context = Robolectric.buildActivity(Activity.class).create().get();
+        Context context = new Activity();
         Bundle bundle = new Bundle();
         bundle.putString("arbitrary key", "even more arbitrary value");
 
@@ -90,8 +83,7 @@ public class IntentsTest {
 
         assertThat(intent.getComponent().getClassName()).isEqualTo(MoPubBrowser.class.getName());
         assertThat(Utils.bitMaskContainsFlag(intent.getFlags(), FLAG_ACTIVITY_NEW_TASK)).isFalse();
-        assertThat(intent.getExtras().size()).isEqualTo(1);
-        assertThat(intent.getExtras().get("arbitrary key")).isEqualTo("even more arbitrary value");
+        assertThat(intent.getExtras()).isEqualTo(bundle);
     }
 
     @Test
@@ -102,11 +94,11 @@ public class IntentsTest {
         List<ResolveInfo> resolveInfos = new ArrayList<ResolveInfo>();
         resolveInfos.add(new ResolveInfo());
 
-        when(context.getPackageManager()).thenReturn(packageManager);
+        stub(context.getPackageManager()).toReturn(packageManager);
         Intent specificIntent = new Intent();
         specificIntent.setData(Uri.parse("specificIntent:"));
 
-        when(packageManager.queryIntentActivities(eq(specificIntent), eq(0))).thenReturn(resolveInfos);
+        stub(packageManager.queryIntentActivities(eq(specificIntent), eq(0))).toReturn(resolveInfos);
 
         assertThat(Intents.deviceCanHandleIntent(context, specificIntent)).isTrue();
     }
@@ -119,13 +111,13 @@ public class IntentsTest {
         List<ResolveInfo> resolveInfos = new ArrayList<ResolveInfo>();
         resolveInfos.add(new ResolveInfo());
 
-        when(context.getPackageManager()).thenReturn(packageManager);
+        stub(context.getPackageManager()).toReturn(packageManager);
         Intent specificIntent = new Intent();
         specificIntent.setData(Uri.parse("specificIntent:"));
 
         Intent otherIntent = new Intent();
         otherIntent.setData(Uri.parse("other:"));
-        when(packageManager.queryIntentActivities(eq(specificIntent), eq(0))).thenReturn(resolveInfos);
+        stub(packageManager.queryIntentActivities(eq(specificIntent), eq(0))).toReturn(resolveInfos);
 
         assertThat(Intents.deviceCanHandleIntent(context, otherIntent)).isFalse();
     }
@@ -301,7 +293,7 @@ public class IntentsTest {
     }
 
     private void makeUrlResolvable(String url) {
-        shadowOf(activityContext.getPackageManager()).addResolveInfoForIntent(
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(
                 new Intent(Intent.ACTION_VIEW, Uri.parse(url)), new ResolveInfo());
     }
 }

@@ -23,6 +23,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowToast;
 
@@ -36,7 +37,6 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import static org.robolectric.Shadows.shadowOf;
 
 @RunWith(RobolectricTestRunner.class)
 public class ManifestUtilsTest {
@@ -95,28 +95,12 @@ public class ManifestUtilsTest {
     }
 
     @Test
-    public void checSdkActivitiesDeclared_shouldIncludeOneActivityDeclaration() throws Exception {
-        ShadowLog.setupLogging();
-
-        ManifestUtils.checkGdprActivitiesDeclared(context);
-
-        assertLogIncludes("com.mopub.common.privacy.ConsentDialogActivity");
-        assertLogDoesntInclude(
-                "com.mopub.mobileads.MoPubActivity",
-                "com.mopub.mobileads.MraidActivity",
-                "com.mopub.mobileads.MraidVideoPlayerActivity",
-                "com.mopub.mobileads.RewardedMraidActivity",
-                "com.mopub.common.MoPubBrowser"
-        );
-    }
-
-    @Test
     public void displayWarningForMissingActivities_withAllActivitiesDeclared_shouldNotShowLogOrToast() throws Exception {
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MoPubActivity.class), mockResolveInfo);
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MraidActivity.class), mockResolveInfo);
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, RewardedMraidActivity.class), mockResolveInfo);
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MraidVideoPlayerActivity.class), mockResolveInfo);
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MoPubBrowser.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MoPubActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MraidActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, RewardedMraidActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MraidVideoPlayerActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MoPubBrowser.class), mockResolveInfo);
 
         ShadowLog.setupLogging();
         setDebugMode(true);
@@ -130,8 +114,8 @@ public class ManifestUtilsTest {
     @Test
     public void displayWarningForMissingActivities_withoutInterstitialModule_withoutInterstitialActivitiesDeclared_shouldNotShowLogOrToast() throws Exception {
         removeInterstitialModule();
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MraidVideoPlayerActivity.class), mockResolveInfo);
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MoPubBrowser.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MraidVideoPlayerActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MoPubBrowser.class), mockResolveInfo);
 
         ShadowLog.setupLogging();
         setDebugMode(true);
@@ -144,10 +128,10 @@ public class ManifestUtilsTest {
 
     @Test
      public void displayWarningForMissingActivities_withOneMissingActivity_shouldLogOnlyThatOne() throws Exception {
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MoPubActivity.class), mockResolveInfo);
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MraidActivity.class), mockResolveInfo);
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, RewardedMraidActivity.class), mockResolveInfo);
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MraidVideoPlayerActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MoPubActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MraidActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, RewardedMraidActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MraidVideoPlayerActivity.class), mockResolveInfo);
         // Here, we leave out MoPubBrowser on purpose
 
         ShadowLog.setupLogging();
@@ -210,11 +194,11 @@ public class ManifestUtilsTest {
         when(mockActivitiyConfigCheck.hasFlag(any(Class.class), anyInt(), eq(ActivityInfo.CONFIG_SCREEN_SIZE))).thenReturn(true);
         ManifestUtils.setFlagCheckUtil(mockActivitiyConfigCheck);
 
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MoPubActivity.class), mockResolveInfo);
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MraidActivity.class), mockResolveInfo);
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, RewardedMraidActivity.class), mockResolveInfo);
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MraidVideoPlayerActivity.class), mockResolveInfo);
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MoPubBrowser.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MoPubActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MraidActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, RewardedMraidActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MraidVideoPlayerActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MoPubBrowser.class), mockResolveInfo);
 
         ShadowLog.setupLogging();
         setDebugMode(true);
@@ -244,11 +228,11 @@ public class ManifestUtilsTest {
         when(mockActivitiyConfigCheck.hasFlag(any(Class.class), anyInt(), eq(ActivityInfo.CONFIG_SCREEN_SIZE))).thenReturn(true);
         ManifestUtils.setFlagCheckUtil(mockActivitiyConfigCheck);
 
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MoPubActivity.class), mockResolveInfo);
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MraidActivity.class), mockResolveInfo);
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, RewardedMraidActivity.class), mockResolveInfo);
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MraidVideoPlayerActivity.class), mockResolveInfo);
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MoPubBrowser.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MoPubActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MraidActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, RewardedMraidActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MraidVideoPlayerActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MoPubBrowser.class), mockResolveInfo);
 
         ShadowLog.setupLogging();
 
@@ -276,7 +260,7 @@ public class ManifestUtilsTest {
         when(mockActivitiyConfigCheck.hasFlag(any(Class.class), anyInt(), eq(ActivityInfo.CONFIG_SCREEN_SIZE))).thenReturn(false);
         ManifestUtils.setFlagCheckUtil(mockActivitiyConfigCheck);
 
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MoPubActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MoPubActivity.class), mockResolveInfo);
 
         ShadowLog.setupLogging();
 
@@ -296,7 +280,7 @@ public class ManifestUtilsTest {
         when(mockActivitiyConfigCheck.hasFlag(any(Class.class), anyInt(), eq(ActivityInfo.CONFIG_SCREEN_SIZE))).thenReturn(false);
         ManifestUtils.setFlagCheckUtil(mockActivitiyConfigCheck);
 
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MoPubActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MoPubActivity.class), mockResolveInfo);
 
         setDebugMode(true);
 
@@ -316,7 +300,7 @@ public class ManifestUtilsTest {
         when(mockActivitiyConfigCheck.hasFlag(any(Class.class), anyInt(), eq(ActivityInfo.CONFIG_SCREEN_SIZE))).thenReturn(false);
         ManifestUtils.setFlagCheckUtil(mockActivitiyConfigCheck);
 
-        shadowOf(context.getPackageManager()).addResolveInfoForIntent(new Intent(context, MoPubActivity.class), mockResolveInfo);
+        RuntimeEnvironment.getRobolectricPackageManager().addResolveInfoForIntent(new Intent(context, MoPubActivity.class), mockResolveInfo);
 
         setDebugMode(false);
 

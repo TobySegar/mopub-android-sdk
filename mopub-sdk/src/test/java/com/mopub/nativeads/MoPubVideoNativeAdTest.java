@@ -12,9 +12,8 @@ import android.view.TextureView.SurfaceTextureListener;
 import android.view.View;
 
 import com.mopub.common.Constants;
-import com.mopub.common.DataKeys;
+import com.mopub.common.event.EventDetails;
 import com.mopub.common.test.support.SdkTestRunner;
-import com.mopub.common.util.ResponseHeader;
 import com.mopub.mobileads.BaseVideoPlayerActivity;
 import com.mopub.mobileads.BuildConfig;
 import com.mopub.mobileads.MraidVideoPlayerActivity;
@@ -68,7 +67,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.stub;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -114,14 +113,12 @@ public class MoPubVideoNativeAdTest {
         jsonObject.put("ctatext", "ctatext");
         jsonObject.put("video", "video");
         jsonObject.put("extraimage", "extraimageurl");
-        jsonObject.put("privacyicon", "piiimageurl");
-        jsonObject.put("privacyclkurl", "piiclkurl");
 
         serverExtras = new HashMap<String, String>();
-        serverExtras.put(DataKeys.PLAY_VISIBLE_PERCENT, "10");
-        serverExtras.put(DataKeys.PAUSE_VISIBLE_PERCENT, "5");
-        serverExtras.put(DataKeys.IMPRESSION_MIN_VISIBLE_PERCENT, "15");
-        serverExtras.put(DataKeys.IMPRESSION_VISIBLE_MS, "100");
+        serverExtras.put("Play-Visible-Percent", "10");
+        serverExtras.put("Pause-Visible-Percent", "5");
+        serverExtras.put("Impression-Min-Visible-Percent", "15");
+        serverExtras.put("Impression-Visible-Ms", "100");
         serverExtras.put("Max-Buffer-Ms", "20");
         videoResponseHeaders = new VideoResponseHeaders(serverExtras);
 
@@ -136,12 +133,13 @@ public class MoPubVideoNativeAdTest {
 
         subject = new MoPubVideoNativeAd(
                 activity, jsonObject, mockCustomEventNativeListener, videoResponseHeaders,
-                mockVisibilityTracker, mockNativeVideoControllerFactory,
+                mockVisibilityTracker, mockNativeVideoControllerFactory, null,
                 "header click tracker", mockVastManager);
         subject.setNativeEventListener(mockNativeEventListener);
         // noinspection unchecked
         when(mockNativeVideoControllerFactory
-                .createForId(anyInt(), any(Context.class), any(List.class), eq(mockVastVideoConfig)))
+                .createForId(anyInt(), any(Context.class), any(List.class), eq(mockVastVideoConfig),
+                        any(EventDetails.class)))
                 .thenReturn(mockNativeVideoController);
 
         when(mockImageLoader.get(anyString(), any(ImageListener.class)))
@@ -155,7 +153,7 @@ public class MoPubVideoNativeAdTest {
                 });
         when(mockMediaLayout.getTextureView()).thenReturn(mockTextureView);
 
-        when(mockImageContainer.getBitmap()).thenReturn(mock(Bitmap.class));
+        stub(mockImageContainer.getBitmap()).toReturn(mock(Bitmap.class));
         Networking.setImageLoaderForTesting(mockImageLoader);
         Networking.setRequestQueueForTesting(mockRequestQueue);
     }
@@ -201,9 +199,9 @@ public class MoPubVideoNativeAdTest {
         assertThat(subject.getIconImageUrl()).isEqualTo("iconimageurl");
         assertThat(subject.getClickDestinationUrl()).isEqualTo("clk");
         assertThat(subject.getCallToAction()).isEqualTo("ctatext");
+        assertThat(subject.getPrivacyInformationIconClickThroughUrl()).isEqualTo(
+                "https://www.mopub.com/optout/");
         assertThat(subject.getVastVideo()).isEqualTo("video");
-        assertThat(subject.getPrivacyInformationIconImageUrl()).isEqualTo("piiimageurl");
-        assertThat(subject.getPrivacyInformationIconClickThroughUrl()).isEqualTo("piiclkurl");
         assertThat(subject.getExtra("extraimage")).isEqualTo("extraimageurl");
         assertThat(subject.getExtras()).hasSize(1);
     }
@@ -235,7 +233,8 @@ public class MoPubVideoNativeAdTest {
         verify(mockNativeVideoControllerFactory).createForId(anyInt(),
                 eq(activity.getApplicationContext()),
                 argumentCaptor.capture(),
-                eq(mockVastVideoConfig));
+                eq(mockVastVideoConfig),
+                any(EventDetails.class));
 
         List<VisibilityTrackingEvent> visibilityTrackingEvents = (List<VisibilityTrackingEvent>) argumentCaptor.getValue();
         assertThat(visibilityTrackingEvents.get(0).strategy).isInstanceOf(HeaderVisibilityStrategy.class);
@@ -257,8 +256,6 @@ public class MoPubVideoNativeAdTest {
         verify(mockVastVideoConfig).getImpressionTrackers();
         verify(mockVastVideoConfig).addClickTrackers(any(List.class));
         verify(mockVastVideoConfig).setClickThroughUrl("clk");
-        verify(mockVastVideoConfig).setPrivacyInformationIconImageUrl("piiimageurl");
-        verify(mockVastVideoConfig).setPrivacyInformationIconClickthroughUrl("piiclkurl");
         verify(mockCustomEventNativeListener).onNativeAdLoaded(subject);
     }
 
@@ -276,9 +273,9 @@ public class MoPubVideoNativeAdTest {
         assertThat(actualClickTrackers.size()).isEqualTo(2);
         final VastTracker headerClickTracker = actualClickTrackers.get(0);
         final VastTracker jsonClickTracker = actualClickTrackers.get(1);
-        assertThat(headerClickTracker.getContent()).isEqualTo("header click tracker");
+        assertThat(headerClickTracker.getTrackingUrl()).isEqualTo("header click tracker");
         assertThat(headerClickTracker.isRepeatable()).isFalse();
-        assertThat(jsonClickTracker.getContent()).isEqualTo("json click tracker");
+        assertThat(jsonClickTracker.getTrackingUrl()).isEqualTo("json click tracker");
         assertThat(jsonClickTracker.isRepeatable()).isFalse();
     }
 
@@ -296,7 +293,7 @@ public class MoPubVideoNativeAdTest {
         final List<VastTracker> actualClickTrackers = (List<VastTracker>) argumentCaptor.getValue();
         assertThat(actualClickTrackers.size()).isEqualTo(1);
         final VastTracker clickTracker = actualClickTrackers.get(0);
-        assertThat(clickTracker.getContent()).isEqualTo("header click tracker");
+        assertThat(clickTracker.getTrackingUrl()).isEqualTo("header click tracker");
         assertThat(clickTracker.isRepeatable()).isFalse();
     }
 
@@ -318,11 +315,11 @@ public class MoPubVideoNativeAdTest {
         final VastTracker jsonClickTracker1 = actualClickTrackers.get(0);
         final VastTracker jsonClickTracker2 = actualClickTrackers.get(1);
         final VastTracker headerClickTracker = actualClickTrackers.get(2);
-        assertThat(jsonClickTracker1.getContent()).isEqualTo("json click tracker 1");
+        assertThat(jsonClickTracker1.getTrackingUrl()).isEqualTo("json click tracker 1");
         assertThat(jsonClickTracker1.isRepeatable()).isFalse();
-        assertThat(jsonClickTracker2.getContent()).isEqualTo("json click tracker 2");
+        assertThat(jsonClickTracker2.getTrackingUrl()).isEqualTo("json click tracker 2");
         assertThat(jsonClickTracker2.isRepeatable()).isFalse();
-        assertThat(headerClickTracker.getContent()).isEqualTo("header click tracker");
+        assertThat(headerClickTracker.getTrackingUrl()).isEqualTo("header click tracker");
         assertThat(headerClickTracker.isRepeatable()).isFalse();
     }
 
@@ -343,9 +340,9 @@ public class MoPubVideoNativeAdTest {
         assertThat(actualClickTrackers.size()).isEqualTo(2);
         final VastTracker headerClickTracker = actualClickTrackers.get(0);
         final VastTracker jsonClickTracker = actualClickTrackers.get(1);
-        assertThat(headerClickTracker.getContent()).isEqualTo("header click tracker");
+        assertThat(headerClickTracker.getTrackingUrl()).isEqualTo("header click tracker");
         assertThat(headerClickTracker.isRepeatable()).isFalse();
-        assertThat(jsonClickTracker.getContent()).isEqualTo("json click tracker");
+        assertThat(jsonClickTracker.getTrackingUrl()).isEqualTo("json click tracker");
         assertThat(jsonClickTracker.isRepeatable()).isFalse();
     }
 
@@ -356,7 +353,7 @@ public class MoPubVideoNativeAdTest {
         subject.prepare(mockRootView);
         subject.render(mockMediaLayout);
 
-        verify(mockVisibilityTracker).addView(mockRootView, mockMediaLayout, 10, 5, null);
+        verify(mockVisibilityTracker).addView(mockRootView, mockMediaLayout, 10, 5);
     }
 
     @Test
@@ -634,6 +631,9 @@ public class MoPubVideoNativeAdTest {
         subject.onVastVideoConfigurationPrepared(mockVastVideoConfig);
         subject.prepare(mockRootView);
         subject.render(mockMediaLayout);
+
+        subject.onStateChanged(true, NativeVideoController.STATE_PREPARING);
+        assertThat(subject.getVideoState()).isEqualTo(VideoState.LOADING);
 
         subject.onStateChanged(true, NativeVideoController.STATE_IDLE);
         assertThat(subject.getVideoState()).isEqualTo(VideoState.LOADING);

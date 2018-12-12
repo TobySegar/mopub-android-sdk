@@ -18,7 +18,6 @@ import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.VideoView;
 
-import com.mopub.common.ExternalViewabilitySession;
 import com.mopub.common.MoPubBrowser;
 import com.mopub.common.test.support.SdkTestRunner;
 import com.mopub.common.util.DeviceUtils.ForceOrientation;
@@ -38,13 +37,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.Robolectric;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadow.api.Shadow;
+import org.robolectric.internal.ShadowExtractor;
 import org.robolectric.shadows.ShadowApplication;
+import org.robolectric.shadows.ShadowImageView;
 import org.robolectric.shadows.ShadowRelativeLayout;
 import org.robolectric.shadows.ShadowTextView;
 import org.robolectric.shadows.ShadowVideoView;
-import org.robolectric.shadows.ShadowView;
 import org.robolectric.shadows.httpclient.FakeHttp;
 import org.robolectric.shadows.httpclient.RequestMatcher;
 import org.robolectric.shadows.httpclient.TestHttpResponse;
@@ -56,8 +56,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
+import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
 import static com.mopub.common.IntentActions.ACTION_INTERSTITIAL_DISMISS;
 import static com.mopub.common.IntentActions.ACTION_INTERSTITIAL_FAIL;
 import static com.mopub.common.IntentActions.ACTION_INTERSTITIAL_SHOW;
@@ -89,10 +89,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
-import static org.robolectric.Shadows.shadowOf;
 
 @RunWith(SdkTestRunner.class)
-@Config(constants = BuildConfig.class, qualifiers = "w800dp-h480dp", shadows = {ShadowVastVideoView.class})
+@Config(constants = BuildConfig.class, shadows = {ShadowVastVideoView.class})
 public class VastVideoViewControllerTest {
     public static final int NETWORK_DELAY = 100;
 
@@ -252,7 +251,7 @@ public class VastVideoViewControllerTest {
         VastVideoCtaButtonWidget ctaButtonWidget = subject.getCtaButtonWidget();
         assertThat(ctaButtonWidget.getParent()).isEqualTo(subject.getLayout());
         assertThat(ctaButtonWidget.getVisibility()).isEqualTo(View.INVISIBLE);
-        ShadowView ctaButtonWidgetShadow = shadowOf(ctaButtonWidget);
+        ShadowImageView ctaButtonWidgetShadow = Shadows.shadowOf(ctaButtonWidget);
         assertThat(ctaButtonWidgetShadow.getOnTouchListener()).isNotNull();
         assertThat(ctaButtonWidgetShadow.getOnTouchListener()).isEqualTo(
                 getShadowVideoView().getOnTouchListener());
@@ -265,7 +264,7 @@ public class VastVideoViewControllerTest {
         VastVideoProgressBarWidget progressBarWidget = subject.getProgressBarWidget();
         assertThat(progressBarWidget.getParent()).isEqualTo(subject.getLayout());
         assertThat(progressBarWidget.getVisibility()).isEqualTo(View.INVISIBLE);
-        ShadowView progressBarWidgetShadow = shadowOf(progressBarWidget);
+        ShadowImageView progressBarWidgetShadow = Shadows.shadowOf(progressBarWidget);
         assertThat(progressBarWidgetShadow.getOnTouchListener()).isNull();
     }
 
@@ -276,7 +275,7 @@ public class VastVideoViewControllerTest {
         VastVideoRadialCountdownWidget radialCountdownWidget = subject.getRadialCountdownWidget();
         assertThat(radialCountdownWidget.getParent()).isEqualTo(subject.getLayout());
         assertThat(radialCountdownWidget.getVisibility()).isEqualTo(View.INVISIBLE);
-        ShadowView radialCountdownWidgetShadow = shadowOf(radialCountdownWidget);
+        ShadowImageView radialCountdownWidgetShadow = Shadows.shadowOf(radialCountdownWidget);
         assertThat(radialCountdownWidgetShadow.getOnTouchListener()).isNull();
     }
 
@@ -320,13 +319,13 @@ public class VastVideoViewControllerTest {
         assertThat(closeButtonWidget.getParent()).isEqualTo(subject.getLayout());
         assertThat(closeButtonWidget.getVisibility()).isEqualTo(View.GONE);
 
-        ShadowRelativeLayout closeButtonWidgetShadow = (ShadowRelativeLayout) shadowOf(closeButtonWidget);
+        ShadowRelativeLayout closeButtonWidgetShadow = (ShadowRelativeLayout) Shadows.shadowOf(closeButtonWidget);
         assertThat(closeButtonWidgetShadow.getOnTouchListener()).isNull();
 
-        ShadowView closeButtonImageViewShadow = shadowOf(closeButtonWidget.getImageView());
+        ShadowImageView closeButtonImageViewShadow = Shadows.shadowOf(closeButtonWidget.getImageView());
         assertThat(closeButtonImageViewShadow.getOnTouchListener()).isNotNull();
 
-        ShadowTextView closeButtonTextViewShadow = shadowOf(closeButtonWidget.getTextView());
+        ShadowTextView closeButtonTextViewShadow = Shadows.shadowOf(closeButtonWidget.getTextView());
         assertThat(closeButtonTextViewShadow.getOnTouchListener()).isNotNull();
     }
 
@@ -337,7 +336,7 @@ public class VastVideoViewControllerTest {
         VastVideoGradientStripWidget topGradientStripWidget = subject.getTopGradientStripWidget();
         assertThat(topGradientStripWidget.getParent()).isEqualTo(subject.getLayout());
 
-        ShadowView topGradientStripWidgetShadow = shadowOf(topGradientStripWidget);
+        ShadowImageView topGradientStripWidgetShadow = Shadows.shadowOf(topGradientStripWidget);
         assertThat(topGradientStripWidgetShadow.getOnTouchListener()).isNull();
     }
 
@@ -348,7 +347,7 @@ public class VastVideoViewControllerTest {
         VastVideoGradientStripWidget bottomGradientStripWidget = subject.getBottomGradientStripWidget();
         assertThat(bottomGradientStripWidget.getParent()).isEqualTo(subject.getLayout());
 
-        ShadowView bottomGradientStripWidgetShadow = shadowOf(bottomGradientStripWidget);
+        ShadowImageView bottomGradientStripWidgetShadow = Shadows.shadowOf(bottomGradientStripWidget);
         assertThat(bottomGradientStripWidgetShadow.getOnTouchListener()).isNull();
     }
 
@@ -359,14 +358,14 @@ public class VastVideoViewControllerTest {
         ImageView blurredLastVideoFrameImageView = subject.getBlurredLastVideoFrameImageView();
         assertThat(blurredLastVideoFrameImageView.getParent()).isEqualTo(subject.getLayout());
         assertThat(blurredLastVideoFrameImageView.getVisibility()).isEqualTo(View.INVISIBLE);
-        ShadowView blurredLastVideoFrameImageViewShadow = shadowOf(blurredLastVideoFrameImageView);
+        ShadowImageView blurredLastVideoFrameImageViewShadow = Shadows.shadowOf(blurredLastVideoFrameImageView);
         assertThat(blurredLastVideoFrameImageViewShadow.getOnTouchListener()).isNull();
     }
 
     @Test
     public void constructor_shouldSetVideoListenersAndVideoPath() throws Exception {
         initializeSubject();
-        ShadowVideoView videoView = shadowOf(subject.getVideoView());
+        ShadowVideoView videoView = Shadows.shadowOf(subject.getVideoView());
 
         assertThat(videoView.getOnCompletionListener()).isNotNull();
         assertThat(videoView.getOnErrorListener()).isNotNull();
@@ -551,8 +550,7 @@ public class VastVideoViewControllerTest {
 
         Robolectric.getForegroundThreadScheduler().unPause();
         subject.onCreate();
-        verify(broadcastReceiver).onReceive(any(Context.class),
-                argThat(new IntentIsEqual(expectedIntent)));
+        verify(broadcastReceiver).onReceive(any(Context.class), eq(expectedIntent));
     }
 
     @Test
@@ -666,8 +664,7 @@ public class VastVideoViewControllerTest {
         subject.onDestroy();
         Robolectric.getForegroundThreadScheduler().unPause();
 
-        verify(broadcastReceiver).onReceive(any(Context.class),
-                argThat(new IntentIsEqual(expectedIntent)));
+        verify(broadcastReceiver).onReceive(any(Context.class), eq(expectedIntent));
     }
 
     @Test
@@ -786,7 +783,7 @@ public class VastVideoViewControllerTest {
         getShadowVideoView().getOnTouchListener().onTouch(null, GestureUtils.createActionUp(0, 0));
 
         Robolectric.getBackgroundThreadScheduler().advanceBy(0);
-        final Intent startedActivity = shadowOf((Activity) context).peekNextStartedActivity();
+        final Intent startedActivity = ShadowApplication.getInstance().peekNextStartedActivity();
         assertThat(startedActivity.getComponent().getClassName())
                 .isEqualTo(MoPubBrowser.class.getName());
         assertThat(startedActivity.getStringExtra(MoPubBrowser.DESTINATION_URL_KEY)).isEqualTo(
@@ -826,7 +823,7 @@ public class VastVideoViewControllerTest {
         getShadowVideoView().getOnTouchListener().onTouch(null, GestureUtils.createActionUp(0, 0));
 
         Robolectric.getBackgroundThreadScheduler().advanceBy(0);
-        final Intent startedActivity = shadowOf((Activity) context).peekNextStartedActivity();
+        final Intent startedActivity = ShadowApplication.getInstance().peekNextStartedActivity();
         assertThat(startedActivity.getComponent().getClassName())
                 .isEqualTo(MoPubBrowser.class.getName());
         assertThat(startedActivity.getStringExtra(MoPubBrowser.DESTINATION_URL_KEY)).isEqualTo(
@@ -874,6 +871,19 @@ public class VastVideoViewControllerTest {
 
         getShadowVideoView().getOnTouchListener().onTouch(null, GestureUtils.createActionUp(0, 0));
         assertThat(FakeHttp.httpRequestWasMade()).isFalse();
+    }
+
+    @Test
+    public void onTouch_withNullBaseVideoViewListener_andActionTouchUp_shouldReturnTrueAndNotBlowUp() throws Exception {
+        subject = new VastVideoViewController((Activity) context, bundle, null,
+                testBroadcastIdentifier, null);
+
+        boolean result = getShadowVideoView().getOnTouchListener().onTouch(null, GestureUtils.createActionUp(
+                0, 0));
+
+        // pass
+
+        assertThat(result).isTrue();
     }
 
     @Test
@@ -1199,7 +1209,7 @@ public class VastVideoViewControllerTest {
         assertThat(
                 ((BitmapDrawable) blurredLastVideoFrameImageView.getDrawable()).getBitmap()).isNotNull();
 
-        ShadowView imageView = shadowOf(subject.getBlurredLastVideoFrameImageView());
+        ShadowImageView imageView = Shadows.shadowOf(subject.getBlurredLastVideoFrameImageView());
         assertThat(imageView.getOnTouchListener()).isNull();
     }
 
@@ -1227,7 +1237,6 @@ public class VastVideoViewControllerTest {
 
         initializeSubject();
         testTracker.setTracked();
-        setViewabilityTrackersTracked(vastVideoConfig);
         spyOnVideoView();
         setVideoViewParams(15000, 15000);
 
@@ -1488,8 +1497,7 @@ public class VastVideoViewControllerTest {
         Robolectric.getForegroundThreadScheduler().unPause();
 
         assertThat(result).isFalse();
-        verify(broadcastReceiver).onReceive(any(Context.class),
-                argThat(new IntentIsEqual(expectedIntent)));
+        verify(broadcastReceiver).onReceive(any(Context.class), eq(expectedIntent));
         assertThat(subject.getVideoError()).isTrue();
     }
 
@@ -2087,7 +2095,7 @@ public class VastVideoViewControllerTest {
         // We don't have direct access to the CloseButtonWidget icon's close event, so we manually
         // invoke its onTouchListener's onTouch callback with a fake MotionEvent.ACTION_UP action.
         View.OnTouchListener closeButtonImageViewOnTouchListener =
-                shadowOf(subject.getCloseButtonWidget().getImageView()).getOnTouchListener();
+                Shadows.shadowOf(subject.getCloseButtonWidget().getImageView()).getOnTouchListener();
         closeButtonImageViewOnTouchListener.onTouch(null, GestureUtils.createActionUp(0, 0));
 
         verify(mockRequestQueue).add(
@@ -2110,7 +2118,7 @@ public class VastVideoViewControllerTest {
         // We don't have direct access to the CloseButtonWidget text's close event, so we manually
         // invoke its onTouchListener's onTouch callback with a fake MotionEvent.ACTION_UP action.
         View.OnTouchListener closeButtonTextViewOnTouchListener =
-                shadowOf(subject.getCloseButtonWidget().getTextView()).getOnTouchListener();
+                Shadows.shadowOf(subject.getCloseButtonWidget().getTextView()).getOnTouchListener();
         closeButtonTextViewOnTouchListener.onTouch(null, GestureUtils.createActionUp(0, 0));
 
         verify(mockRequestQueue).add(
@@ -2242,19 +2250,6 @@ public class VastVideoViewControllerTest {
     }
 
     private ShadowVastVideoView getShadowVideoView() {
-        return (ShadowVastVideoView) Shadow.extract(subject.getVastVideoView());
-    }
-
-    private void setViewabilityTrackersTracked(VastVideoConfig vastVideoConfig) {
-        for (VastFractionalProgressTracker tracker : vastVideoConfig.getFractionalTrackers()) {
-            final String content = tracker.getContent();
-            try {
-                // Only mark trackers that match with viewability's VideoEvent enum
-                Enum.valueOf(ExternalViewabilitySession.VideoEvent.class, content);
-                tracker.setTracked();
-            } catch (IllegalArgumentException e) {
-                // pass
-            }
-        }
+        return (ShadowVastVideoView) ShadowExtractor.extract(subject.getVastVideoView());
     }
 }

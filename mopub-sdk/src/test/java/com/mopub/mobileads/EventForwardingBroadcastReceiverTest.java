@@ -14,7 +14,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.support.v4.ShadowLocalBroadcastManager;
 
@@ -23,11 +22,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import static com.mopub.mobileads.CustomEventInterstitial.CustomEventInterstitialListener;
 import static com.mopub.common.IntentActions.ACTION_INTERSTITIAL_CLICK;
 import static com.mopub.common.IntentActions.ACTION_INTERSTITIAL_DISMISS;
 import static com.mopub.common.IntentActions.ACTION_INTERSTITIAL_FAIL;
 import static com.mopub.common.IntentActions.ACTION_INTERSTITIAL_SHOW;
-import static com.mopub.mobileads.CustomEventInterstitial.CustomEventInterstitialListener;
 import static com.mopub.mobileads.MoPubInterstitial.InterstitialAdListener;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -50,7 +49,7 @@ public class EventForwardingBroadcastReceiverTest {
         customEventInterstitialListener = mock(CustomEventInterstitialListener.class);
         broadcastIdentifier = 27027027;
         subject = new EventForwardingBroadcastReceiver(customEventInterstitialListener, broadcastIdentifier);
-        context = Robolectric.buildActivity(Activity.class).create().get();
+        context = new Activity();
     }
 
     @Ignore("Difficult with the number of test factories and mocking involved.")

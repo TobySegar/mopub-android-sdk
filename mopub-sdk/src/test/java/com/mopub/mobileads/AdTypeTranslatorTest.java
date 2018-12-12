@@ -8,8 +8,6 @@ import com.mopub.common.AdType;
 import com.mopub.common.test.support.SdkTestRunner;
 import com.mopub.common.util.ResponseHeader;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,11 +15,10 @@ import org.robolectric.Robolectric;
 import org.robolectric.annotation.Config;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.stub;
 
 @RunWith(SdkTestRunner.class)
 @Config(constants = BuildConfig.class)
@@ -29,7 +26,7 @@ public class AdTypeTranslatorTest {
     private String customEventName;
     private MoPubView moPubView;
     private MoPubInterstitial.MoPubInterstitialView moPubInterstitialView;
-    JSONObject headers;
+    HashMap<String, String> headers;
 
     @Before
     public void setUp() throws Exception {
@@ -37,11 +34,10 @@ public class AdTypeTranslatorTest {
         moPubInterstitialView = mock(MoPubInterstitial.MoPubInterstitialView.class);
 
         Context context = Robolectric.buildActivity(Activity.class).create().get();
-        when(moPubView.getContext()).thenReturn(context);
-        when(moPubInterstitialView.getContext()).thenReturn(context);
+        stub(moPubView.getContext()).toReturn(context);
+        stub(moPubInterstitialView.getContext()).toReturn(context);
 
-        Map<String, String> stringHeaders = new HashMap<String, String>();
-        headers = new JSONObject(stringHeaders);
+        headers = new HashMap<String, String>();
     }
 
     @Test
@@ -108,7 +104,7 @@ public class AdTypeTranslatorTest {
     }
 
     @Test
-    public void getCustomEventName_shouldBeCustomClassName() throws JSONException {
+    public void getCustomEventName_shouldBeCustomClassName() {
         headers.put(ResponseHeader.CUSTOM_EVENT_NAME.getKey(), "com.example.CustomClass");
         customEventName = AdTypeTranslator.getCustomEventName(AdFormat.BANNER, AdType.CUSTOM, null, headers);
 
@@ -116,10 +112,10 @@ public class AdTypeTranslatorTest {
     }
 
     @Test
-    public void getCustomEventName_whenNameNotInHeaders_shouldBeEmpty() {
+    public void getCustomEventName_whenNameNotInHeaders_shouldBeNull() {
         customEventName = AdTypeTranslator.getCustomEventName(AdFormat.BANNER, AdType.CUSTOM, null, headers);
 
-        assertThat(customEventName).isEmpty();
+        assertThat(customEventName).isNull();
     }
 
     @Test

@@ -13,7 +13,7 @@ import java.io.File;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.stub;
 
 @RunWith(RobolectricTestRunner.class)
 public class FilesTest {
@@ -95,7 +95,7 @@ public class FilesTest {
     @Test
     public void intLength_whenFileHasLengthLessThanMaxInt_shouldReturnThatLength() throws Exception {
         File file = mock(File.class);
-        when(file.length()).thenReturn(1234L);
+        stub(file.length()).toReturn(1234L);
 
         int length = Files.intLength(file);
 
@@ -105,7 +105,7 @@ public class FilesTest {
     @Test
     public void intLength_whenFileHasLengthGreaterThanMaxInt_shouldReturnMaxInt() throws Exception {
         File file = mock(File.class);
-        when(file.length()).thenReturn(Integer.MAX_VALUE + 100L);
+        stub(file.length()).toReturn(Integer.MAX_VALUE + 100L);
 
         int length = Files.intLength(file);
 

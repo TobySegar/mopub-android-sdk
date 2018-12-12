@@ -5,6 +5,7 @@ repositories {
         dirs './libs'
     }
     google()
+    mavenCentral()
     //maven { url 'https://s3.amazonaws.com/moat-sdk-builds'}
     maven { url "https://maven.google.com" }
     jcenter() // includes the MoPub SDK and AVID library
@@ -61,7 +62,7 @@ dependencies {
     // flurry ads
     ////compile 'com.flurry.android:ads:10.1.0@aar'
 
-    compile 'com.fyber:fairbid:9.50.0'
+    compile 'com.fyber:fairbid:9.51.0'
 
 }
 

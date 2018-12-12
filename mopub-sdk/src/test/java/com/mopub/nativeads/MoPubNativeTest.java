@@ -2,12 +2,8 @@ package com.mopub.nativeads;
 
 import android.app.Activity;
 
-import com.mopub.common.MoPub;
-import com.mopub.common.SdkConfiguration;
 import com.mopub.common.logging.MoPubLog;
-import com.mopub.common.privacy.MoPubIdentifierTest;
 import com.mopub.common.test.support.SdkTestRunner;
-import com.mopub.common.util.Reflection;
 import com.mopub.common.util.test.support.ShadowAsyncTasks;
 import com.mopub.common.util.test.support.TestMethodBuilderFactory;
 import com.mopub.mobileads.BuildConfig;
@@ -64,10 +60,8 @@ public class MoPubNativeTest {
     @Mock private MoPubStaticNativeAdRenderer mockRenderer;
 
     @Before
-    public void setup() throws Exception {
+    public void setup() {
         context = Robolectric.buildActivity(Activity.class).create().get();
-        MoPub.initializeSdk(context, new SdkConfiguration.Builder("adunit").build(), null);
-        MoPubIdentifierTest.writeAdvertisingInfoToSharedPreferences(context, false);
         Shadows.shadowOf(context).grantPermissions(ACCESS_NETWORK_STATE);
         Shadows.shadowOf(context).grantPermissions(INTERNET);
         subject = new MoPubNative(context, adUnitId, mockAdRendererRegistry, mockNetworkListener);
@@ -76,13 +70,8 @@ public class MoPubNativeTest {
     }
 
     @After
-    public void tearDown() throws Exception {
-        MoPubIdentifierTest.clearPreferences(context);
+    public void tearDown() {
         reset(methodBuilder);
-        new Reflection.MethodBuilder(null, "clearAdvancedBidders")
-                .setStatic(MoPub.class)
-                .setAccessible()
-                .execute();
     }
 
     @Test
@@ -115,7 +104,7 @@ public class MoPubNativeTest {
 
     @Test
     public void requestNativeAd_shouldFireNetworkRequest() {
-        subject.requestNativeAd("https://www.mopub.com", null);
+        subject.requestNativeAd("https://www.mopub.com");
 
         verify(mockNetworkListener, never()).onNativeFail(any(NativeErrorCode.class));
         verify(mockRequestQueue).add(argThat(isUrl("https://www.mopub.com")));
@@ -132,7 +121,7 @@ public class MoPubNativeTest {
                         return null;
                     }
                 });
-        subject.requestNativeAd("//\\//\\::::", null);
+        subject.requestNativeAd("//\\//\\::::");
 
         verify(mockNetworkListener).onNativeFail(any(NativeErrorCode.class));
     }
@@ -141,7 +130,7 @@ public class MoPubNativeTest {
     public void requestNativeAd_withNullUrl_shouldFireNativeFail() {
         Robolectric.getForegroundThreadScheduler().pause();
 
-        subject.requestNativeAd(null, null);
+        subject.requestNativeAd(null);
 
         verify(mockNetworkListener).onNativeFail(any(NativeErrorCode.class));
         verify(mockRequestQueue, never()).add(any(Request.class));
