@@ -1,4 +1,4 @@
-package com.mopub.ads.adapters;
+package com.mopub.mobileads;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
@@ -48,6 +48,7 @@ public class IronSourceInterstitial extends CustomEventInterstitial implements I
 
     @Override
     protected void loadInterstitial(Context context, CustomEventInterstitialListener customEventInterstitialListener, Map<String, Object> map0, Map<String, String> serverExtras) {
+
         MoPubLifecycleManager.getInstance((Activity) context).addLifecycleListener(lifecycleListener);
         // Pass the user consent from the MoPub SDK to ironSource as per GDPR
         boolean canCollectPersonalInfo = MoPub.canCollectPersonalInformation();

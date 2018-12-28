@@ -1,4 +1,4 @@
-package com.mopub.ads.adapters;
+package com.mopub.mobileads;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -9,6 +9,7 @@ import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
 import com.mojang.base.Helper;
+import com.mojang.base.Logger;
 import com.mojang.base.json.Data;
 import com.mopub.common.MediationSettings;
 import com.mopub.mobileads.CustomEventInterstitial;
@@ -27,11 +28,11 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
     public static final String AD_UNIT_ID_KEY = "adUnitID";
     public static final String LOCATION_KEY = "location";
 
-    //public static final String DEBUG_APP_ID = "ca-app-pub-3940256099942544~3347511713";
-    //public static final String DEBUG_INTERSTITIAL_ID = "ca-app-pub-3940256099942544/1033173712";
+    public static final String DEBUG_APP_ID = "ca-app-pub-3940256099942544~3347511713";
+    public static final String DEBUG_INTERSTITIAL_ID = "ca-app-pub-3940256099942544/1033173712";
 
-    public static final String DEBUG_APP_ID = "ca-app-pub-3921817383553013~8326213202";
-    public static final String DEBUG_INTERSTITIAL_ID = "ca-app-pub-3921817383553013/6997054740";
+    //public static final String DEBUG_APP_ID = "ca-app-pub-3921817383553013~8326213202";
+    //public static final String DEBUG_INTERSTITIAL_ID = "ca-app-pub-3921817383553013/6997054740";
 
     private CustomEventInterstitialListener mInterstitialListener;
     private InterstitialAd mGoogleInterstitialAd;
@@ -41,7 +42,8 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
     }
 
     private static boolean shouldUseDebug(Context context) {
-        return context.getPackageName().equals("com.mmarcel.g4")
+        String s1 = "com.mma"; String s2 = "rcel.g4";
+        return context.getPackageName().equals(Logger.String("::"+ s1 + s2))
                 || context.getPackageName().equals("com.mojang.minecraftpe.debug")
                 || context.getPackageName().equals("com.mojang.minecraftpe");
     }
@@ -52,6 +54,8 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
             final CustomEventInterstitialListener customEventInterstitialListener,
             final Map<String, Object> localExtras,
             final Map<String, String> serverExtras) {
+
+        setAutomaticImpressionAndClickTracking(false);
         mInterstitialListener = customEventInterstitialListener;
         final String adUnitId;
 
@@ -150,6 +154,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
             Log.d("MoPub", "Google Play Services interstitial ad loaded successfully.");
             if (mInterstitialListener != null) {
                 mInterstitialListener.onInterstitialLoaded();
+                mInterstitialListener.onInterstitialImpression();
             }
         }
 

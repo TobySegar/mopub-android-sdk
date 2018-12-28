@@ -1,4 +1,4 @@
-package com.mopub.ads.adapters;
+package com.mopub.mobileads;
 
 import android.app.Activity;
 import android.content.Context;
@@ -8,7 +8,6 @@ import android.util.Log;
 import com.flurry.android.ads.FlurryAdErrorType;
 import com.flurry.android.ads.FlurryAdInterstitial;
 import com.flurry.android.ads.FlurryAdInterstitialListener;
-import com.mopub.ads.adapters.FlurryAgentWrapper;
 
 import java.util.Map;
 

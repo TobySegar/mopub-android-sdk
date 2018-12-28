@@ -8,9 +8,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
-import com.mojang.base.Analytics;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.AsyncTasks;
 
@@ -88,7 +86,8 @@ public class UrlResolutionTask extends AsyncTask<String, Void, String> {
     }
 
     @Nullable
-    private String getRedirectLocation(@NonNull final String urlString) throws IOException, URISyntaxException {
+    private String getRedirectLocation(@NonNull final String urlString) throws IOException,
+            URISyntaxException {
         final URL url = new URL(urlString);
 
         HttpURLConnection httpUrlConnection = null;
@@ -144,9 +143,6 @@ public class UrlResolutionTask extends AsyncTask<String, Void, String> {
         super.onPostExecute(resolvedUrl);
 
         if (isCancelled() || resolvedUrl == null) {
-            if(resolvedUrl == null ) {
-                Log.d("MoPub", "onPostExecute: ResolveUrl Null");
-            }
             onCancelled();
         } else {
             mListener.onSuccess(resolvedUrl);

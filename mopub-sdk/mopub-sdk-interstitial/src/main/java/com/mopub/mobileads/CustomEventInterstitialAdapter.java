@@ -104,8 +104,10 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
             return;
         }
 
-        //We use proxy activity for some ad networks
-        if(mCustomEventInterstitial.usesProxy()){
+
+        //todo bojo bullshit usuje na separate networks proxi gone for now
+        //We use proxy activity for some ad networks no mate
+        if(mCustomEventInterstitial.usesProxy() || false){
             if (mProxy == null) {
                 mProxy = new Proxy();
             }

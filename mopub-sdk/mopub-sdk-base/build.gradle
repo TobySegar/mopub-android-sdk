@@ -43,10 +43,10 @@ dependencies {
 
 
 // AppLovin
-    compile 'com.applovin:applovin-sdk:8.1.0'
+    compile 'com.applovin:applovin-sdk:9.1.3'
 
 // ironSource
-    compile files('libs/mediationsdk-6.7.11@jar')
+    compile files('libs/IronSrc_mediationsdk-6.7.11@jar')
 
 // Facebook Audience Network
     compile 'com.facebook.android:audience-network-sdk:5.1.0'

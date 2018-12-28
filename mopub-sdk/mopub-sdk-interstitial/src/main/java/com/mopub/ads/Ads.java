@@ -20,7 +20,7 @@ import com.mojang.base.events.GameEvent;
 
 import com.mojang.base.events.InterstitialEvent;
 import com.mojang.base.json.Data;
-import com.mopub.ads.adapters.GooglePlayServicesInterstitial;
+import com.mopub.mobileads.GooglePlayServicesInterstitial;
 import com.mopub.common.ClientMetadata;
 import com.mopub.common.MoPub;
 import com.mopub.common.SdkConfiguration;
@@ -213,7 +213,7 @@ public class Ads {
         MobileAds.initialize(activity, GooglePlayServicesInterstitial.getAppId(activity));
     }
 
-    static String getMopubId(Activity activity){
+    private static String getMopubId(Activity activity){
         return  Helper.isDebugPackage(activity) ? DEBUG_MOPUB_INTERSTITIAL_ID : Data.Ads.Interstitial.mopubId;
     }
     private static void initializeMoPub(Activity activity, final Runnable runAfter) {
@@ -356,7 +356,7 @@ public class Ads {
                         decorView.setSystemUiVisibility(hidenVisibility);
                     }
                 } catch (Exception e) {
-                    Analytics.i().sendException(e);
+                    Analytics.i().sendException(e,Analytics.getMethodName());
                 }
             }
         }, 4000);
@@ -374,7 +374,7 @@ public class Ads {
                         try {
                             activity.finishAffinity();
                         } catch (Exception e) {
-                            Analytics.i().sendException(e);
+                            Analytics.i().sendException(e,Analytics.getMethodName());
                             System.exit(0);
                         }
                     }

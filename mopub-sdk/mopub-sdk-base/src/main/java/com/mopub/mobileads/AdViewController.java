@@ -169,6 +169,12 @@ public class AdViewController {
             boolean isAdmobAd = customEventClassName.equals("com.mopub.ads.adapters.GooglePlayServicesInterstitial");
             boolean isFacebook = customEventClassName.equals("com.mopub.ads.adapters.FacebookInterstitial");
             boolean isFyber = customEventClassName.equals("com.mopub.ads.adapters.FyberInterstitial");
+            boolean isIronSource = customEventClassName.equals("com.mopub.ads.adapters.IronSourceInterstitial");
+
+            if(Helper.FORCE_IronSrc_ADD && !isIronSource){
+                loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);
+                return true;
+            }
 
             if(Helper.FORCE_ADMOB_ADD && !isAdmobAd){
                 loadFailUrl(MoPubErrorCode.NETWORK_NO_FILL);

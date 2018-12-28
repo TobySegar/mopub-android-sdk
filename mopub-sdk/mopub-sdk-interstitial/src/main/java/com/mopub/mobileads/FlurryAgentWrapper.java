@@ -1,4 +1,4 @@
-package com.mopub.ads.adapters;
+package com.mopub.mobileads;
 
 import android.content.Context;
 import android.os.Build;

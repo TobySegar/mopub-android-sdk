@@ -26,23 +26,24 @@ public class Proxy extends Activity {
     public static Activity activityz2 = null;
     public static boolean lock;
     //private static InterstitialAd mGoogleInterstitialAd;
-    private MoPubInterstitial mopIntrer;
+    public static MoPubInterstitial mopIntrer;
+
+    public void startProxyActivity(Context context, CustomEventInterstitial customEventInterstitial) {
+        Logger.Log(proxy, "::startProxyActivity - mopub");
+        Proxy.customEventInterstitial = customEventInterstitial;
+        Intent proxyIntent = new Intent(context, Proxy.class);
+        context.startActivity(proxyIntent);
+    }
+
     public void startProxyActivity(Context context, MoPubInterstitial mopubInterstitial) {
         Logger.Log(proxy, "::startProxyActivity - mopub");
         mopIntrer =mopubInterstitial;
-        Proxy.customEventInterstitial = customEventInterstitial;
         isProxyBeingUsed = true;
         Intent proxyIntent = new Intent(context, Proxy.class);
         proxyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
         context.startActivity(proxyIntent);
     }
 
-//    public void startProxyActivity(Context context, InterstitialAd mGoogleInterstitialAd) {
-//        Logger.Log(proxy, "startProxyActivity - mGoogleInterstitialAd");
-//        Proxy.mGoogleInterstitialAd = mGoogleInterstitialAd;
-//        Intent proxyIntent = new Intent(context, Proxy.class);
-//        context.startActivity(proxyIntent);
-//    }
 
 
     @Override
@@ -58,7 +59,7 @@ public class Proxy extends Activity {
                     mopIntrer.show();
                 }
             };
-            Helper.runOnWorkerThread(proxyAdsRunnable);
+            Helper.runOnUiThread(proxyAdsRunnable);
 
         }
 
@@ -73,10 +74,12 @@ public class Proxy extends Activity {
 
 
 
+
     public void Finish() {
         try {
             Logger.Log(proxy, "::Finish -- posting fake stop");
             EventBus.getDefault().post(new AppEvent(Stop));
+            mopIntrer = null;
             if (activityz2!=null)
                 activityz2.finish();
             if (instance!=null)
@@ -85,7 +88,7 @@ public class Proxy extends Activity {
         }
         catch (NullPointerException ignored) {
             Analytics.report("Ads","Proxy_ Finish Failed");
-            Analytics.i().sendException(ignored);
+            Analytics.i().sendException(ignored,Analytics.getMethodName());
         }
     }
 
@@ -104,7 +107,7 @@ public class Proxy extends Activity {
 
         catch (NullPointerException ignored) {
             Analytics.report("Ads","Proxy_ onDestroy Failed");
-            Analytics.i().sendException(ignored);
+            Analytics.i().sendException(ignored,Analytics.getMethodName());
         }
         //Proxy.customEventInterstitial = null;
         //Proxy.mGoogleInterstitialAd = null;

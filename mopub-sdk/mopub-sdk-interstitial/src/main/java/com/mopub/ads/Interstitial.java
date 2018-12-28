@@ -9,6 +9,7 @@ import com.mojang.base.*;
 import com.mojang.base.events.GameEvent;
 import com.mojang.base.events.InterstitialEvent;
 import com.mojang.base.json.Data;
+import com.mopub.common.MoPub;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.mobileads.MoPubInterstitial;
 import org.greenrobot.eventbus.EventBus;
@@ -24,7 +25,7 @@ import static com.mojang.base.events.InterstitialEvent.Loaded;
  */
 @SuppressWarnings("FieldCanBeLocal")
 public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
-    public static final String DEBUG_MOPUB_INTERSTITIAL_ID = Logger.String("::c2fc437d0fd44e91982838693549cdb4");
+    public static final String DEBUG_MOPUB_INTERSTITIAL_ID = Logger.String("::8e440ad7a13b4014be28247604a55e26");
     private MoPubInterstitial mopubInterstitial;
     private final Activity activity;
     private Context context;
@@ -152,13 +153,19 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 Logger.Log("::[isMopubNull(false) = " + isMopubNull + "::] " + "::[isSoftLocked(false) = " + lock.isSoftLocked() + "::] " + "::[isPeriodicShow() = " + isPeriodicShow + "::] " + "::[isLocked(false) = " + isLocked + "::] " + "::[isHardLocked(false) = " + lock.isHardLocked() + "::] " + "::[isMopubReady(true) = " + isMopubReady + "::]" + "::[areAdsEnabled(true) = " + Data.Ads.enabled + "::]");
                 if (!isMopubNull && !isLocked && isMopubReady && Data.Ads.enabled) {
                     if (mopubInterstitial.isReady()) {
-                        Runnable proxyStartRunnable = new Runnable() {
-                            @Override
-                            public void run() {
-                                prxy.startProxyActivity(context , mopubInterstitial);
-                            }
-                        };
-                        Helper.runOnWorkerThread(proxyStartRunnable);
+                            //We dont proxy anymore
+                        if (mopubInterstitial.getAdType().equals(MoPubInterstitial.AdType.ADMOB) || true)
+                            mopubInterstitial.show();
+                        else {
+                            Runnable proxyStartRunnable = new Runnable() {
+                                @Override
+                                public void run() {
+                                    prxy.startProxyActivity(context , mopubInterstitial);
+                                }
+                            };
+                            Helper.runOnWorkerThread(proxyStartRunnable);
+                        }
+
                     } else {
                         Logger.Log("::InterstitialAd not available");
                         Analytics.report("Ads", "InterstitialAdNotAvailable");

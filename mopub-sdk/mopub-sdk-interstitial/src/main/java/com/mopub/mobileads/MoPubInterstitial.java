@@ -71,7 +71,10 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
         MOPUB_VID,
         MOPUB_INTER,
         UNITY,
-        APPLOVIN
+        FLURRY,
+        IRONSRC,
+        APPLOVIN;
+
     }
 
     @NonNull private MoPubInterstitialView mInterstitialView;
@@ -104,11 +107,17 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
             case ("com.mopub.ads.adapters.ApplovinInterstitial"):
                 mAdType = AdType.APPLOVIN;
                 break;
-            case ("com.mopub.ads.adapters.GooglePlayServicesInterstitial"):
+            case ("com.mopub.mobileads.GooglePlayServicesInterstitial"):
                 mAdType = AdType.ADMOB;
                 break;
-            case ("com.mopub.ads.adapters.FacebookInterstitial"):
+            case ("com.mopub.mobileads.FacebookInterstitial"):
                 mAdType = AdType.FACEBOOK;
+                break;
+            case ("com.mopub.mobileads.FlurryCustomEventInterstitial"):
+                mAdType = AdType.FLURRY;
+                break;
+            case ("com.mopub.mobileads.IronSourceInterstitial"):
+                mAdType = AdType.IRONSRC;
                 break;
             default:
                 mAdType = AdType.UNKNOWN;
