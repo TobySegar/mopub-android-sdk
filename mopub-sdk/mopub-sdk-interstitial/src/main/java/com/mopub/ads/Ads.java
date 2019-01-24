@@ -94,7 +94,6 @@ public class Ads {
     public void onAppEvent(AppEvent appEvent) {
         switch (appEvent.event) {
             case Destroy:
-                FileManager.i().unregisterTexturePackDownloadReceiver(activity);
                 interstitial.destroy();
                 break;
             case Pause:
