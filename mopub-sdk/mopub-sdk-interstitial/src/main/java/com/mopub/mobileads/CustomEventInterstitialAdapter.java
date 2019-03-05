@@ -1,4 +1,4 @@
-// Copyright 2018 Twitter, Inc.
+// Copyright 2018-2019 Twitter, Inc.
 // Licensed under the MoPub SDK License Agreement
 // http://www.mopub.com/legal/sdk-license-agreement/
 
@@ -26,6 +26,9 @@ import java.util.TreeMap;
 
 import static com.mopub.common.DataKeys.AD_REPORT_KEY;
 import static com.mopub.common.DataKeys.BROADCAST_IDENTIFIER_KEY;
+
+import static com.mopub.common.logging.MoPubLog.SdkLogEvent.CUSTOM;
+import static com.mopub.common.logging.MoPubLog.SdkLogEvent.CUSTOM_WITH_THROWABLE;
 import static com.mopub.mobileads.MoPubErrorCode.ADAPTER_NOT_FOUND;
 import static com.mopub.mobileads.MoPubErrorCode.NETWORK_TIMEOUT;
 import static com.mopub.mobileads.MoPubErrorCode.UNSPECIFIED;
@@ -58,17 +61,19 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         mTimeout = new Runnable() {
             @Override
             public void run() {
-                MoPubLog.d("Third-party network timed out.");
+                MoPubLog.log(CUSTOM, "CustomEventInterstitialAdapter() failed with code " +
+                        NETWORK_TIMEOUT.getIntCode() + " and message " + NETWORK_TIMEOUT);
                 onInterstitialFailed(NETWORK_TIMEOUT);
                 invalidate();
             }
         };
 
-        MoPubLog.d("Attempting to invoke custom event: " + className);
+        MoPubLog.log(CUSTOM,  "Attempting to invoke custom event: " + className);
         try {
             mCustomEventInterstitial = CustomEventInterstitialFactory.create(className);
         } catch (Exception exception) {
-            MoPubLog.d("Couldn't locate or instantiate custom event: " + className + ".");
+            MoPubLog.log(CUSTOM_WITH_THROWABLE, "CustomEventInterstitialFactory.create() " +
+                    "failed with exception", exception);
             mMoPubInterstitial.onCustomEventInterstitialFailed(ADAPTER_NOT_FOUND);
             return;
         }
@@ -86,6 +91,7 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         if (isInvalidated() || mCustomEventInterstitial == null) {
             return;
         }
+        MoPubLog.log(CUSTOM, "loadInterstitial()");
 
         mHandler.postDelayed(mTimeout, getTimeoutDelayMilliseconds());
 
@@ -94,7 +100,6 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         try {
             mCustomEventInterstitial.loadInterstitial(mContext, this, mLocalExtras, mServerExtras);
         } catch (Exception e) {
-            MoPubLog.d("Loading a custom event interstitial threw an exception.", e);
             onInterstitialFailed(MoPubErrorCode.INTERNAL_ERROR);
         }
     }
@@ -103,6 +108,7 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         if (isInvalidated() || mCustomEventInterstitial == null) {
             return;
         }
+        MoPubLog.log(CUSTOM, "showInterstitial()");
 
 
         //todo bojo bullshit usuje na separate networks proxi gone for now
@@ -120,7 +126,9 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         try {
             mCustomEventInterstitial.showInterstitial();
         } catch (Exception e) {
-            MoPubLog.d("Showing a custom event interstitial threw an exception.", e);
+            MoPubLog.log(CUSTOM, "showInterstitial() failed with code " +
+                    MoPubErrorCode.INTERNAL_ERROR.getIntCode() + " and message " +
+                    MoPubErrorCode.INTERNAL_ERROR);
             onInterstitialFailed(MoPubErrorCode.INTERNAL_ERROR);
         }
     }
@@ -133,7 +141,7 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
             try {
                 mCustomEventInterstitial.onInvalidate();
             } catch (Exception e) {
-                MoPubLog.d("Invalidating a custom event interstitial threw an exception.", e);
+                MoPubLog.log(CUSTOM,  "Invalidating a custom event interstitial threw an exception.", e);
             }
         }
 
@@ -197,6 +205,8 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
             return;
         }
 
+        MoPubLog.log(CUSTOM, "onInterstitialLoaded()");
+
         cancelTimeout();
 
         if (mCustomEventInterstitialAdapterListener != null) {
@@ -210,10 +220,15 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
             return;
         }
 
+        if (errorCode == null) {
+            errorCode = UNSPECIFIED;
+        }
+
+        MoPubLog.log(CUSTOM, "onInterstitialFailed() failed with code " +
+                errorCode.getIntCode() + " and message " +
+                errorCode);
+
         if (mCustomEventInterstitialAdapterListener != null) {
-            if (errorCode == null) {
-                errorCode = UNSPECIFIED;
-            }
             cancelTimeout();
             mCustomEventInterstitialAdapterListener.onCustomEventInterstitialFailed(errorCode);
         }
@@ -224,6 +239,8 @@ public class CustomEventInterstitialAdapter implements CustomEventInterstitialLi
         if (isInvalidated()) {
             return;
         }
+
+        MoPubLog.log(CUSTOM, "onInterstitialShown()");
 
         if (mCustomEventInterstitialAdapterListener != null) {
             mCustomEventInterstitialAdapterListener.onCustomEventInterstitialShown();

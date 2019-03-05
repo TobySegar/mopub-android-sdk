@@ -1,4 +1,4 @@
-// Copyright 2018 Twitter, Inc.
+// Copyright 2018-2019 Twitter, Inc.
 // Licensed under the MoPub SDK License Agreement
 // http://www.mopub.com/legal/sdk-license-agreement/
 
@@ -29,6 +29,16 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.mopub.common.logging.MoPubLog.AdLogEvent.CLICKED;
+import static com.mopub.common.logging.MoPubLog.AdLogEvent.CUSTOM;
+import static com.mopub.common.logging.MoPubLog.AdLogEvent.DID_DISAPPEAR;
+import static com.mopub.common.logging.MoPubLog.AdLogEvent.LOAD_ATTEMPTED;
+import static com.mopub.common.logging.MoPubLog.AdLogEvent.LOAD_FAILED;
+import static com.mopub.common.logging.MoPubLog.AdLogEvent.LOAD_SUCCESS;
+import static com.mopub.common.logging.MoPubLog.AdLogEvent.SHOW_ATTEMPTED;
+import static com.mopub.common.logging.MoPubLog.AdLogEvent.SHOW_FAILED;
+import static com.mopub.common.logging.MoPubLog.AdLogEvent.SHOW_SUCCESS;
+import static com.mopub.common.logging.MoPubLog.SdkLogEvent.ERROR;
 import static com.mopub.mobileads.MoPubErrorCode.ADAPTER_NOT_FOUND;
 
 public class MoPubView extends FrameLayout {
@@ -99,12 +109,13 @@ public class MoPubView extends FrameLayout {
         try {
             mContext.unregisterReceiver(mScreenStateReceiver);
         } catch (Exception IllegalArgumentException) {
-            MoPubLog.d("Failed to unregister screen state broadcast receiver (never registered).");
+            MoPubLog.log(CUSTOM, "Failed to unregister screen state broadcast receiver (never registered).");
         }
     }
 
     public void loadAd() {
         if (mAdViewController != null) {
+            MoPubLog.log(LOAD_ATTEMPTED);
             mAdViewController.loadAd();
         }
     }
@@ -114,6 +125,7 @@ public class MoPubView extends FrameLayout {
      * Activity's onDestroy implementation must include a call to this method.
      */
     public void destroy() {
+        MoPubLog.log(CUSTOM, "Destroy() called");
         unregisterScreenStateBroadcastReceiver();
         removeAllViews();
 
@@ -135,7 +147,7 @@ public class MoPubView extends FrameLayout {
                         .setAccessible()
                         .execute();
             } catch (Exception e) {
-                MoPubLog.e("Error invalidating adapter", e);
+                MoPubLog.log(ERROR, "Error invalidating adapter", e);
             }
         }
     }
@@ -161,7 +173,7 @@ public class MoPubView extends FrameLayout {
         }
 
         if (TextUtils.isEmpty(customEventClassName)) {
-            MoPubLog.d("Couldn't invoke custom event because the server did not specify one.");
+            MoPubLog.log(CUSTOM, "Couldn't invoke custom event because the server did not specify one.");
             loadFailUrl(ADAPTER_NOT_FOUND);
             return;
         }
@@ -170,7 +182,7 @@ public class MoPubView extends FrameLayout {
             invalidateAdapter();
         }
 
-        MoPubLog.d("Loading custom event adapter.");
+        MoPubLog.log(CUSTOM, "Loading custom event adapter.");
 
         if (Reflection.classFound(CUSTOM_EVENT_BANNER_ADAPTER_FACTORY)) {
             try {
@@ -187,10 +199,10 @@ public class MoPubView extends FrameLayout {
                         .setAccessible()
                         .execute();
             } catch (Exception e) {
-                MoPubLog.e("Error loading custom event", e);
+                MoPubLog.log(ERROR, "Error loading custom event", e);
             }
         } else {
-            MoPubLog.e("Could not load custom event -- missing banner module");
+            MoPubLog.log(CUSTOM, "Could not load custom event -- missing banner module");
         }
     }
 
@@ -204,7 +216,7 @@ public class MoPubView extends FrameLayout {
     }
 
     protected void trackNativeImpression() {
-        MoPubLog.d("Tracking impression for native adapter.");
+        MoPubLog.log(CUSTOM, "Tracking impression for native adapter.");
         if (mAdViewController != null) mAdViewController.trackImpression();
     }
 
@@ -230,14 +242,14 @@ public class MoPubView extends FrameLayout {
     }
 
     protected void adLoaded() {
-        MoPubLog.d("adLoaded");
-
+        MoPubLog.log(LOAD_SUCCESS);
         if (mBannerAdListener != null) {
             mBannerAdListener.onBannerLoaded(this);
         }
     }
 
     protected void adFailed(MoPubErrorCode errorCode) {
+        MoPubLog.log(LOAD_FAILED, errorCode.getIntCode(), errorCode);
         if (mBannerAdListener != null) {
             mBannerAdListener.onBannerFailed(this, errorCode);
         }
@@ -250,12 +262,14 @@ public class MoPubView extends FrameLayout {
     }
 
     protected void adClosed() {
+        MoPubLog.log(DID_DISAPPEAR);
         if (mBannerAdListener != null) {
             mBannerAdListener.onBannerCollapsed(this);
         }
     }
 
     protected void adClicked() {
+        MoPubLog.log(CLICKED);
         if (mBannerAdListener != null) {
             mBannerAdListener.onBannerClicked(this);
         }
@@ -283,7 +297,7 @@ public class MoPubView extends FrameLayout {
     }
 
     public String getKeywords() {
-        return (mAdViewController != null) ? mAdViewController.getKeywords(): null;
+        return (mAdViewController != null) ? mAdViewController.getKeywords() : null;
     }
 
     public void setUserDataKeywords(String userDataKeywords) {
@@ -370,14 +384,20 @@ public class MoPubView extends FrameLayout {
     public boolean getAutorefreshEnabled() {
         if (mAdViewController != null) return mAdViewController.getCurrentAutoRefreshStatus();
         else {
-            MoPubLog.d("Can't get autorefresh status for destroyed MoPubView. " +
+            MoPubLog.log(CUSTOM, "Can't get autorefresh status for destroyed MoPubView. " +
                     "Returning false.");
             return false;
         }
     }
 
     public void setAdContentView(View view) {
-        if (mAdViewController != null) mAdViewController.setAdContentView(view);
+        MoPubLog.log(SHOW_ATTEMPTED);
+        if (mAdViewController != null) {
+            mAdViewController.setAdContentView(view);
+            MoPubLog.log(SHOW_SUCCESS);
+        } else {
+            MoPubLog.log(SHOW_FAILED);
+        }
     }
 
     public void setTesting(boolean testing) {
@@ -387,7 +407,7 @@ public class MoPubView extends FrameLayout {
     public boolean getTesting() {
         if (mAdViewController != null) return mAdViewController.getTesting();
         else {
-            MoPubLog.d("Can't get testing status for destroyed MoPubView. " +
+            MoPubLog.log(CUSTOM, "Can't get testing status for destroyed MoPubView. " +
                     "Returning false.");
             return false;
         }
