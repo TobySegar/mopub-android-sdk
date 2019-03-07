@@ -68,11 +68,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 break;
             case GamePlayStart:
                 Logger.String("::GamePlayStart Interstitial");
-                show(false, 5000);
+                show(false, 7000);
                 break;
             case LeaveServer:
                 Logger.String("::LeaveServer");
-                show(false, 5000);
+                show(false, 7000);
                 break;
         }
     }
@@ -153,7 +153,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 Logger.Log("::[isMopubNull(false) = " + isMopubNull + "::] " + "::[isSoftLocked(false) = " + lock.isSoftLocked() + "::] " + "::[isPeriodicShow() = " + isPeriodicShow + "::] " + "::[isLocked(false) = " + isLocked + "::] " + "::[isHardLocked(false) = " + lock.isHardLocked() + "::] " + "::[isMopubReady(true) = " + isMopubReady + "::]" + "::[areAdsEnabled(true) = " + Data.Ads.enabled + "::]");
                 if (!isMopubNull && !isLocked && isMopubReady && Data.Ads.enabled) {
                     if (mopubInterstitial.isReady()) {
-                            //We dont proxy anymore
+                            //We dont proxy anymore in if statement there is OR TRUE
                         if (mopubInterstitial.getAdType().equals(MoPubInterstitial.AdType.ADMOB) || true)
                             mopubInterstitial.show();
                         else {

@@ -41,15 +41,11 @@ dependencies {
     compile 'com.flurry.android:ads:11.1.1@aar'
 
 
-
 // AppLovin
     compile 'com.applovin:applovin-sdk:9.1.3'
 
-// ironSource
-    compile files('libs/IronSrc_mediationsdk-6.7.11@jar')
-
 // Facebook Audience Network
-    compile 'com.facebook.android:audience-network-sdk:5.1.0'
+   compile 'com.facebook.android:audience-network-sdk:5.1.0'
 
     // flurry ads
     compile 'com.flurry.android:ads:11.1.1@aar'

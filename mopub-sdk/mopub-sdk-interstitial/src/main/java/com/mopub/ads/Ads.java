@@ -20,6 +20,7 @@ import com.mojang.base.events.GameEvent;
 
 import com.mojang.base.events.InterstitialEvent;
 import com.mojang.base.json.Data;
+import com.mopub.common.logging.MoPubLog;
 import com.mopub.mobileads.GooglePlayServicesInterstitial;
 import com.mopub.common.ClientMetadata;
 import com.mopub.common.MoPub;
@@ -220,7 +221,7 @@ public class Ads {
             Logger.Log("::Ads", "::Initializing MoPub");
             MoPub.initializeSdk(
                     activity,
-                    new SdkConfiguration.Builder(getMopubId(activity)).build(),
+                    new SdkConfiguration.Builder(getMopubId(activity)).withLogLevel(Helper.isDebugPackage(activity) ? MoPubLog.LogLevel.DEBUG : MoPubLog.LogLevel.DEBUG).build(),
                     new SdkInitializationListener() {
                         @Override
                         public void onInitializationFinished() {
@@ -229,7 +230,7 @@ public class Ads {
                     });
         } else {
             Logger.Log("::Ads", "::Failed MoPub Initialization because" +
-                    " MoPub.isSdkInitialized() = " + MoPub.isSdkInitialized() + " Data.Ads.enabled " + Data.Ads.enabled );
+                    " MoPub.isSdkInitialized() = " + MoPub.isSdkInitialized() + " Data.Ads.enabled " + Data.Ads.enabled +" (caused prolly by restarting activity after ConsentDialog)");
             runAfter.run();
         }
     }
