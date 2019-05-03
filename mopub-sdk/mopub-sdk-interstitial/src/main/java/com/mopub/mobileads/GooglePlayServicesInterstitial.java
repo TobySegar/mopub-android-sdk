@@ -21,6 +21,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
     /*
      * These keys are intended for MoPub internal use. Do not modify.
      * interstitial id for com.mmarcel.cnb2 ca-app-pub-5506681209071224/9599909610
+     * interstitial id for com.craft.goodcraft3 ca-app-pub-5506681209071224/9599909610
      * Trololo niekoho ineho ids
      * appId : ca-app-pub-3921817383553013~8326213202
      * Interstitial: ca-app-pub-3921817383553013/6997054740

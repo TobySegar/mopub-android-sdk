@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.webkit.WebView;
 
+import com.mojang.base.Helper;
 import com.mopub.common.AdReport;
 import com.mopub.common.Constants;
 import com.mopub.common.CreativeOrientation;
@@ -35,6 +36,7 @@ import com.mopub.network.Networking;
 
 import java.io.Serializable;
 
+import static com.mojang.base.Helper.runOnUiThread;
 import static com.mopub.common.DataKeys.AD_REPORT_KEY;
 import static com.mopub.common.DataKeys.BROADCAST_IDENTIFIER_KEY;
 import static com.mopub.common.DataKeys.CREATIVE_ORIENTATION_KEY;
@@ -73,9 +75,16 @@ public class MraidActivity extends BaseInterstitialActivity {
         Preconditions.checkNotNull(customEventInterstitialListener);
         Preconditions.checkNotNull(broadcastIdentifier);
 
-        preRenderHtml(mraidInterstitial, customEventInterstitialListener, htmlData,
-                new MraidBridge.MraidWebView(context), broadcastIdentifier,
-                new MraidController(context, adReport, PlacementType.INTERSTITIAL));
+        Helper.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                preRenderHtml(mraidInterstitial, customEventInterstitialListener, htmlData,
+                        new MraidBridge.MraidWebView(context), broadcastIdentifier,
+                        new MraidController(context, adReport, PlacementType.INTERSTITIAL));
+            }
+        });
+
+
     }
 
     @VisibleForTesting
@@ -92,50 +101,58 @@ public class MraidActivity extends BaseInterstitialActivity {
         Preconditions.checkNotNull(broadcastIdentifier);
         Preconditions.checkNotNull(mraidController);
 
-        mraidWebView.enablePlugins(false);
-        mraidWebView.enableJavascriptCaching();
-        final Context context = mraidWebView.getContext();
-
-        mraidWebView.setWebViewClient(new MraidWebViewClient() {
+        Helper.runOnUiThread(new Runnable() {
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (MOPUB_FAIL_LOAD.equals(url)) {
-                    MoPubLog.log(LOAD_FAILED, MoPubErrorCode.VIDEO_CACHE_ERROR.getIntCode(),
-                            MoPubErrorCode.VIDEO_CACHE_ERROR);
-                    customEventInterstitialListener.onInterstitialFailed(
-                            MoPubErrorCode.MRAID_LOAD_ERROR);
-                }
-                return true;
-            }
+            public void run() {
+                mraidWebView.enablePlugins(false);
+                mraidWebView.enableJavascriptCaching();
+                final Context context = mraidWebView.getContext();
 
-            @Override
-            public void onPageFinished(final WebView view, final String url) {
-                MoPubLog.log(LOAD_SUCCESS);
-                customEventInterstitialListener.onInterstitialLoaded();
-                mraidController.onPreloadFinished(mraidWebView);
-            }
+                mraidWebView.setWebViewClient(new MraidWebViewClient() {
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                        if (MOPUB_FAIL_LOAD.equals(url)) {
+                            MoPubLog.log(LOAD_FAILED, MoPubErrorCode.VIDEO_CACHE_ERROR.getIntCode(),
+                                    MoPubErrorCode.VIDEO_CACHE_ERROR);
+                            customEventInterstitialListener.onInterstitialFailed(
+                                    MoPubErrorCode.MRAID_LOAD_ERROR);
+                        }
+                        return true;
+                    }
 
-            @Override
-            public void onReceivedError(final WebView view, final int errorCode,
-                    final String description,
-                    final String failingUrl) {
-                super.onReceivedError(view, errorCode, description, failingUrl);
-                MoPubLog.log(LOAD_FAILED, MoPubErrorCode.VIDEO_CACHE_ERROR.getIntCode(),
-                        MoPubErrorCode.VIDEO_CACHE_ERROR);
-                customEventInterstitialListener.onInterstitialFailed(
-                        MoPubErrorCode.MRAID_LOAD_ERROR);
+                    @Override
+                    public void onPageFinished(final WebView view, final String url) {
+                        MoPubLog.log(LOAD_SUCCESS);
+                        customEventInterstitialListener.onInterstitialLoaded();
+                        mraidController.onPreloadFinished(mraidWebView);
+                    }
+
+                    @Override
+                    public void onReceivedError(final WebView view, final int errorCode,
+                                                final String description,
+                                                final String failingUrl) {
+                        super.onReceivedError(view, errorCode, description, failingUrl);
+                        MoPubLog.log(LOAD_FAILED, MoPubErrorCode.VIDEO_CACHE_ERROR.getIntCode(),
+                                MoPubErrorCode.VIDEO_CACHE_ERROR);
+                        customEventInterstitialListener.onInterstitialFailed(
+                                MoPubErrorCode.MRAID_LOAD_ERROR);
+                    }
+                });
+
+                final ExternalViewabilitySessionManager externalViewabilitySessionManager =
+                        new ExternalViewabilitySessionManager(context);
+                externalViewabilitySessionManager.createDisplaySession(context, mraidWebView, true);
+
+                mraidWebView.loadDataWithBaseURL(Networking.getBaseUrlScheme() + "://" + Constants.HOST + "/",
+                        htmlData, "text/html", "UTF-8", null);
+
+                WebViewCacheService.storeWebViewConfig(broadcastIdentifier, mraidInterstitial,
+                        mraidWebView, externalViewabilitySessionManager, mraidController);
             }
         });
 
-        final ExternalViewabilitySessionManager externalViewabilitySessionManager =
-                new ExternalViewabilitySessionManager(context);
-        externalViewabilitySessionManager.createDisplaySession(context, mraidWebView, true);
 
-        mraidWebView.loadDataWithBaseURL(Networking.getBaseUrlScheme() + "://" + Constants.HOST + "/",
-                htmlData, "text/html", "UTF-8", null);
 
-        WebViewCacheService.storeWebViewConfig(broadcastIdentifier, mraidInterstitial,
-                mraidWebView, externalViewabilitySessionManager, mraidController);
     }
 
     public static void start(@NonNull final Context context,
