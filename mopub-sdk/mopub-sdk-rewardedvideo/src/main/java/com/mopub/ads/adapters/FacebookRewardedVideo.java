@@ -1,3 +1,4 @@
+/*
 package com.mopub.ads.adapters;
 
 import android.app.Activity;
@@ -48,9 +49,11 @@ public class FacebookRewardedVideo extends CustomEventRewardedVideo implements R
         };
     }
 
-    /**
+    */
+/**
      * CustomEventRewardedVideo implementation
-     */
+     *//*
+
 
     @Nullable
     @Override
@@ -195,3 +198,4 @@ public class FacebookRewardedVideo extends CustomEventRewardedVideo implements R
         mHandler.removeCallbacks(mAdExpiration);
     }
 }
+*/

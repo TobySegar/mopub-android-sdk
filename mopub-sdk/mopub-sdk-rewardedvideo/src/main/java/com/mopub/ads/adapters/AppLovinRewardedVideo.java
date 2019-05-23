@@ -5,7 +5,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-
+/*
 import com.applovin.adview.AppLovinIncentivizedInterstitial;
 import com.applovin.sdk.AppLovinAd;
 import com.applovin.sdk.AppLovinAdClickListener;
@@ -277,9 +277,10 @@ public class AppLovinRewardedVideo extends CustomEventRewardedVideo implements A
         }
     }
 
-    /**
+*
      * Retrieves the appropriate instance of AppLovin's SDK from the SDK key given in the server parameters, or Android Manifest.
-     */
+
+
     private static AppLovinSdk retrieveSdk(final Map<String, String> serverExtras, final Context context) {
         final String sdkKey = serverExtras != null ? serverExtras.get("sdk_key") : null;
         final AppLovinSdk sdk;
@@ -292,3 +293,4 @@ public class AppLovinRewardedVideo extends CustomEventRewardedVideo implements A
         return sdk;
     }
 }
+*/

@@ -5,7 +5,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-
+/*
 import com.applovin.adview.AppLovinInterstitialAd;
 import com.applovin.adview.AppLovinInterstitialAdDialog;
 import com.applovin.sdk.AppLovinAd;
@@ -287,6 +287,8 @@ public class AppLovinInterstitial extends CustomEventInterstitial implements App
     /**
      * Retrieves the appropriate instance of AppLovin's SDK from the SDK key given in the server parameters, or Android Manifest.
      */
+
+/*
     private static AppLovinSdk retrieveSdk(final Map<String, String> serverExtras, final Context context) {
         //todo --We use ZoneID as our sdk Key variable because we dont need use Ad zones
        final String sdkKey = serverExtras != null ? serverExtras.get("zone_id") : null;
@@ -304,6 +306,8 @@ public class AppLovinInterstitial extends CustomEventInterstitial implements App
     /**
      * Performs the given runnable on the main thread.
      */
+
+/*
     private static void runOnUiThread(final Runnable runnable) {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             runnable.run();
@@ -312,3 +316,4 @@ public class AppLovinInterstitial extends CustomEventInterstitial implements App
         }
     }
 }
+*/

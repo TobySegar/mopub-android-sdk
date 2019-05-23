@@ -41,14 +41,14 @@ dependencies {
     compile project(':unity-ads')
     compile 'com.flurry.android:ads:11.1.1@aar'
 //Yandex
-    compile 'com.yandex.android:mobmetricalib:3.4.0'
-    compile 'com.yandex.android:mobileads:2.80'
+    //compile 'com.yandex.android:mobmetricalib:3.4.0'
+    //compile 'com.yandex.android:mobileads:2.80'
 
 // AppLovin
-    compile 'com.applovin:applovin-sdk:+'
+    //compile 'com.applovin:applovin-sdk:+'
 
 // Facebook Audience Network
-   compile 'com.facebook.android:audience-network-sdk:5.1.0'
+  // compile 'com.facebook.android:audience-network-sdk:5.1.0'
 
     // flurry ads
     compile 'com.flurry.android:ads:11.1.1@aar'

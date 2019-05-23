@@ -1,7 +1,7 @@
 package com.mopub.mobileads;
 
 import android.content.Context;
-
+/*
 import com.applovin.sdk.AppLovinSdk;
 import com.mopub.common.MoPubAdvancedBidder;
 
@@ -17,3 +17,4 @@ public class AppLovinAdvancedBidder
         return AppLovinSdk.getInstance(context).getAdService().getBidToken();
     }
 }
+*/

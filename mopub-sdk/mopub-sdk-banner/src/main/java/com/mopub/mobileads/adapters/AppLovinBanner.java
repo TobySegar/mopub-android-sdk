@@ -1,3 +1,4 @@
+/*
 package com.mopub.mobileads.adapters;
 
 import android.app.Activity;
@@ -232,9 +233,11 @@ public class AppLovinBanner extends CustomEventBanner {
         }
     }
 
-    /**
+    */
+/**
      * Retrieves the appropriate instance of AppLovin's SDK from the SDK key given in the server parameters, or Android Manifest.
-     */
+     *//*
+
     private static AppLovinSdk retrieveSdk(final Map<String, String> serverExtras, final Context context) {
         final String sdkKey = serverExtras != null ? serverExtras.get("sdk_key") : null;
         final AppLovinSdk sdk;
@@ -247,9 +250,11 @@ public class AppLovinBanner extends CustomEventBanner {
         return sdk;
     }
 
-    /**
+    */
+/**
      * Performs the given runnable on the main thread.
-     */
+     *//*
+
     private static void runOnUiThread(final Runnable runnable) {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             runnable.run();
@@ -257,4 +262,4 @@ public class AppLovinBanner extends CustomEventBanner {
             UI_HANDLER.post(runnable);
         }
     }
-}
+}*/

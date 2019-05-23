@@ -1,3 +1,4 @@
+/*
 package com.mopub.mobileads.adapters;
 
 import android.content.Context;
@@ -25,9 +26,11 @@ public class FacebookBanner extends CustomEventBanner implements AdListener {
     private AdView mFacebookBanner;
     private CustomEventBanner.CustomEventBannerListener mBannerListener;
 
-    /**
+    */
+/**
      * CustomEventBanner implementation
-     */
+     *//*
+
 
     @Override
     protected void loadBanner(final Context context,
@@ -82,9 +85,11 @@ public class FacebookBanner extends CustomEventBanner implements AdListener {
         }
     }
 
-    /**
+    */
+/**
      * AdListener implementation
-     */
+     *//*
+
 
     @Override
     public void onAdLoaded(Ad ad) {
@@ -145,3 +150,4 @@ public class FacebookBanner extends CustomEventBanner implements AdListener {
         return mFacebookBanner;
     }
 }
+*/

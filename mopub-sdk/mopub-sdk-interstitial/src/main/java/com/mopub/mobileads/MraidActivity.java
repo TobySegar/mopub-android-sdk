@@ -74,7 +74,7 @@ public class MraidActivity extends BaseInterstitialActivity {
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(customEventInterstitialListener);
         Preconditions.checkNotNull(broadcastIdentifier);
-
+//wao change lebo tuto crashovalo dal som to na ui threat
         Helper.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -100,7 +100,7 @@ public class MraidActivity extends BaseInterstitialActivity {
         Preconditions.checkNotNull(mraidWebView);
         Preconditions.checkNotNull(broadcastIdentifier);
         Preconditions.checkNotNull(mraidController);
-
+//wao change lebo tuto crashovalo dal som to na ui threat
         Helper.runOnUiThread(new Runnable() {
             @Override
             public void run() {
