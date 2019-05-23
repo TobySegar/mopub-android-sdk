@@ -41,6 +41,7 @@ import static com.mopub.common.logging.MoPubLog.AdLogEvent.RESPONSE_RECEIVED;
 import static com.mopub.network.HeaderUtils.extractBooleanHeader;
 import static com.mopub.network.HeaderUtils.extractHeader;
 import static com.mopub.network.HeaderUtils.extractIntegerHeader;
+import static com.mopub.network.HeaderUtils.extractJsonObjectHeader;
 import static com.mopub.network.HeaderUtils.extractPercentHeaderString;
 import static com.mopub.network.HeaderUtils.extractStringArray;
 
@@ -90,6 +91,10 @@ public class MultiAdResponse implements Iterator<AdResponse> {
         mFailUrl = jsonObject.optString(ResponseHeader.FAIL_URL.getKey());
         String requestId = jsonObject.optString(ResponseHeader.REQUEST_ID.getKey());
 
+        final Integer backoffMs = extractIntegerHeader(jsonObject, ResponseHeader.BACKOFF_MS);
+        final String backoffReason = extractHeader(jsonObject, ResponseHeader.BACKOFF_REASON);
+        RequestRateTracker.getInstance().registerRateLimit(adUnitId, backoffMs, backoffReason);
+
         final boolean invalidateConsent = extractBooleanHeader(jsonObject,
                 ResponseHeader.INVALIDATE_CONSENT, false);
         final boolean forceExplicitNo = extractBooleanHeader(jsonObject,
@@ -111,6 +116,13 @@ public class MultiAdResponse implements Iterator<AdResponse> {
             } else if (reacquireConsent) {
                 sServerOverrideListener.onReacquireConsent(consentChangeReason);
             }
+        }
+
+        final boolean enableDebugLogging = extractBooleanHeader(jsonObject,
+                ResponseHeader.ENABLE_DEBUG_LOGGING, false);
+
+        if (enableDebugLogging) {
+            MoPubLog.setLogLevel(MoPubLog.LogLevel.DEBUG);
         }
 
         JSONArray adResponses = jsonObject.getJSONArray(ResponseHeader.AD_RESPONSES.getKey());
@@ -238,6 +250,9 @@ public class MultiAdResponse implements Iterator<AdResponse> {
 
         String networkType = extractHeader(jsonHeaders, ResponseHeader.NETWORK_TYPE);
         builder.setNetworkType(networkType);
+
+        JSONObject impressionJson = extractJsonObjectHeader(jsonHeaders, ResponseHeader.IMPRESSION_DATA);
+        builder.setImpressionData(ImpressionData.create(impressionJson));
 
         // X-Clickthrough is parsed into the AdResponse as the click tracker
         // Used by AdViewController, Rewarded Video, Native Adapter, MoPubNative
@@ -422,12 +437,6 @@ public class MultiAdResponse implements Iterator<AdResponse> {
             builder.setRewardedVideoCompletionUrl(rewardedVideoCompletionUrl);
             builder.setRewardedDuration(rewardedDuration);
             builder.setShouldRewardOnClick(shouldRewardOnClick);
-        }
-
-        // Enabled debug logging
-        if (extractBooleanHeader(jsonHeaders,
-                ResponseHeader.ENABLE_DEBUG_LOGGING, false)) {
-            MoPubLog.setLogLevel(MoPubLog.LogLevel.DEBUG);
         }
 
         return builder.build();

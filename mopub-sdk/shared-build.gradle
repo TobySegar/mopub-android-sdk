@@ -16,16 +16,15 @@ repositories {
 }
 
 project.group = 'com.mopub'
-project.version = '5.5.0'
+project.version = '5.7.0'
 
 android {
     compileSdkVersion 27
     buildToolsVersion '27.0.3'
     lintOptions { abortOnError false }
-    useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
-        versionCode 66
+        versionCode 68
         versionName version
         minSdkVersion 16
         targetSdkVersion 27

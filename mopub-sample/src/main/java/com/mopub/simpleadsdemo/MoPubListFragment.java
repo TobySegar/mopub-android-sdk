@@ -15,7 +15,9 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +32,8 @@ import android.widget.Toast;
 import com.mopub.common.MoPub;
 import com.mopub.common.Preconditions;
 import com.mopub.common.logging.MoPubLog;
+import com.mopub.common.privacy.ConsentStatus;
+import com.mopub.common.privacy.PersonalInfoManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +55,8 @@ public class MoPubListFragment extends ListFragment implements TrashCanClickList
 
     private MoPubSampleListAdapter mAdapter;
     private AdUnitDataSource mAdUnitDataSource;
+    private EditText mSearchBar;
+    private Button mSearchBarClearButton;
 
     private static final AdType[] adTypes = AdType.values();
 
@@ -99,6 +105,36 @@ public class MoPubListFragment extends ListFragment implements TrashCanClickList
             @Override
             public void onClick(final View view) {
                 onAddClicked(view);
+            }
+        });
+
+        mSearchBar = view.findViewById(R.id.search_bar_et);
+        mSearchBarClearButton = view.findViewById(R.id.search_bar_clear_button);
+
+        mSearchBarClearButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mSearchBar != null) {
+                    mSearchBar.getText().clear();
+                }
+            }
+        });
+
+        mSearchBar.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(final Editable text) {
+                final MoPubSampleListAdapter adapter = mAdapter;
+                if (adapter != null && text != null) {
+                    adapter.getFilter().filter(text.toString());
+                }
             }
         });
 
@@ -222,6 +258,36 @@ public class MoPubListFragment extends ListFragment implements TrashCanClickList
         mAdUnitDataSource.deleteSampleAdUnit(moPubSampleAdUnit);
         mAdapter.remove(moPubSampleAdUnit);
         mAdapter.sort(MoPubSampleAdUnit.COMPARATOR);
+    }
+
+    /**
+     * Call this function to grant or revoke user consent
+     * @param consentGranted - true to grant consent, false to revoke
+     * @return - true successfully completed operation, false failed for some reason
+     */
+    boolean onChangeConsent(final boolean consentGranted) {
+        final PersonalInfoManager personalInfoManager = MoPub.getPersonalInformationManager();
+        final View view = getView();
+        if (personalInfoManager == null || view == null) {
+            MoPubLog.log(MoPubLog.SdkLogEvent.CUSTOM, getString(R.string.pim_is_not_available));
+            return false;
+        }
+
+        final EditText text = view.findViewById(R.id.status_change_notification);
+        text.setVisibility(View.VISIBLE);
+        if (consentGranted) {
+            personalInfoManager.grantConsent();
+            text.setText(R.string.consent_whitelisted);
+        } else {
+            if (personalInfoManager.getPersonalInfoConsentStatus().equals(ConsentStatus.DNT)) {
+                text.setText(R.string.donottrack_text);
+                return false;
+            }
+            personalInfoManager.revokeConsent();
+            text.setText(R.string.consent_denied);
+        }
+
+        return true;
     }
 
     public static class DeleteDialogFragment extends DialogFragment {

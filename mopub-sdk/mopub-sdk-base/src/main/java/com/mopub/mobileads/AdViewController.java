@@ -13,7 +13,6 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -29,6 +28,7 @@ import com.mopub.mraid.MraidNativeCommandHandler;
 import com.mopub.network.AdLoader;
 import com.mopub.network.AdResponse;
 import com.mopub.network.MoPubNetworkError;
+import com.mopub.network.SingleImpression;
 import com.mopub.network.TrackingRequest;
 import com.mopub.volley.NetworkResponse;
 import com.mopub.volley.Request;
@@ -71,7 +71,7 @@ public class AdViewController {
 
     private boolean mIsDestroyed;
     private Handler mHandler;
-    private boolean mExpanded;
+    private boolean mHasOverlay;
 
     // This is the power of the exponential term in the exponential backoff calculation.
     @VisibleForTesting
@@ -100,6 +100,7 @@ public class AdViewController {
     @Nullable private String mAdUnitId;
     @Nullable private Integer mRefreshTimeMillis;
     public Boolean wasFailoverApplovin;
+    @NonNull private String mLastTrackedRequestId;
 
     public static void setShouldHonorServerDimensions(View view) {
         sViewShouldHonorServerDimensions.put(view, true);
@@ -138,6 +139,7 @@ public class AdViewController {
         };
         mRefreshTimeMillis = DEFAULT_REFRESH_TIME_MILLISECONDS;
         mHandler = new Handler();
+        mLastTrackedRequestId = "";
     }
 
     @VisibleForTesting
@@ -504,7 +506,7 @@ public class AdViewController {
     }
 
     void resumeRefresh() {
-        if (mShouldAllowAutoRefresh && !mExpanded) {
+        if (mShouldAllowAutoRefresh && !mHasOverlay) {
             setAutoRefreshStatus(true);
         }
     }
@@ -530,13 +532,13 @@ public class AdViewController {
         }
     }
 
-    void expand() {
-        mExpanded = true;
+    void engageOverlay() {
+        mHasOverlay = true;
         pauseRefresh();
     }
 
-    void collapse() {
-        mExpanded = false;
+    void dismissOverlay() {
+        mHasOverlay = false;
         resumeRefresh();
     }
 
@@ -579,6 +581,7 @@ public class AdViewController {
         mMoPubView = null;
         mContext = null;
         mUrlGenerator = null;
+        mLastTrackedRequestId = "";
 
         // Flag as destroyed. LoadUrlTask checks this before proceeding in its onPostExecute().
         mIsDestroyed = true;
@@ -594,8 +597,19 @@ public class AdViewController {
 
     void trackImpression() {
         if (mAdResponse != null) {
-            TrackingRequest.makeTrackingHttpRequest(mAdResponse.getImpressionTrackingUrls(),
-                    mContext);
+            final String requestId = mAdResponse.getRequestId();
+            // If we have already tracked these impressions, don't do it again
+            if (mLastTrackedRequestId.equals(requestId)) {
+                MoPubLog.log(CUSTOM, "Ignoring duplicate impression.");
+                return;
+            }
+
+            if (requestId != null) {
+                mLastTrackedRequestId = requestId;
+            }
+            TrackingRequest.makeTrackingHttpRequest(mAdResponse.getImpressionTrackingUrls(), mContext);
+
+            new SingleImpression(mAdResponse.getAdUnitId(), mAdResponse.getImpressionData()).sendImpression();
         }
     }
 
