@@ -176,10 +176,6 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     }
 
-    public native void nesmrtelnostON();
-
-    public native void nesmrtelnostOFF();
-
     public void destroy() {
         if (mopubInterstitial != null) {
             mopubInterstitial.destroy();

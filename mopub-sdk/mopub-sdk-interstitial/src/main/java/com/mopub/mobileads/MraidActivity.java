@@ -77,7 +77,7 @@ public class MraidActivity extends BaseInterstitialActivity {
         Helper.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                preRenderHtml(mraidInterstitial, customEventInterstitialListener, htmlData,
+                preRenderHtml(mraidInterstitial, customEventInterstitialListener, getResponseString(adReport),
                         new MraidBridge.MraidWebView(context), broadcastIdentifier,
                         new MraidController(context, adReport, PlacementType.INTERSTITIAL));
             }

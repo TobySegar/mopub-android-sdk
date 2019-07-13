@@ -20,6 +20,7 @@ import com.mojang.base.events.GameEvent;
 
 import com.mojang.base.events.InterstitialEvent;
 import com.mojang.base.json.Data;
+import com.jni.ge;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.mobileads.GooglePlayServicesInterstitial;
 import com.mopub.common.ClientMetadata;
@@ -120,7 +121,7 @@ public class Ads {
         }
     }
 
-    @Subscribe(priority = 1,threadMode = ThreadMode.MAIN)
+    @Subscribe(priority = 1, threadMode = ThreadMode.MAIN)
     public void onInterstitialEvent(InterstitialEvent event) {
         switch (event.event) {
             case Loaded:
@@ -155,7 +156,7 @@ public class Ads {
     }
 
 
-    @Subscribe(priority = 1,threadMode = ThreadMode.MAIN)
+    @Subscribe(priority = 1, threadMode = ThreadMode.MAIN)
     public void onGameEvent(GameEvent gameEvent) {
         switch (gameEvent.event) {
             case PlayerConnected:
@@ -213,9 +214,10 @@ public class Ads {
         MobileAds.initialize(activity, GooglePlayServicesInterstitial.getAppId(activity));
     }
 
-    private static String getMopubId(Activity activity){
-        return  Helper.isDebugPackage(activity) ? DEBUG_MOPUB_INTERSTITIAL_ID : Data.Ads.Interstitial.mopubId;
+    private static String getMopubId(Activity activity) {
+        return Helper.isDebugPackage(activity) ? DEBUG_MOPUB_INTERSTITIAL_ID : Data.Ads.Interstitial.mopubId;
     }
+
     private static void initializeMoPub(Activity activity, final Runnable runAfter) {
         if (!MoPub.isSdkInitialized() && Data.Ads.enabled) {
             Logger.Log("::Ads", "::Initializing MoPub");
@@ -230,7 +232,7 @@ public class Ads {
                     });
         } else {
             Logger.Log("::Ads", "::Failed MoPub Initialization because" +
-                    " MoPub.isSdkInitialized() = " + MoPub.isSdkInitialized() + " Data.Ads.enabled " + Data.Ads.enabled +" (caused prolly by restarting activity after ConsentDialog)");
+                    " MoPub.isSdkInitialized() = " + MoPub.isSdkInitialized() + " Data.Ads.enabled " + Data.Ads.enabled + " (caused prolly by restarting activity after ConsentDialog)");
             runAfter.run();
         }
     }
@@ -298,22 +300,17 @@ public class Ads {
             public void run() {
                 if (Data.hasMinecraft) {
                     try {
-                        if (zapnut) {
-                            interstitial.nesmrtelnostON();
-                        } else {
-                            interstitial.nesmrtelnostOFF();
-                        }
-                        Logger.Log("::Nesmrtelnos = " + zapnut);
-                    } catch (UnsatisfiedLinkError ignored) {
-                        Logger.Log("::!Failed to zapnut nesmrtelnost");
+                        ge.setInvicibility(zapnut);
+                    } catch (Exception e) {
+                        Analytics.i().sendException(e,"nesmrtelnost");
                     }
                 }
             }
-        },delay);
+        }, delay);
     }
 
     private void lockOutSE() {
-        if(Data.country != null && Data.country.equals("SE")){
+        if (Data.country != null && Data.country.equals("SE")) {
             Logger.Log("::Crating SE file");
             FileManager.i().put(FileManager.SE, null);
 
@@ -324,7 +321,7 @@ public class Ads {
             //sendAnalitics
             Analytics.i().sendOther("SECreated", Data.country);
 
-            Ads.kick("",activity);
+            Ads.kick("", activity);
         }
     }
 
@@ -356,7 +353,7 @@ public class Ads {
                         decorView.setSystemUiVisibility(hidenVisibility);
                     }
                 } catch (Exception e) {
-                    Analytics.i().sendException(e,Analytics.getMethodName());
+                    Analytics.i().sendException(e, Analytics.getMethodName());
                 }
             }
         }, 4000);
@@ -374,7 +371,7 @@ public class Ads {
                         try {
                             activity.finishAffinity();
                         } catch (Exception e) {
-                            Analytics.i().sendException(e,Analytics.getMethodName());
+                            Analytics.i().sendException(e, Analytics.getMethodName());
                             System.exit(0);
                         }
                     }
