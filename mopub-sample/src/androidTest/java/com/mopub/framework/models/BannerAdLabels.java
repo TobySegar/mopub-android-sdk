@@ -9,8 +9,11 @@ public class BannerAdLabels {
     // Banner
     public static final String BANNER = "MoPub Banner Sample";
 
-    // MEDIUM_RECTANGLE
-    public static final String MEDIUM_RECTANGLE = "MoPub MediumRectangle Sample";
+    // MRECT
+    public static final String MRECT = "MoPub Mrect Sample";
+
+    // Leaderboard
+    public static final String LEADERBOARD = "MoPub Leaderboard Sample";
 
     // Interstitial
     public static final String INTERSTITIAL = "MoPub Interstitial Sample";

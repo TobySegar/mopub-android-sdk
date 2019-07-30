@@ -7,16 +7,12 @@ package com.mopub.mobileads;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Point;
 import android.location.Location;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.view.Window;
-import android.view.WindowInsets;
 
 import com.mopub.common.AdReport;
 import com.mopub.common.AdUrlGenerator;
@@ -286,15 +282,14 @@ public class MoPubRewardedVideoManager {
         }
 
         final AdUrlGenerator urlGenerator = new WebViewAdUrlGenerator(sInstance.mContext, false);
-        urlGenerator.withAdUnitId(adUnitId)
+        final String adUrlString = urlGenerator.withAdUnitId(adUnitId)
                 .withKeywords(requestParameters == null ? null : requestParameters.mKeywords)
                 .withUserDataKeywords((requestParameters == null ||
                         !MoPub.canCollectPersonalInformation()) ? null : requestParameters.mUserDataKeywords)
-                .withLocation(requestParameters == null ? null : requestParameters.mLocation);
+                .withLocation(requestParameters == null ? null : requestParameters.mLocation)
+                .generateUrlString(Constants.HOST);
 
-        setSafeAreaValues(urlGenerator);
-
-        loadVideo(adUnitId, urlGenerator.generateUrlString(Constants.HOST), null);
+        loadVideo(adUnitId, adUrlString, null);
     }
 
     private static void loadVideo(@NonNull String adUnitId, @NonNull String adUrlString, @Nullable MoPubErrorCode errorCode) {
@@ -408,31 +403,6 @@ public class MoPubRewardedVideoManager {
             sInstance.mRewardedAdData.selectReward(adUnitId, selectedReward);
         } else {
             logErrorNotInitialized();
-        }
-    }
-
-    private static void setSafeAreaValues(@NonNull final AdUrlGenerator urlGenerator) {
-        Preconditions.checkNotNull(urlGenerator);
-
-        // Set the requested ad size as screen size
-        final Point dimens = ClientMetadata.getInstance(sInstance.mContext).getDeviceDimensions();
-        urlGenerator.withRequestedAdSize(dimens);
-
-        // Set the window insets if we can get them
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            final Activity activity = sInstance.mMainActivity.get();
-            if (activity == null) {
-                return;
-            }
-            final Window window = sInstance.mMainActivity.get().getWindow();
-            if (window == null) {
-                return;
-            }
-            final WindowInsets insets = window.getDecorView().getRootWindowInsets();
-            if (insets == null) {
-                return;
-            }
-            urlGenerator.withWindowInsets(insets);
         }
     }
 

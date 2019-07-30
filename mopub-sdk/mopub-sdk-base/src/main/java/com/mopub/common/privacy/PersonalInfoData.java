@@ -23,7 +23,6 @@ class PersonalInfoData implements ConsentData {
     private static final String PERSONAL_INFO_DATA_SHARED_PREFS = "com.mopub.privacy";
     private static final String PERSONAL_INFO_PREFIX = "info/";
     private static final String AD_UNIT_ID_SP_KEY = PERSONAL_INFO_PREFIX + "adunit";
-    private static final String CACHED_LAST_AD_UNIT_ID_USED_FOR_INIT_SP_KEY = PERSONAL_INFO_PREFIX + "cached_last_ad_unit_id_used_for_init";
     private static final String CONSENT_STATUS_SP_KEY = PERSONAL_INFO_PREFIX + "consent_status";
     private static final String LAST_SUCCESSFULLY_SYNCED_CONSENT_STATUS_SP_KEY = PERSONAL_INFO_PREFIX + "last_successfully_synced_consent_status";
     private static final String IS_WHITELISTED_SP_KEY = PERSONAL_INFO_PREFIX + "is_whitelisted";
@@ -54,7 +53,6 @@ class PersonalInfoData implements ConsentData {
 
     // Values that are locally generated
     @NonNull private String mAdUnitId;
-    @Nullable private String mCachedLastAdUnitIdUsedForInit;
     @NonNull private ConsentStatus mConsentStatus;
     @Nullable private ConsentStatus mLastSuccessfullySyncedConsentStatus;
     @Nullable private String mConsentChangeReason;
@@ -78,21 +76,20 @@ class PersonalInfoData implements ConsentData {
     private boolean mReacquireConsent;
     @Nullable private Boolean mGdprApplies;
 
-    PersonalInfoData(@NonNull final Context context) {
+    PersonalInfoData(@NonNull final Context context, @NonNull final String adUnitId) {
         Preconditions.checkNotNull(context);
+        Preconditions.checkNotNull(adUnitId);
 
         mAppContext = context.getApplicationContext();
         mConsentStatus = ConsentStatus.UNKNOWN;
-        mAdUnitId = "";
         getStateFromDisk();
+        mAdUnitId = adUnitId;
     }
 
     private void getStateFromDisk() {
         final SharedPreferences sharedPreferences = SharedPreferencesHelper.getSharedPreferences(
                 mAppContext, PERSONAL_INFO_DATA_SHARED_PREFS);
         mAdUnitId = sharedPreferences.getString(AD_UNIT_ID_SP_KEY, "");
-        mCachedLastAdUnitIdUsedForInit = sharedPreferences.getString(
-                CACHED_LAST_AD_UNIT_ID_USED_FOR_INIT_SP_KEY, null);
         mConsentStatus = ConsentStatus.fromString(sharedPreferences.getString(
                 CONSENT_STATUS_SP_KEY, ConsentStatus.UNKNOWN.name()));
         final String lastSuccessfullySyncedConsentStatusString = sharedPreferences.getString(
@@ -146,7 +143,6 @@ class PersonalInfoData implements ConsentData {
         final SharedPreferences.Editor editor = SharedPreferencesHelper.getSharedPreferences(
                 mAppContext, PERSONAL_INFO_DATA_SHARED_PREFS).edit();
         editor.putString(AD_UNIT_ID_SP_KEY, mAdUnitId);
-        editor.putString(CACHED_LAST_AD_UNIT_ID_USED_FOR_INIT_SP_KEY, mCachedLastAdUnitIdUsedForInit);
         editor.putString(CONSENT_STATUS_SP_KEY, mConsentStatus.name());
         editor.putString(LAST_SUCCESSFULLY_SYNCED_CONSENT_STATUS_SP_KEY,
                 mLastSuccessfullySyncedConsentStatus == null ? null : mLastSuccessfullySyncedConsentStatus.name());
@@ -176,28 +172,6 @@ class PersonalInfoData implements ConsentData {
     @NonNull
     String getAdUnitId() {
         return mAdUnitId;
-    }
-
-    void setAdUnit(@NonNull final String adUnitId) {
-        mAdUnitId = adUnitId;
-    }
-
-    @Nullable
-    String getCachedLastAdUnitIdUsedForInit() {
-        return mCachedLastAdUnitIdUsedForInit;
-    }
-
-    void setCachedLastAdUnitIdUsedForInit(@NonNull final String adUnitId) {
-        mCachedLastAdUnitIdUsedForInit = adUnitId;
-    }
-
-    @Nullable
-    String chooseAdUnit() {
-        final String adUnitId = mAdUnitId;
-        if (!TextUtils.isEmpty(adUnitId)) {
-            return adUnitId;
-        }
-        return mCachedLastAdUnitIdUsedForInit;
     }
 
     @NonNull

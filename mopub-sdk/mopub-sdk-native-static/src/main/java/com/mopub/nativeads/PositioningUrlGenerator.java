@@ -37,9 +37,7 @@ class PositioningUrlGenerator extends BaseUrlGenerator {
 
         ClientMetadata clientMetadata = ClientMetadata.getInstance(mContext);
 
-        addParam(SDK_VERSION_KEY, clientMetadata.getSdkVersion());
-
-        appendAppEngineInfo();
+        setSdkVersion(clientMetadata.getSdkVersion());
 
         setDeviceInfo(clientMetadata.getDeviceManufacturer(),
                 clientMetadata.getDeviceModel(),
@@ -54,5 +52,9 @@ class PositioningUrlGenerator extends BaseUrlGenerator {
 
     private void setAdUnitId(@NonNull String adUnitId) {
         addParam("id", adUnitId);
+    }
+
+    private void setSdkVersion(@NonNull String sdkVersion) {
+        addParam("nv", sdkVersion);
     }
 }

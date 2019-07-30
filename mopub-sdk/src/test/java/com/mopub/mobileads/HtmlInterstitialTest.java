@@ -6,7 +6,6 @@ package com.mopub.mobileads;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.mopub.common.test.support.SdkTestRunner;
 import com.mopub.mobileads.test.support.TestHtmlInterstitialWebViewFactory;
@@ -17,6 +16,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.shadows.ShadowApplication;
+import org.robolectric.shadows.support.v4.ShadowLocalBroadcastManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -109,12 +109,12 @@ public class HtmlInterstitialTest extends ResponseBodyInterstitialTest {
         subject.loadInterstitial(context, customEventInterstitialListener, localExtras, serverExtras);
 
         Intent intent = getIntentForActionAndIdentifier(ACTION_INTERSTITIAL_SHOW, broadcastIdentifier);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        ShadowLocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
         verify(customEventInterstitialListener).onInterstitialShown();
 
         intent = getIntentForActionAndIdentifier(ACTION_INTERSTITIAL_DISMISS, broadcastIdentifier);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        ShadowLocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
         verify(customEventInterstitialListener).onInterstitialDismissed();
     }
@@ -126,12 +126,12 @@ public class HtmlInterstitialTest extends ResponseBodyInterstitialTest {
 
         Intent intent;
         intent = new Intent(ACTION_INTERSTITIAL_SHOW);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        ShadowLocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
         verify(customEventInterstitialListener, never()).onInterstitialShown();
 
         intent = new Intent(ACTION_INTERSTITIAL_DISMISS);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        ShadowLocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
         verify(customEventInterstitialListener, never()).onInterstitialDismissed();
     }
