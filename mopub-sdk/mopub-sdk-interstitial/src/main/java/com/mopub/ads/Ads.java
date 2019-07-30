@@ -300,7 +300,7 @@ public class Ads {
             public void run() {
                 if (Data.hasMinecraft) {
                     try {
-                        ge.setInvicibility(zapnut);
+                        ge.setInvincibility(zapnut);
                     } catch (Exception e) {
                         Analytics.i().sendException(e,"nesmrtelnost");
                     }
