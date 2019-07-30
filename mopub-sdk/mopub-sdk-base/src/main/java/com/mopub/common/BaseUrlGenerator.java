@@ -214,21 +214,21 @@ public abstract class BaseUrlGenerator {
                                        @Nullable final WindowInsets windowInsets) {
         final int requestedWidth = ((requestedAdSize != null) ? requestedAdSize.x : 0);
         final int requestedHeight = ((requestedAdSize != null) ? requestedAdSize.y : 0);
-      
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
                 && windowInsets != null
                 && windowInsets.getDisplayCutout() != null) {
             final DisplayCutout displayCutout = windowInsets.getDisplayCutout();
             final int safeWidth = dimensions.x - displayCutout.getSafeInsetLeft() - displayCutout.getSafeInsetRight();
             final int safeHeight = dimensions.y - displayCutout.getSafeInsetTop() - displayCutout.getSafeInsetBottom();
-          
+
             addParam(SAFE_WIDTH_KEY, "" + Math.min(safeWidth, requestedWidth));
             addParam(SAFE_HEIGHT_KEY, "" + Math.min(safeHeight, requestedHeight));
         } else {
             addParam(SAFE_WIDTH_KEY, "" + requestedWidth);
             addParam(SAFE_HEIGHT_KEY, "" + requestedHeight);
         }
-      
+
         addParam(WIDTH_KEY, "" + dimensions.x);
         addParam(HEIGHT_KEY, "" + dimensions.y);
     }
