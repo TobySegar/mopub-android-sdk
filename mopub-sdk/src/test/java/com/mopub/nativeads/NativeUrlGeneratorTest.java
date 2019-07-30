@@ -21,8 +21,6 @@ import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
 
-import com.mopub.common.AppEngineInfo;
-import com.mopub.common.BaseUrlGenerator;
 import com.mopub.common.LocationService;
 import com.mopub.common.MoPub;
 import com.mopub.common.privacy.ConsentStatus;
@@ -55,7 +53,6 @@ import java.util.List;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static org.fest.assertions.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doAnswer;
@@ -70,8 +67,6 @@ public class NativeUrlGeneratorTest {
     private static final String TEST_BUNDLE = "test.bundle";
     private static final int TEST_SCREEN_WIDTH = 320;
     private static final int TEST_SCREEN_HEIGHT = 470;
-    private static final int TEST_SCREEN_SAFE_WIDTH = 0;
-    private static final int TEST_SCREEN_SAFE_HEIGHT = 0;
     private static final float TEST_DENSITY = 1.0f;
     private Activity context;
     private NativeUrlGenerator subject;
@@ -147,7 +142,6 @@ public class NativeUrlGeneratorTest {
                 .setStatic(MoPub.class)
                 .setAccessible()
                 .execute();
-        BaseUrlGenerator.setAppEngineInfo(null);
     }
 
     @Test
@@ -454,10 +448,6 @@ public class NativeUrlGeneratorTest {
                         "&bundle=" + TEST_BUNDLE +
                         "&z=-0700" +
                         "&o=p" +
-                        "&cw=" +
-                        TEST_SCREEN_SAFE_WIDTH +
-                        "&ch=" +
-                        TEST_SCREEN_SAFE_HEIGHT +
                         "&w=" +
                         TEST_SCREEN_WIDTH +
                         "&h=" +
@@ -466,7 +456,6 @@ public class NativeUrlGeneratorTest {
                         TEST_DENSITY +
                         "&ct=3&av=" + Uri.encode(BuildConfig.VERSION_NAME) +
                         "&udid=mp_tmpl_advertising_id&dnt=mp_tmpl_do_not_track" +
-                        "&mid=mp_tmpl_mopub_id" +
                         "&gdpr_applies=0" +
                         "&current_consent_status=unknown");
     }
@@ -506,25 +495,6 @@ public class NativeUrlGeneratorTest {
 
         String requestString = generateMinimumUrlString();
         assertThat(getParameterFromRequestUrl(requestString, "ll")).isNullOrEmpty();
-    }
-
-    @Test
-    public void generateUrlString_whenEngineInfoIsNotSet_shouldIncludeEngineInfo() {
-        subject = new NativeUrlGenerator(context).withAdUnitId(AD_UNIT_ID);
-        String adUrl = generateMinimumUrlString();
-
-        assertThat(getParameterFromRequestUrl(adUrl, "e_name")).isNullOrEmpty();
-        assertThat(getParameterFromRequestUrl(adUrl, "e_ver")).isNullOrEmpty();
-    }
-
-    @Test
-    public void generateUrlString_whenEngineInfoIsSet_shouldIncludeEngineInfo() {
-        subject = new NativeUrlGenerator(context).withAdUnitId(AD_UNIT_ID);
-        MoPub.setEngineInformation(new AppEngineInfo("ename", "eversion"));
-        String adUrl = generateMinimumUrlString();
-
-        assertEquals(getParameterFromRequestUrl(adUrl, "e_name"), "ename");
-        assertEquals(getParameterFromRequestUrl(adUrl, "e_ver"), "eversion");
     }
 
     private List<String> getDesiredAssetsListFromRequestUrlString(String requestString) {

@@ -55,7 +55,6 @@ public class MultiAdResponse implements Iterator<AdResponse> {
         void onInvalidateConsent(@Nullable final String consentChangeReason);
         void onReacquireConsent(@Nullable final String consentChangeReason);
         void onForceGdprApplies();
-        void onRequestSuccess(@Nullable final String adUnitId);
     }
 
     @NonNull
@@ -117,7 +116,6 @@ public class MultiAdResponse implements Iterator<AdResponse> {
             } else if (reacquireConsent) {
                 sServerOverrideListener.onReacquireConsent(consentChangeReason);
             }
-            sServerOverrideListener.onRequestSuccess(adUnitId);
         }
 
         final boolean enableDebugLogging = extractBooleanHeader(jsonObject,

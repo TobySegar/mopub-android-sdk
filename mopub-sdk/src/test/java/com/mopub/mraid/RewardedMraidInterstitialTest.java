@@ -6,7 +6,6 @@ package com.mopub.mraid;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.mopub.common.test.support.SdkTestRunner;
 import com.mopub.mobileads.ResponseBodyInterstitialTest;
@@ -18,6 +17,7 @@ import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.Shadows;
 import org.robolectric.shadows.ShadowActivity;
+import org.robolectric.shadows.support.v4.ShadowLocalBroadcastManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -97,23 +97,23 @@ public class RewardedMraidInterstitialTest extends ResponseBodyInterstitialTest 
 
         Intent intent =
                 getIntentForActionAndIdentifier(ACTION_INTERSTITIAL_SHOW, broadcastIdentifier);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        ShadowLocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
         verify(customEventInterstitialListener).onInterstitialShown();
 
         intent = getIntentForActionAndIdentifier(ACTION_INTERSTITIAL_CLICK, broadcastIdentifier);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        ShadowLocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
         verify(customEventInterstitialListener).onInterstitialClicked();
 
         intent = getIntentForActionAndIdentifier(ACTION_INTERSTITIAL_DISMISS, broadcastIdentifier);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        ShadowLocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
         verify(customEventInterstitialListener).onInterstitialDismissed();
 
         intent = getIntentForActionAndIdentifier(ACTION_REWARDED_PLAYABLE_COMPLETE,
                 broadcastIdentifier);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        ShadowLocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
         verify(customEventInterstitialListener).onMraidComplete();
     }
@@ -145,17 +145,17 @@ public class RewardedMraidInterstitialTest extends ResponseBodyInterstitialTest 
 
         Intent intent;
         intent = new Intent(ACTION_INTERSTITIAL_SHOW);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        ShadowLocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
         verify(customEventInterstitialListener, never()).onInterstitialShown();
 
         intent = new Intent(ACTION_INTERSTITIAL_DISMISS);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        ShadowLocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
         verify(customEventInterstitialListener, never()).onInterstitialDismissed();
 
         intent = new Intent(ACTION_REWARDED_PLAYABLE_COMPLETE);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        ShadowLocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
         verify(customEventInterstitialListener, never()).onMraidComplete();
     }

@@ -2,7 +2,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:textDirection="locale">
 
@@ -17,7 +16,7 @@
         android:paddingTop="8dp"
         android:singleLine="true"
         android:textColor="?android:attr/textColorPrimary"
-        android:textSize="@dimen/small_text_size"
+        android:textSize="16sp"
         android:textStyle="bold" />
 
     <TextView
@@ -30,7 +29,7 @@
         android:paddingStart="8dp"
         android:singleLine="true"
         android:textColor="?android:attr/textColorSecondary"
-        android:textSize="@dimen/small_text_size"
+        android:textSize="14sp"
         android:textStyle="normal" />
 
     <EditText
@@ -59,24 +58,17 @@
 
         <Button
             android:id="@+id/load_button"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/button_height"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:singleLine="true"
             android:text="@string/load_ad" />
     </LinearLayout>
 
     <com.mopub.mobileads.MoPubView
         android:id="@+id/banner_mopubview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="320dp"
+        android:layout_height="50dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="10dp"
-        app:moPubAdSize="match_view" >
-    </com.mopub.mobileads.MoPubView>
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/callbacks_recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="10dp" />
+        android:layout_marginTop="10dp"></com.mopub.mobileads.MoPubView>
 </LinearLayout>

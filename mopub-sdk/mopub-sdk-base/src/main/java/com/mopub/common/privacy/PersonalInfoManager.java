@@ -83,13 +83,7 @@ public class PersonalInfoManager {
 
         mConsentDialogController = new ConsentDialogController(mAppContext);
 
-        mPersonalInfoData = new PersonalInfoData(mAppContext);
-        if (!TextUtils.isEmpty(adUnitId) &&
-                !adUnitId.equals(mPersonalInfoData.getCachedLastAdUnitIdUsedForInit())) {
-            mPersonalInfoData.setAdUnit("");
-            mPersonalInfoData.setCachedLastAdUnitIdUsedForInit(adUnitId);
-            mPersonalInfoData.writeToDisk();
-        }
+        mPersonalInfoData = new PersonalInfoData(mAppContext, adUnitId);
 
         mConversionTracker = new MoPubConversionTracker(mAppContext);
 
@@ -146,8 +140,7 @@ public class PersonalInfoManager {
      * @return True for yes, false for no.
      */
     public boolean shouldShowConsentDialog() {
-        final Boolean gdprApplies = gdprApplies();
-        if (gdprApplies == null || !gdprApplies) {
+        if (gdprApplies() == null || !gdprApplies()) {
             return false;
         }
 
@@ -455,7 +448,7 @@ public class PersonalInfoManager {
         mLastSyncRequestTimeUptimeMs = SystemClock.uptimeMillis();
         final SyncUrlGenerator syncUrlGenerator = new SyncUrlGenerator(mAppContext,
                 mSyncRequestConsentStatus.getValue());
-        syncUrlGenerator.withAdUnitId(mPersonalInfoData.chooseAdUnit())
+        syncUrlGenerator.withAdUnitId(mPersonalInfoData.getAdUnitId())
                 .withUdid(mPersonalInfoData.getUdid())
                 .withLastChangedMs(mPersonalInfoData.getLastChangedMs())
                 .withLastConsentStatus(mPersonalInfoData.getLastSuccessfullySyncedConsentStatus())
@@ -485,7 +478,7 @@ public class PersonalInfoManager {
      * @return ConsentData which is a snapshot of the underlying data store.
      */
     public ConsentData getConsentData() {
-        return new PersonalInfoData(mAppContext);
+        return new PersonalInfoData(mAppContext, mPersonalInfoData.getAdUnitId());
     }
 
     /**
@@ -629,12 +622,6 @@ public class PersonalInfoManager {
                 }
             }
 
-            final String cachedLastAdUnitIdUsedForInit =
-                    mPersonalInfoData.getCachedLastAdUnitIdUsedForInit();
-            if (!TextUtils.isEmpty(cachedLastAdUnitIdUsedForInit) &&
-                    mPersonalInfoData.getAdUnitId().isEmpty()) {
-                mPersonalInfoData.setAdUnit(cachedLastAdUnitIdUsedForInit);
-            }
             mPersonalInfoData.setLastSuccessfullySyncedConsentStatus(mSyncRequestConsentStatus);
             mPersonalInfoData.setWhitelisted(response.isWhitelisted());
             mPersonalInfoData.setCurrentVendorListVersion(response.getCurrentVendorListVersion());
@@ -759,17 +746,6 @@ public class PersonalInfoManager {
         @Override
         public void onForceGdprApplies() {
             forceGdprApplies();
-        }
-
-        @Override
-        public void onRequestSuccess(@Nullable final String adUnitId) {
-            // Cache the ad unit if the ad request succeeded
-            if (!TextUtils.isEmpty(mPersonalInfoData.getAdUnitId()) ||
-                    TextUtils.isEmpty(adUnitId)) {
-                return;
-            }
-            mPersonalInfoData.setAdUnit(adUnitId);
-            mPersonalInfoData.writeToDisk();
         }
     }
 

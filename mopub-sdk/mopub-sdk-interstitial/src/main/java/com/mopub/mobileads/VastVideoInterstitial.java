@@ -8,7 +8,6 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.mopub.common.CacheService;
-import com.mopub.common.CreativeOrientation;
 import com.mopub.common.DataKeys;
 import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.util.Json;
@@ -19,7 +18,6 @@ import org.json.JSONObject;
 
 import java.util.Map;
 
-import static com.mopub.common.DataKeys.CREATIVE_ORIENTATION_KEY;
 import static com.mopub.common.logging.MoPubLog.AdapterLogEvent.LOAD_FAILED;
 import static com.mopub.common.logging.MoPubLog.AdapterLogEvent.LOAD_SUCCESS;
 import static com.mopub.common.logging.MoPubLog.AdapterLogEvent.SHOW_ATTEMPTED;
@@ -34,12 +32,10 @@ class VastVideoInterstitial extends ResponseBodyInterstitial implements VastMana
     private VastVideoConfig mVastVideoConfig;
     @Nullable private JSONObject mVideoTrackers;
     @Nullable private Map<String, String> mExternalViewabilityTrackers;
-    @Nullable private CreativeOrientation mOrientation;
 
     @Override
     protected void extractExtras(Map<String, String> serverExtras) {
         mVastResponse = serverExtras.get(DataKeys.HTML_RESPONSE_BODY_KEY);
-        mOrientation = CreativeOrientation.fromString(serverExtras.get(CREATIVE_ORIENTATION_KEY));
 
         final String externalViewabilityTrackers =
                 serverExtras.get(DataKeys.EXTERNAL_VIDEO_VIEWABILITY_TRACKERS_KEY);
@@ -83,7 +79,7 @@ class VastVideoInterstitial extends ResponseBodyInterstitial implements VastMana
     @Override
     public void showInterstitial() {
         MoPubLog.log(SHOW_ATTEMPTED, ADAPTER_NAME);
-        MraidVideoPlayerActivity.startVast(mContext, mVastVideoConfig, mBroadcastIdentifier, mOrientation);
+        MraidVideoPlayerActivity.startVast(mContext, mVastVideoConfig, mBroadcastIdentifier);
     }
 
     @Override
