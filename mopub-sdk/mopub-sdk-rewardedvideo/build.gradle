@@ -5,7 +5,7 @@
 apply from: '../shared-build.gradle'
 
 dependencies {
-    compile project(':mopub-sdk-interstitial')
+    api project(':mopub-sdk-interstitial')
 }
 
 project.description = 'MoPub Android SDK - Rewarded Video'
