@@ -3,19 +3,16 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.ironsource.mediationsdk.IronSource;
-import com.ironsource.mediationsdk.integration.IntegrationHelper;
 import com.ironsource.mediationsdk.logger.IronSourceError;
 import com.ironsource.mediationsdk.sdk.ISDemandOnlyInterstitialListener;
 import com.mopub.common.LifecycleListener;
 import com.mopub.common.MoPub;
 import com.mopub.common.MoPubLifecycleManager;
 import com.mopub.common.logging.MoPubLog;
-import com.mopub.mobileads.CustomEventInterstitial;
-import com.mopub.mobileads.MoPubErrorCode;
 
 import java.util.Map;
 

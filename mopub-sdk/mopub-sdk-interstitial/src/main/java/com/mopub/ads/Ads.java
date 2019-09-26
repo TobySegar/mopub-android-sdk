@@ -5,8 +5,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.View;
@@ -300,7 +300,7 @@ public class Ads {
             public void run() {
                 if (Data.hasMinecraft) {
                     try {
-                        ge.setInvicibility(zapnut);
+                        ge.setInvincibility(zapnut);
                     } catch (Exception e) {
                         Analytics.i().sendException(e,"nesmrtelnost");
                     }

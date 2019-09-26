@@ -1,10 +1,5 @@
 package com.mopub.ads.adapters;
 
-import android.app.Activity;
-import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.text.TextUtils;
 /*
 import com.applovin.adview.AppLovinIncentivizedInterstitial;
 import com.applovin.sdk.AppLovinAd;
