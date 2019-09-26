@@ -6,11 +6,15 @@ package com.mopub.mobileads;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Point;
 import android.location.Location;
+import android.os.Build;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.text.TextUtils;
+import android.view.Window;
+import android.view.WindowInsets;
 
 import com.mojang.base.Helper;
 import com.mojang.base.Logger;
@@ -18,6 +22,7 @@ import com.mopub.common.AdFormat;
 import com.mopub.common.Preconditions;
 import com.mopub.common.VisibleForTesting;
 import com.mopub.common.logging.MoPubLog;
+import com.mopub.common.util.DeviceUtils;
 import com.mopub.mobileads.factories.CustomEventInterstitialAdapterFactory;
 
 import java.util.Map;
@@ -207,6 +212,7 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
                         // Going from IDLE to LOADING is the usual load case
                         invalidateInterstitialAdapter();
                         mCurrentInterstitialState = LOADING;
+                        updatedInsets();
                         if (force) {
                             // Force-load means a pub-initiated force refresh.
                             mInterstitialView.forceRefresh();
@@ -342,6 +348,20 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
         mInterstitialView.destroy();
         mHandler.removeCallbacks(mAdExpiration);
         mCurrentInterstitialState = DESTROYED;
+    }
+
+    private void updatedInsets() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            final Window window = mActivity.getWindow();
+            if (window == null) {
+                return;
+            }
+            final WindowInsets insets = window.getDecorView().getRootWindowInsets();
+            if (insets == null) {
+                return;
+            }
+            mInterstitialView.setWindowInsets(insets);
+        }
     }
 
     public void load() {
@@ -598,6 +618,11 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
             if (mInterstitialAdListener != null) {
                 mInterstitialAdListener.onInterstitialFailed(MoPubInterstitial.this, errorCode);
             }
+        }
+
+        @Override
+        protected Point resolveAdSize() {
+            return DeviceUtils.getDeviceDimensions(mActivity);
         }
     }
 

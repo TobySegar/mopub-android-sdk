@@ -16,18 +16,17 @@ repositories {
 }
 
 project.group = 'com.mopub'
-project.version = '5.7.1'
+project.version = '5.9.1'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 29
     lintOptions { abortOnError false }
 
     defaultConfig {
-        versionCode 69
+        versionCode 73
         versionName version
         minSdkVersion 16
-        targetSdkVersion 27
+        targetSdkVersion 29
         //consumerProguardFiles project(':mopub-sdk').file('proguard.txt')
     }
 
@@ -57,6 +56,7 @@ android {
             all {
                 jvmArgs '-XX:MaxPermSize=4096m', '-Xmx8192m', '-noverify'
                 forkEvery 200
+                maxParallelForks Runtime.runtime.availableProcessors().intdiv(2) ?: 1
             }
         }
     }
@@ -80,9 +80,6 @@ android {
 }
 
 dependencies {
-    /**
-     *  moved to base module update when this updates
-     */
-    //api 'com.android.support:support-v4:26.1.0'
-    //api 'com.android.support:support-annotations:26.1.0'
+    api 'androidx.legacy:legacy-support-v4:1.0.0'
+    api 'androidx.annotation:annotation:1.1.0'
 }
