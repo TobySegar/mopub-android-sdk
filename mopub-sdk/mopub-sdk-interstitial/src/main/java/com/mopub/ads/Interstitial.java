@@ -68,11 +68,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 break;
             case GamePlayStart:
                 Logger.String("::GamePlayStart Interstitial");
-                show(false, 7000);
+                show(false, 12000);
                 break;
             case LeaveServer:
                 Logger.String("::LeaveServer");
-                show(false, 7000);
+                show(false, 12000);
                 break;
         }
     }
