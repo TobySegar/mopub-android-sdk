@@ -37,9 +37,8 @@ dependencies {
 
     api 'com.mopub.volley:mopub-volley:2.1.0'
     api project(':base')
-    api 'com.google.android.gms:play-services-ads:15.0.1'
+    api 'com.google.android.gms:play-services-ads:18.2.0'
     api project(':unity-ads')
-    api 'com.flurry.android:ads:11.1.1@aar'
 //Yandex
     //compile 'com.yandex.android:mobmetricalib:3.4.0'
     //compile 'com.yandex.android:mobileads:2.80'

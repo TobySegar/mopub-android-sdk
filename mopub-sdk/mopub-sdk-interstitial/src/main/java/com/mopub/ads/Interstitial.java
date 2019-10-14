@@ -47,8 +47,30 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         this.periodicMills = Helper.FasterAds() ? 25000 : Data.Ads.Interstitial.periodicShowMillsLow;
         this.lock = new Lock();
         EventBus.getDefault().register(this);
-        prxy = new Proxy();
+        //prxy = new Proxy();
         i = new Intent(activity, Proxy.class);
+    }
+
+    public void init() {
+        int delay = 4000;
+        Logger.Log("::Initing Mopub in " + (delay / 1000) + " sec...");
+        lock.game = Data.hasMinecraft;
+
+        Helper.runOnWorkerThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mopubInterstitial == null) {
+                    String mopubId = Helper.isDebugPackage(activity) ? DEBUG_MOPUB_INTERSTITIAL_ID : Data.Ads.Interstitial.mopubId;
+                    mopubInterstitial = new MoPubInterstitial(activity, mopubId);
+                    mopubInterstitial.setInterstitialAdListener(Interstitial.this);
+                    mopubInterstitial.setKeywords("game,minecraft,kids,casual");
+                    mopubInterstitial.load();
+                } else if (!mopubInterstitial.isReady()) {
+                    Logger.Log("::Mopub Forcing Refresh");
+                    mopubInterstitial.forceRefresh();
+                }
+            }
+        }, delay);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -86,6 +108,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         }
     }
 
+    //<editor-fold desc="Overide Methods Interstitial">
     @Override
     public void onInterstitialDismissed(MoPubInterstitial interstitial) {
         Logger.Log("::called -- onInterstitialDismissed");
@@ -98,7 +121,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
         gapLockForTime(Data.Ads.Interstitial.minimalGapMills);
         load(1000);
-        if (Proxy.isProxyBeingUsed) {
+        //Old code if proxy usage
+       /* if (Proxy.isProxyBeingUsed) {
 
             proxyFinishRunnable = new Runnable() {
                 @Override
@@ -106,12 +130,11 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                     if (Proxy.instance != null) {
                         Proxy.instance.Finish();
                         Proxy.lock = false;
-                        Analytics.lockedAnalytics = false;
                     }
                 }
             };
             Helper.runOnWorkerThread(proxyFinishRunnable, 600);
-        }
+        }*/
     }
 
     @Override
@@ -141,6 +164,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         EventBus.getDefault().post(new InterstitialEvent(InterstitialEvent.Clicked));
         Logger.Log("::onInterstitialClicked");
     }
+    //</editor-fold>
 
     public void show(final boolean isPeriodicShow, long delay) {
         Helper.runOnUiThread(new Runnable() {
@@ -153,9 +177,9 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                 Logger.Log("::[isMopubNull(false) = " + isMopubNull + "::] " + "::[isSoftLocked(false) = " + lock.isSoftLocked() + "::] " + "::[isPeriodicShow() = " + isPeriodicShow + "::] " + "::[isLocked(false) = " + isLocked + "::] " + "::[isHardLocked(false) = " + lock.isHardLocked() + "::] " + "::[isMopubReady(true) = " + isMopubReady + "::]" + "::[areAdsEnabled(true) = " + Data.Ads.enabled + "::]");
                 if (!isMopubNull && !isLocked && isMopubReady && Data.Ads.enabled) {
                     if (mopubInterstitial.isReady()) {
-                            //We dont proxy anymore in if statement there is OR TRUE
-                        if (mopubInterstitial.getAdType().equals(MoPubInterstitial.AdType.ADMOB) || true)
-                            mopubInterstitial.show();
+                        mopubInterstitial.show();
+                        //<editor-fold desc="Deprecated Proxy Activity">
+                        /* Deprecated Proxy Activity Watch out for Analytics Session because its a second activity
                         else {
                             Runnable proxyStartRunnable = new Runnable() {
                                 @Override
@@ -164,8 +188,8 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
                                 }
                             };
                             Helper.runOnWorkerThread(proxyStartRunnable);
-                        }
-
+                        }*/
+                        //</editor-fold>
                     } else {
                         Logger.Log("::InterstitialAd not available");
                         Analytics.report("Ads", "InterstitialAdNotAvailable");
@@ -182,8 +206,24 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         }
     }
 
+    private void load(long delay) {
+        if (loadRunnable == null) {
+            loadRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    if (mopubInterstitial != null) {
+                        mopubInterstitial.load();
+                    }
+                }
+            };
+        }
+        Helper.removeFromWorkerThread(loadRunnable);
+        Helper.runOnWorkerThread(loadRunnable, delay);
+    }
+
+
     private void schedulePeriodicShows() {
-        if (!periodicScheduled) {
+        if (!periodicScheduled) { // Needs to be call only once pretoze sa to same schedulne dokola.
             Logger.Log("::schedulePeriodicShows: Scheduled za " + String.valueOf(periodicMills));
 
             periodicShowRunnable = new Runnable() {
@@ -202,26 +242,14 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         }
     }
 
-    public void init() {
-        int delay = 4000;
-        Logger.Log("::Initing Mopub in " + (delay / 1000) + " sec...");
-        lock.game = Data.hasMinecraft;
-
-        Helper.runOnWorkerThread(new Runnable() {
-            @Override
-            public void run() {
-                if (mopubInterstitial == null) {
-                    String mopubId = Helper.isDebugPackage(activity) ? DEBUG_MOPUB_INTERSTITIAL_ID : Data.Ads.Interstitial.mopubId;
-                    mopubInterstitial = new MoPubInterstitial(activity, mopubId);
-                    mopubInterstitial.setInterstitialAdListener(Interstitial.this);
-                    mopubInterstitial.setKeywords("game,minecraft,kids,casual");
-                    mopubInterstitial.load();
-                } else if (!mopubInterstitial.isReady()) {
-                    Logger.Log("::Mopub Forcing Refresh");
-                    mopubInterstitial.forceRefresh();
+    private void changePeriodicShowForHighEcpmCountry() {
+        if (Data.country != null && Data.Ads.Interstitial.highEcpmCountries != null) {
+            for (String highEcpmCountry : Data.Ads.Interstitial.highEcpmCountries) {
+                if (highEcpmCountry.equals(Data.country)) {
+                    periodicMills = Data.Ads.Interstitial.periodicShowMillsHigh;
                 }
             }
-        }, delay);
+        }
     }
 
     private void gapLockForTime(long minimalAdGapMills) {
@@ -239,31 +267,10 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
         Helper.runOnWorkerThread(gapLockRunnable, minimalAdGapMills);
     }
 
-    private void load(long delay) {
-        if (loadRunnable == null) {
-            loadRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    if (mopubInterstitial != null) {
-                        mopubInterstitial.load();
-                    }
-                }
-            };
-        }
-        Helper.removeFromWorkerThread(loadRunnable);
-        Helper.runOnWorkerThread(loadRunnable, delay);
-    }
 
-    private void changePeriodicShowForHighEcpmCountry() {
-        if (Data.country != null && Data.Ads.Interstitial.highEcpmCountries != null) {
-            for (String highEcpmCountry : Data.Ads.Interstitial.highEcpmCountries) {
-                if (highEcpmCountry.equals(Data.country)) {
-                    periodicMills = Data.Ads.Interstitial.periodicShowMillsHigh;
-                }
-            }
-        }
-    }
 
+    //<editor-fold desc="Random Ass Lock class">
+    //Tato klasa preventuje aby sa ti neshowla ad ked nieco robis.
     public class Lock {
         private boolean stop;
         private boolean onlineMultiplayer;
@@ -360,4 +367,5 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             return gap;
         }
     }
+    //</editor-fold>
 }

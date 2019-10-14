@@ -19,7 +19,8 @@ project.group = 'com.mopub'
 project.version = '5.9.1'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
     lintOptions { abortOnError false }
 
     defaultConfig {

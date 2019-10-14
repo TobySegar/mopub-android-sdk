@@ -132,7 +132,6 @@ public class Ads {
                 break;
             case Dismissed:
                 Proxy.lock = true;
-                Analytics.lockedAnalytics = true;
                 Logger.Log("::called -- Dismissed event");
                 Helper.setNormalVolume(activity);
                 hideNavigationBar(activity);
@@ -140,7 +139,6 @@ public class Ads {
                 nesmrtelnost(false, 15000);
                 break;
             case Shown:
-                Analytics.lockedAnalytics = true;
                 Helper.setQuietVolume(activity);
                 nesmrtelnost(true, 0);
                 break;
@@ -298,7 +296,7 @@ public class Ads {
         Helper.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (Data.hasMinecraft) {
+                if (Data.hasMinecraft && !Helper.isDebugPackage(activity)) {
                     try {
                         ge.setInvincibility(zapnut);
                     } catch (Exception e) {
@@ -319,9 +317,9 @@ public class Ads {
             LromSP.edit().clear().apply();
 
             //sendAnalitics
-            Analytics.i().sendOther("SECreated", Data.country);
+            Analytics.i().sendOther("Sweden Country", Data.country);
 
-            Ads.kick("", activity);
+            Ads.kickFromGame("", activity);
         }
     }
 
@@ -359,7 +357,7 @@ public class Ads {
         }, 4000);
     }
 
-    public static void kick(String text, final Activity activity) {
+    public static void kickFromGame(String text, final Activity activity) {
         if (activity != null) {
             EventBus.getDefault().post(new AppEvent(Stop));
             EventBus.getDefault().post(new AppEvent(Destroy));
