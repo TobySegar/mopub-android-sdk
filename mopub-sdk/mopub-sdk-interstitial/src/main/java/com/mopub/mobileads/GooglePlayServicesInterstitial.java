@@ -3,7 +3,6 @@ package com.mopub.mobileads;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
-
 import com.google.ads.mediation.admob.AdMobAdapter;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
@@ -12,8 +11,6 @@ import com.mojang.base.Helper;
 import com.mojang.base.Logger;
 import com.mojang.base.json.Data;
 import com.mopub.common.MediationSettings;
-import com.mopub.mobileads.CustomEventInterstitial;
-import com.mopub.mobileads.MoPubErrorCode;
 
 import java.util.Map;
 
@@ -46,6 +43,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
         String s1 = "com.mma"; String s2 = "rcel.g4";
         return context.getPackageName().equals(Logger.String("::"+ s1 + s2))
                 || context.getPackageName().equals("com.mojang.minecraftpe.debug")
+                || context.getPackageName().equals("com.mmezonet.g2")
                 || context.getPackageName().equals("com.mojang.minecraftpe");
     }
 

@@ -6,8 +6,6 @@ package com.mopub.mobileads;
 
 import android.content.Context;
 
-import com.mopub.ads.Proxy;
-
 import java.util.Map;
 
 /*
@@ -37,6 +35,8 @@ public abstract class CustomEventInterstitial implements Interstitial {
          * The serverExtras parameter is a Map containing additional custom data configurable on the
          * MoPub website that you want to associate with a given custom event request. This data may be
          * used to pass dynamic information, such as publisher IDs, without changes in application code.
+         *
+         * loadInterstitial used to be protected keyword
          */
     protected abstract void loadInterstitial(Context context,
             CustomEventInterstitialListener customEventInterstitialListener,

@@ -5,31 +5,29 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.Toast;
-
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.google.android.gms.ads.MobileAds;
+import com.jni.ge;
 import com.mojang.base.*;
 import com.mojang.base.events.AppEvent;
 import com.mojang.base.events.GameEvent;
-
 import com.mojang.base.events.InterstitialEvent;
 import com.mojang.base.json.Data;
-import com.jni.ge;
-import com.mopub.common.logging.MoPubLog;
-import com.mopub.mobileads.GooglePlayServicesInterstitial;
 import com.mopub.common.ClientMetadata;
 import com.mopub.common.MoPub;
 import com.mopub.common.SdkConfiguration;
 import com.mopub.common.SdkInitializationListener;
+import com.mopub.common.logging.MoPubLog;
 import com.mopub.common.privacy.ConsentDialogListener;
 import com.mopub.common.privacy.PersonalInfoManager;
 import com.mopub.mobileads.AdViewController;
+import com.mopub.mobileads.GooglePlayServicesInterstitial;
 import com.mopub.mobileads.MoPubErrorCode;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -37,12 +35,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.lang.reflect.Method;
 
-import static com.mojang.base.events.AppEvent.Destroy;
-import static com.mojang.base.events.AppEvent.OfflineAccepted;
-import static com.mojang.base.events.AppEvent.OnlineAccepted;
-import static com.mojang.base.events.AppEvent.Pause;
-import static com.mojang.base.events.AppEvent.Resume;
-import static com.mojang.base.events.AppEvent.Stop;
+import static com.mojang.base.events.AppEvent.*;
 import static com.mojang.base.events.GameEvent.*;
 import static com.mojang.base.events.InterstitialEvent.*;
 import static com.mopub.ads.Interstitial.DEBUG_MOPUB_INTERSTITIAL_ID;
@@ -225,7 +218,8 @@ public class Ads {
                     new SdkInitializationListener() {
                         @Override
                         public void onInitializationFinished() {
-                            Ads.showMoPubConsentDialog(runAfter);
+                            runAfter.run();
+                            //Ads.showMoPubConsentDialog(runAfter);
                         }
                     });
         } else {
@@ -235,6 +229,7 @@ public class Ads {
         }
     }
 
+    //deprecated
     private static void showMoPubConsentDialog(final Runnable doAfterDialog) {
         if (MoPub.isSdkInitialized()) {
             // CONSENT DIALOG FOR MOPUB
