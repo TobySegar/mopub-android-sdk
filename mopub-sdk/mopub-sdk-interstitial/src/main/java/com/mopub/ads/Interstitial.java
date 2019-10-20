@@ -155,6 +155,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
 
     @Override
     public void onInterstitialFailed(MoPubInterstitial interstitial, MoPubErrorCode errorCode) {
+        //Important musim povedat ze mopub failol plus loadRunnable musi byt new tak je to tu takto
         Mop_intestitialFailedtoLoad = true;
         loadRunnable=null;
         EventBus.getDefault().post(new InterstitialEvent(InterstitialEvent.Failed));
