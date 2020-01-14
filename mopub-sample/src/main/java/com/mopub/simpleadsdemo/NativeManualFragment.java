@@ -4,25 +4,28 @@
 
 package com.mopub.simpleadsdemo;
 
-import android.location.Location;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.widget.LinearLayout;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.mopub.nativeads.AdapterHelper;
 import com.mopub.nativeads.FacebookAdRenderer;
 import com.mopub.nativeads.FlurryCustomEventNative;
 import com.mopub.nativeads.FlurryNativeAdRenderer;
 import com.mopub.nativeads.FlurryViewBinder;
 import com.mopub.nativeads.GooglePlayServicesAdRenderer;
 import com.mopub.nativeads.MediaViewBinder;
-import com.mopub.nativeads.MoPubAdAdapter;
+import com.mopub.nativeads.MoPubNative;
 import com.mopub.nativeads.MoPubStaticNativeAdRenderer;
 import com.mopub.nativeads.MoPubVideoNativeAdRenderer;
+import com.mopub.nativeads.NativeAd;
+import com.mopub.nativeads.NativeErrorCode;
 import com.mopub.nativeads.RequestParameters;
 import com.mopub.nativeads.VerizonNativeAdRenderer;
 import com.mopub.nativeads.ViewBinder;
@@ -31,69 +34,107 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.mopub.nativeads.MoPubNativeAdPositioning.MoPubServerPositioning;
-import static com.mopub.nativeads.RequestParameters.NativeAdAsset;
+import static com.mopub.simpleadsdemo.Utils.logToast;
 
-public class NativeListViewFragment extends Fragment {
-    private MoPubAdAdapter mAdAdapter;
+public class NativeManualFragment extends Fragment {
     private MoPubSampleAdUnit mAdConfiguration;
-    private RequestParameters mRequestParameters;
+    private MoPubNative mMoPubNative;
+    private LinearLayout mAdContainer;
 
     @Override
-    public View onCreateView(final LayoutInflater inflater,
-            final ViewGroup container,
-            final Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, @Nullable final ViewGroup container,
+                             @Nullable final Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
 
+        final View view = inflater.inflate(R.layout.native_manual_fragment, container, false);
+        final DetailFragmentViewHolder viewHolder = DetailFragmentViewHolder.fromView(view);
+
         mAdConfiguration = MoPubSampleAdUnit.fromBundle(getArguments());
-        final View view = inflater.inflate(R.layout.native_list_view_fragment, container, false);
-        final ListView listView = (ListView) view.findViewById(R.id.native_list_view);
-        final DetailFragmentViewHolder views = DetailFragmentViewHolder.fromView(view);
-        views.mLoadButton.setOnClickListener(new View.OnClickListener() {
+        mAdContainer = view.findViewById(R.id.parent_view);
+
+        viewHolder.mLoadButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                // If your app already has location access, include it here.
-                final Location location = null;
-                final String keywords = views.mKeywordsField.getText().toString();
-                final String userDataKeywords = views.mUserDataKeywordsField.getText().toString();
+            public void onClick(final View v) {
+                final String keywords = viewHolder.mKeywordsField.getText().toString();
+                final String userDataKeywords = viewHolder.mUserDataKeywordsField.getText().toString();
 
                 // Setting desired assets on your request helps native ad networks and bidders
                 // provide higher-quality ads.
-                final EnumSet<NativeAdAsset> desiredAssets = EnumSet.of(
-                        NativeAdAsset.TITLE,
-                        NativeAdAsset.TEXT,
-                        NativeAdAsset.ICON_IMAGE,
-                        NativeAdAsset.MAIN_IMAGE,
-                        NativeAdAsset.CALL_TO_ACTION_TEXT);
+                final EnumSet<RequestParameters.NativeAdAsset> desiredAssets = EnumSet.of(
+                        RequestParameters.NativeAdAsset.TITLE,
+                        RequestParameters.NativeAdAsset.TEXT,
+                        RequestParameters.NativeAdAsset.ICON_IMAGE,
+                        RequestParameters.NativeAdAsset.MAIN_IMAGE,
+                        RequestParameters.NativeAdAsset.CALL_TO_ACTION_TEXT);
 
-                mRequestParameters = new RequestParameters.Builder()
-                        .location(location)
+                RequestParameters mRequestParameters = new RequestParameters.Builder()
                         .keywords(keywords)
                         .userDataKeywords(userDataKeywords)
                         .desiredAssets(desiredAssets)
                         .build();
 
-                mAdAdapter.loadAds(mAdConfiguration.getAdUnitId(), mRequestParameters);
+                if (mAdContainer != null) {
+                    mAdContainer.removeAllViews();
+                }
+
+                if (mMoPubNative != null) {
+                    mMoPubNative.makeRequest(mRequestParameters);
+                } else {
+                    logToast(getActivity(), getName() + " failed to load. MoPubNative instance is null.");
+                }
             }
         });
-        final String adUnitId = mAdConfiguration.getAdUnitId();
-        views.mDescriptionView.setText(mAdConfiguration.getDescription());
-        views.mAdUnitIdView.setText(adUnitId);
-        views.mKeywordsField.setText(getArguments().getString(MoPubListFragment.KEYWORDS_KEY, ""));
-        views.mUserDataKeywordsField.setText(getArguments().getString(MoPubListFragment.USER_DATA_KEYWORDS_KEY, ""));
 
-        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
-                android.R.layout.simple_list_item_1);
-        for (int i = 0; i < 100; ++i) {
-            adapter.add("Item " + i);
+        String adUnitId = null;
+
+        if (mAdConfiguration != null) {
+            adUnitId = mAdConfiguration.getAdUnitId();
         }
 
-        // Create an ad adapter that gets its positioning information from the MoPub Ad Server.
-        // This adapter will be used in place of the original adapter for the ListView.
-        mAdAdapter = new MoPubAdAdapter(getActivity(), adapter, new MoPubServerPositioning());
+        viewHolder.mDescriptionView.setText(mAdConfiguration.getDescription());
+        viewHolder.mAdUnitIdView.setText(adUnitId);
+        viewHolder.mKeywordsField.setText(getArguments().getString(MoPubListFragment.KEYWORDS_KEY, ""));
+        viewHolder.mUserDataKeywordsField.setText(getArguments().getString(MoPubListFragment.USER_DATA_KEYWORDS_KEY, ""));
 
-        // Set up a renderer that knows how to put ad data in your custom native view.
-        final MoPubStaticNativeAdRenderer staticAdRender = new MoPubStaticNativeAdRenderer(
+        mMoPubNative = new MoPubNative(getContext(), adUnitId, new MoPubNative.MoPubNativeNetworkListener() {
+            @Override
+            public void onNativeLoad(NativeAd nativeAd) {
+                NativeAd.MoPubNativeEventListener moPubNativeEventListener = new NativeAd.MoPubNativeEventListener() {
+                    @Override
+                    public void onImpression(View view) {
+                        // The ad has registered an impression. You may call any app logic that
+                        // depends on having the ad view shown.
+                        logToast(getActivity(), getName() + " impressed.");
+                    }
+
+                    @Override
+                    public void onClick(View view) {
+                        logToast(getActivity(), getName() + " clicked.");
+                    }
+                };
+
+
+                // In a manual integration, any interval that is at least 2 is acceptable
+                final AdapterHelper adapterHelper = new AdapterHelper(getContext(), 0, 2);
+                final View adView;
+
+                adView = adapterHelper.getAdView(null, null, nativeAd, new ViewBinder.Builder(0).build());
+                nativeAd.setMoPubNativeEventListener(moPubNativeEventListener);
+
+                if (mAdContainer != null) {
+                    mAdContainer.addView(adView);
+                } else {
+                    logToast(getActivity(), getName() + " failed to show. Ad container is null.");
+                }
+            }
+
+            @Override
+            public void onNativeFail(NativeErrorCode errorCode) {
+                logToast(getActivity(), getName() + " failed to load: " + errorCode.toString());
+            }
+        });
+
+        MoPubStaticNativeAdRenderer moPubStaticNativeAdRenderer = new MoPubStaticNativeAdRenderer(
                 new ViewBinder.Builder(R.layout.native_ad_list_item)
                         .titleId(R.id.native_title)
                         .textId(R.id.native_text)
@@ -101,10 +142,11 @@ public class NativeListViewFragment extends Fragment {
                         .iconImageId(R.id.native_icon_image)
                         .callToActionId(R.id.native_cta)
                         .privacyInformationIconImageId(R.id.native_privacy_information_icon_image)
-                        .build());
+                        .build()
+        );
 
         // Set up a renderer for a video native ad.
-        final MoPubVideoNativeAdRenderer videoAdRenderer = new MoPubVideoNativeAdRenderer(
+        MoPubVideoNativeAdRenderer moPubVideoNativeAdRenderer = new MoPubVideoNativeAdRenderer(
                 new MediaViewBinder.Builder(R.layout.video_ad_list_item)
                         .titleId(R.id.native_title)
                         .textId(R.id.native_text)
@@ -168,25 +210,41 @@ public class NativeListViewFragment extends Fragment {
                         .privacyInformationIconImageId(R.id.native_privacy_information_icon_image)
                         .build());
 
-        // Register the renderers with the MoPubAdAdapter and then set the adapter on the ListView.
         // The first renderer that can handle a particular native ad gets used.
         // We are prioritizing network renderers.
-        mAdAdapter.registerAdRenderer(verizonNativeAdRenderer);
-        mAdAdapter.registerAdRenderer(googlePlayServicesAdRenderer);
-        mAdAdapter.registerAdRenderer(flurryRenderer);
-        mAdAdapter.registerAdRenderer(facebookAdRenderer);
-        mAdAdapter.registerAdRenderer(staticAdRender);
-        mAdAdapter.registerAdRenderer(videoAdRenderer);
-        listView.setAdapter(mAdAdapter);
 
-        mAdAdapter.loadAds(mAdConfiguration.getAdUnitId(), mRequestParameters);
+        mMoPubNative.registerAdRenderer(facebookAdRenderer);
+        mMoPubNative.registerAdRenderer(flurryRenderer);
+        mMoPubNative.registerAdRenderer(googlePlayServicesAdRenderer);
+        mMoPubNative.registerAdRenderer(verizonNativeAdRenderer);
+        mMoPubNative.registerAdRenderer(moPubStaticNativeAdRenderer);
+        mMoPubNative.registerAdRenderer(moPubVideoNativeAdRenderer);
+
+        mMoPubNative.makeRequest();
+
         return view;
     }
 
     @Override
     public void onDestroyView() {
-        // You must call this or the ad adapter may cause a memory leak.
-        mAdAdapter.destroy();
         super.onDestroyView();
+
+        if (mMoPubNative != null) {
+            mMoPubNative.destroy();
+            mMoPubNative = null;
+        }
+
+        if (mAdContainer != null) {
+            mAdContainer.removeAllViews();
+            mAdContainer = null;
+        }
+    }
+
+    private String getName() {
+        if (mAdConfiguration == null || TextUtils.isEmpty(mAdConfiguration.getHeaderName())) {
+            return MoPubSampleAdUnit.AdType.MANUAL_NATIVE.getName();
+        }
+
+        return mAdConfiguration.getHeaderName();
     }
 }

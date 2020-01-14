@@ -61,20 +61,6 @@ public class AdTypeTranslatorTest {
     }
 
     @Test
-    public void getCustomEventName_shouldBeMillenialBanner() {
-        customEventName = AdTypeTranslator.getCustomEventName(AdFormat.BANNER, "millennial_native", null, headers);
-
-        assertThat(customEventName).isEqualTo("com.mopub.mobileads.MillennialBanner");
-    }
-
-    @Test
-    public void getCustomEventName_shouldBeMillennialIntersitial() {
-        customEventName = AdTypeTranslator.getCustomEventName(AdFormat.INTERSTITIAL, "interstitial", "millennial_full", headers);
-
-        assertThat(customEventName).isEqualTo("com.mopub.mobileads.MillennialInterstitial");
-    }
-
-    @Test
     public void getCustomEventName_shouldBeMraidBanner() {
         customEventName = AdTypeTranslator.getCustomEventName(AdFormat.BANNER, AdType.MRAID, null, headers);
 

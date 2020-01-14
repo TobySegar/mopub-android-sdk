@@ -8,6 +8,10 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.webkit.WebView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -17,10 +21,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
-
-import android.view.Menu;
-import android.view.MenuItem;
-import android.webkit.WebView;
 
 import com.google.android.material.navigation.NavigationView;
 import com.mopub.common.Constants;
@@ -35,6 +35,7 @@ import com.mopub.common.privacy.ConsentStatusChangeListener;
 import com.mopub.common.privacy.PersonalInfoManager;
 import com.mopub.common.util.DeviceUtils;
 import com.mopub.common.util.Reflection;
+import com.mopub.mobileads.MoPubConversionTracker;
 import com.mopub.mobileads.MoPubErrorCode;
 import com.mopub.network.ImpressionData;
 import com.mopub.network.ImpressionListener;
@@ -198,6 +199,7 @@ public class MoPubSampleActivity extends AppCompatActivity
                 if (mPersonalInfoManager != null && mPersonalInfoManager.shouldShowConsentDialog()) {
                     mPersonalInfoManager.loadConsentDialog(initDialogLoadListener());
                 }
+                new MoPubConversionTracker(MoPubSampleActivity.this).reportAppOpen();
             }
         };
     }

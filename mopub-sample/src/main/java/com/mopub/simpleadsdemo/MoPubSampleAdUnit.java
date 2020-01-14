@@ -28,7 +28,8 @@ class MoPubSampleAdUnit implements Comparable<MoPubSampleAdUnit> {
         REWARDED_VIDEO("Rewarded Video", RewardedVideoDetailFragment.class),
         LIST_VIEW("Native List View", NativeListViewFragment.class),
         RECYCLER_VIEW("Native Recycler View", NativeRecyclerViewFragment.class),
-        CUSTOM_NATIVE("Native Gallery (Custom Stream)", NativeGalleryFragment.class);
+        CUSTOM_NATIVE("Native Gallery (Custom Stream)", NativeGalleryFragment.class),
+        MANUAL_NATIVE("Native Manual", NativeManualFragment.class);
 
         String getName() {
             return name;

@@ -282,26 +282,6 @@ public class MraidNativeCommandHandler {
         return dayOfMonth;
     }
 
-    void downloadImage(final Context context, final String uriString,
-            final MraidCommandFailureListener failureListener) {
-        final DownloadImageAsyncTask downloadImageAsyncTask = new DownloadImageAsyncTask(context,
-                new DownloadImageAsyncTask.DownloadImageAsyncTaskListener() {
-                    @Override
-                    public void onSuccess() {
-                        MoPubLog.log(CUSTOM, "Image successfully saved.");
-                    }
-
-                    @Override
-                    public void onFailure() {
-                        Toast.makeText(context, "Image failed to download.", Toast.LENGTH_SHORT).show();
-                        MoPubLog.log(CUSTOM, "Error downloading and saving image file.");
-                        failureListener.onFailure(new MraidCommandException("Error " +
-                                "downloading and saving image file."));
-                    }
-                });
-        AsyncTasks.safeExecuteOnExecutor(downloadImageAsyncTask, uriString);
-    }
-
     /**
      * Downloads an image from a remote URL and stores it in the user's photo gallery.
      *

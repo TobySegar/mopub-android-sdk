@@ -10,6 +10,8 @@
     <string name="ad_size_width_label">Width</string>
     <string name="ad_size_height_label">Height</string>
     <string name="ad_size_dp_hint">In dips</string>
+    <string name="ad_size_dialog_title">Set MoPubAdSize</string>
+    <string name="ad_size_dialog_save_button">Save MoPubAdSize</string>
     <string name="custom_data">Custom Data (optional)</string>
     <string name="load_ad">Load Ad</string>
     <string name="refresh_ad">Refresh Ad</string>

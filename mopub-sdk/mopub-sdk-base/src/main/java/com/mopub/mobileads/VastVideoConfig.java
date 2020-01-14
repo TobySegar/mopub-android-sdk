@@ -667,7 +667,7 @@ public class VastVideoConfig implements Serializable {
     }
 
     /**
-     * Called when the video is closed or skipped.
+     * Called when the video is closed.
      *
      * @param context         The context. Can be application or activity context.
      * @param contentPlayHead Current video playback time.
@@ -681,7 +681,16 @@ public class VastVideoConfig implements Serializable {
                 mNetworkMediaFileUrl,
                 context
         );
+    }
 
+    /**
+     * Called when the video is skipped.
+     *
+     * @param context         The context. Can be application or activity context.
+     * @param contentPlayHead Current video playback time.
+     */
+    public void handleSkip(@NonNull Context context, int contentPlayHead) {
+        Preconditions.checkNotNull(context, "context cannot be null");
         makeVastTrackingHttpRequest(
                 mSkipTrackers,
                 null,

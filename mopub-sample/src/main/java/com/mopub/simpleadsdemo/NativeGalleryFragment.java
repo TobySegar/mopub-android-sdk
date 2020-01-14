@@ -28,6 +28,7 @@ import com.mopub.nativeads.MoPubStaticNativeAdRenderer;
 import com.mopub.nativeads.MoPubStreamAdPlacer;
 import com.mopub.nativeads.MoPubVideoNativeAdRenderer;
 import com.mopub.nativeads.RequestParameters;
+import com.mopub.nativeads.VerizonNativeAdRenderer;
 import com.mopub.nativeads.ViewBinder;
 
 import java.util.EnumSet;
@@ -153,11 +154,23 @@ public class NativeGalleryFragment extends Fragment implements MoPubNativeAdLoad
                         .privacyInformationIconImageId(R.id.native_privacy_information_icon_image)
                         .build());
 
+        // Set up a renderer for Verizon ads.
+        final VerizonNativeAdRenderer verizonNativeAdRenderer = new VerizonNativeAdRenderer(
+                new ViewBinder.Builder(R.layout.native_ad_list_item)
+                        .titleId(R.id.native_title)
+                        .textId(R.id.native_text)
+                        .mainImageId(R.id.native_main_image)
+                        .iconImageId(R.id.native_icon_image)
+                        .callToActionId(R.id.native_cta)
+                        .privacyInformationIconImageId(R.id.native_privacy_information_icon_image)
+                        .build());
+
         // This ad placer is used to automatically insert ads into the ViewPager.
         mStreamAdPlacer = new MoPubStreamAdPlacer(getActivity());
 
         // The first renderer that can handle a particular native ad gets used.
         // We are prioritizing network renderers.
+        mStreamAdPlacer.registerAdRenderer(verizonNativeAdRenderer);
         mStreamAdPlacer.registerAdRenderer(googlePlayServicesAdRenderer);
         mStreamAdPlacer.registerAdRenderer(flurryRenderer);
         mStreamAdPlacer.registerAdRenderer(facebookAdRenderer);

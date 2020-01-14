@@ -16,7 +16,7 @@ repositories {
 }
 
 project.group = 'com.mopub'
-project.version = '5.9.1'
+project.version = '5.10.0'
 
 android {
     compileSdkVersion 28
@@ -24,7 +24,7 @@ android {
     lintOptions { abortOnError false }
 
     defaultConfig {
-        versionCode 73
+        versionCode 75
         versionName version
         minSdkVersion 16
         targetSdkVersion 29
@@ -83,4 +83,5 @@ android {
 dependencies {
     api 'androidx.legacy:legacy-support-v4:1.0.0'
     api 'androidx.annotation:annotation:1.1.0'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
 }

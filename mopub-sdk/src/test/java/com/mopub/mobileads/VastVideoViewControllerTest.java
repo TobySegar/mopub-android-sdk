@@ -2039,12 +2039,10 @@ public class VastVideoViewControllerTest {
 
         verify(mockRequestQueue).add(
                 argThat(isUrl("close?errorcode=&asseturi=video_url&contentplayhead=00:00:15.094")));
-        verify(mockRequestQueue).add(
-                argThat(isUrl("skip?errorcode=&asseturi=video_url&contentplayhead=00:00:15.094")));
     }
 
     @Test
-    public void onClickCloseButtonTextView_whenCloseButtonIsVisible_shouldFireCloseTrackers() throws Exception {
+    public void onClickCloseButtonTextView_whenCloseButtonIsVisible_whenGteDuration_shouldFireCloseTrackers() throws Exception {
         initializeSubject();
         spyOnVideoView();
         // Because it's almost never exactly 15 seconds
@@ -2062,8 +2060,77 @@ public class VastVideoViewControllerTest {
 
         verify(mockRequestQueue).add(
                 argThat(isUrl("close?errorcode=&asseturi=video_url&contentplayhead=00:00:15.203")));
+    }
+
+    @Test
+    public void onClickCloseButtonTextView_whenCloseButtonIsVisible_whenLessThanDuration_shouldFireCloseTrackers_shouldFireSkipTrackers() throws Exception {
+        initializeSubject();
+        spyOnVideoView();
+        // Because it's almost never exactly 15 seconds
+        when(spyVideoView.getDuration()).thenReturn(15000);
+        when(spyVideoView.getCurrentPosition()).thenReturn(14999);
+        getShadowVideoView().getOnPreparedListener().onPrepared(null);
+
+        subject.setCloseButtonVisible(true);
+
+        // We don't have direct access to the CloseButtonWidget text's close event, so we manually
+        // invoke its onTouchListener's onTouch callback with a fake MotionEvent.ACTION_UP action.
+        View.OnTouchListener closeButtonTextViewOnTouchListener =
+                shadowOf(subject.getCloseButtonWidget().getTextView()).getOnTouchListener();
+        closeButtonTextViewOnTouchListener.onTouch(null, GestureUtils.createActionUp(0, 0));
+
         verify(mockRequestQueue).add(
-                argThat(isUrl("skip?errorcode=&asseturi=video_url&contentplayhead=00:00:15.203")));
+                argThat(isUrl("skip?errorcode=&asseturi=video_url&contentplayhead=00:00:14.999")));
+        verify(mockRequestQueue).add(
+                argThat(isUrl("close?errorcode=&asseturi=video_url&contentplayhead=00:00:15.000")));
+    }
+
+    @Test
+    public void onClickCloseButtonTextView_whenCompletionNotFired_whenCloseButtonIsVisible_whenGreaterThanDuration_shouldFireCloseTrackers_shouldFireCompleteTrackers_shouldNotFireSkipTrackers() throws Exception {
+        initializeSubject();
+        spyOnVideoView();
+        // Because it's almost never exactly 15 seconds
+        when(spyVideoView.getDuration()).thenReturn(15000);
+        when(spyVideoView.getCurrentPosition()).thenReturn(15001);
+        getShadowVideoView().getOnPreparedListener().onPrepared(null);
+
+        subject.setCloseButtonVisible(true);
+
+        // We don't have direct access to the CloseButtonWidget text's close event, so we manually
+        // invoke its onTouchListener's onTouch callback with a fake MotionEvent.ACTION_UP action.
+        View.OnTouchListener closeButtonTextViewOnTouchListener =
+                shadowOf(subject.getCloseButtonWidget().getTextView()).getOnTouchListener();
+        closeButtonTextViewOnTouchListener.onTouch(null, GestureUtils.createActionUp(0, 0));
+
+        verify(mockRequestQueue).add(argThat(isUrl(
+                "complete?errorcode=&asseturi=video_url&contentplayhead=00:00:15.000")));
+        verify(mockRequestQueue).add(
+                argThat(isUrl("close?errorcode=&asseturi=video_url&contentplayhead=00:00:15.000")));
+        verifyNoMoreInteractions(mockRequestQueue);
+    }
+
+    @Test
+    public void onClickCloseButtonTextView_whenCompletionNotFired_whenCloseButtonIsVisible_whenEqualToDuration_shouldFireCloseTrackers_shouldFireCompleteTrackers_shouldNotFireSkipTrackers() throws Exception {
+        initializeSubject();
+        spyOnVideoView();
+        // Because it's almost never exactly 15 seconds
+        when(spyVideoView.getDuration()).thenReturn(15000);
+        when(spyVideoView.getCurrentPosition()).thenReturn(15000);
+        getShadowVideoView().getOnPreparedListener().onPrepared(null);
+
+        subject.setCloseButtonVisible(true);
+
+        // We don't have direct access to the CloseButtonWidget text's close event, so we manually
+        // invoke its onTouchListener's onTouch callback with a fake MotionEvent.ACTION_UP action.
+        View.OnTouchListener closeButtonTextViewOnTouchListener =
+                shadowOf(subject.getCloseButtonWidget().getTextView()).getOnTouchListener();
+        closeButtonTextViewOnTouchListener.onTouch(null, GestureUtils.createActionUp(0, 0));
+
+        verify(mockRequestQueue).add(argThat(isUrl(
+                "complete?errorcode=&asseturi=video_url&contentplayhead=00:00:15.000")));
+        verify(mockRequestQueue).add(
+                argThat(isUrl("close?errorcode=&asseturi=video_url&contentplayhead=00:00:15.000")));
+        verifyNoMoreInteractions(mockRequestQueue);
     }
 
     @Test

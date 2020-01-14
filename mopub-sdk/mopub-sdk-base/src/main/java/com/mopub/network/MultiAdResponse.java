@@ -6,9 +6,10 @@ package com.mopub.network;
 
 
 import android.content.Context;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.text.TextUtils;
 
 import com.mopub.common.AdFormat;
 import com.mopub.common.AdType;
@@ -335,7 +336,7 @@ public class MultiAdResponse implements Iterator<AdResponse> {
         // Process server extras if they are present:
         String customEventData = extractHeader(jsonHeaders, ResponseHeader.CUSTOM_EVENT_DATA);
 
-        // Some server-supported custom events (like Millennial banners) use a different header field
+        // Some server-supported custom events (like AdMob banners) use a different header field
         if (TextUtils.isEmpty(customEventData)) {
             customEventData = extractHeader(jsonHeaders, ResponseHeader.NATIVE_PARAMS);
         }

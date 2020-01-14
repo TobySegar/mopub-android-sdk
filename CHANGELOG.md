@@ -1,3 +1,15 @@
+## Version 5.10.0 (October 30, 2019)
+- **Features**
+    - Activities no longer need to be declared when using maven or `.aar`s.
+    - Upgrade Android Gradle plugin dependency to 3.5.1.
+    - Add the `androidx.appcompat:appcompat` dependency to support default themes in MoPub activities.
+    - Add support for the Verizon native ad renderer.
+    - Sample app now has an example manual native integration.
+
+- **Bug Fixes**
+    - VAST skip trackers are no longer always fired when the video is closed. They only fire if the video is closed when the video still has time remaining.
+    - Adding new ad units to the sample app is now immediate.
+
 ## Version 5.9.1 (September 23, 2019)
 - **Bug Fixes**
   - Now sends ad width in pixels instead of dips when setting a `MoPubAdSize`.

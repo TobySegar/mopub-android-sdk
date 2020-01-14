@@ -12,6 +12,7 @@ import static com.mopub.simpleadsdemo.MoPubSampleAdUnit.AdType.BANNER;
 import static com.mopub.simpleadsdemo.MoPubSampleAdUnit.AdType.CUSTOM_NATIVE;
 import static com.mopub.simpleadsdemo.MoPubSampleAdUnit.AdType.INTERSTITIAL;
 import static com.mopub.simpleadsdemo.MoPubSampleAdUnit.AdType.LIST_VIEW;
+import static com.mopub.simpleadsdemo.MoPubSampleAdUnit.AdType.MANUAL_NATIVE;
 import static com.mopub.simpleadsdemo.MoPubSampleAdUnit.AdType.MEDIUM_RECTANGLE;
 import static com.mopub.simpleadsdemo.MoPubSampleAdUnit.AdType.RECYCLER_VIEW;
 import static com.mopub.simpleadsdemo.MoPubSampleAdUnit.AdType.REWARDED_VIDEO;
@@ -28,7 +29,8 @@ enum SampleAppDefaultAdUnits {
     SAMPLE_NATIVE_LIST_VIEW(R.string.ad_unit_id_native, LIST_VIEW, "MoPub Ad Placer Sample"),
     SAMPLE_NATIVE_RECYCLER_VIEW(R.string.ad_unit_id_native, RECYCLER_VIEW,
             "MoPub Recycler View Sample"),
-    SAMPLE_NATIVE_VIEW_PAGER(R.string.ad_unit_id_native, CUSTOM_NATIVE, "MoPub View Pager Sample");
+    SAMPLE_NATIVE_VIEW_PAGER(R.string.ad_unit_id_native, CUSTOM_NATIVE, "MoPub View Pager Sample"),
+    SAMPLE_NATIVE_MANUAL(R.string.ad_unit_id_native, MANUAL_NATIVE, "MoPub Manual Native Sample");
 
     private int mAdUnitIdStringKey;
     @NonNull private MoPubSampleAdUnit.AdType mAdType;

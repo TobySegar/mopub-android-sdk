@@ -37,7 +37,7 @@ The MoPub SDK is available via:
     }
 
     dependencies {
-        implementation('com.mopub:mopub-sdk:5.9.1@aar') {
+        implementation('com.mopub:mopub-sdk:5.10.0@aar') {
             transitive = true
         }
     }
@@ -59,27 +59,27 @@ The MoPub SDK is available via:
         // ... other project dependencies
 
         // For banners
-        implementation('com.mopub:mopub-sdk-banner:5.9.1@aar') {
+        implementation('com.mopub:mopub-sdk-banner:5.10.0@aar') {
             transitive = true
         }
         
         // For interstitials
-        implementation('com.mopub:mopub-sdk-interstitial:5.9.1@aar') {
+        implementation('com.mopub:mopub-sdk-interstitial:5.10.0@aar') {
             transitive = true
         }
 
         // For rewarded videos. This will automatically also include interstitials
-        implementation('com.mopub:mopub-sdk-rewardedvideo:5.9.1@aar') {
+        implementation('com.mopub:mopub-sdk-rewardedvideo:5.10.0@aar') {
             transitive = true
         }
 
         // For native static (images).
-        implementation('com.mopub:mopub-sdk-native-static:5.9.1@aar') {
+        implementation('com.mopub:mopub-sdk-native-static:5.10.0@aar') {
             transitive = true
         }
 
         // For native video. This will automatically also include native static
-        implementation('com.mopub:mopub-sdk-native-video:5.9.1@aar') {
+        implementation('com.mopub:mopub-sdk-native-video:5.10.0@aar') {
             transitive = true
         }
     }
@@ -107,17 +107,26 @@ The MoPub SDK is available via:
 ## New in this Version
 Please view the [changelog](https://github.com/mopub/mopub-android-sdk/blob/master/CHANGELOG.md) for a complete list of additions, fixes, and enhancements in the latest release.
 
+- **Features**
+    - Activities no longer need to be declared when using maven or `.aar`s.
+    - Upgrade Android Gradle plugin dependency to 3.5.1.
+    - Add the `androidx.appcompat:appcompat` dependency to support default themes in MoPub activities.
+    - Add support for the Verizon native ad renderer.
+    - Sample app now has an example manual native integration.
+
 - **Bug Fixes**
-  - Now sends ad width in pixels instead of dips when setting a `MoPubAdSize`.
+    - VAST skip trackers are no longer always fired when the video is closed. They only fire if the video is closed when the video still has time remaining.
+    - Adding new ad units to the sample app is now immediate.
 
 ## Requirements
 
 - Android 4.1 (API Version 16) and up (**Updated in 4.12.0**)
 - androidx.legacy:legacy-support-v4:1.0.0 (**Updated in 5.9.0**)
 - androidx.annotation:annotation:1.1.0 (**Updated in 5.9.0**)
+- androidx.appcompat:appcompat:1.1.0 (**Updated in 5.10.0**)
 - androidx.recyclerview:recyclerview:1.0.0 (**Updated in 5.9.0**)
 - MoPub Volley Library (mopub-volley-2.1.0.jar - available on JCenter) (**Updated in 5.6.0**)
-- **Recommended** Google Play Services (com.google.android.gms:play-services-ads-identifier:16.0.0 and com.google.android.gms:play-services-base:16.0.1) (**Updated in 5.6.0**)
+- **Recommended** Google Play Services (com.google.android.gms:play-services-ads-identifier:17.0.0 and com.google.android.gms:play-services-base:17.1.0) (**Updated in 5.10.0**)
 
 ## Upgrading to SDK 5.0
 
@@ -137,7 +146,7 @@ Normally, to add the MoPub SDK to your app via JCenter, your `build.gradle` woul
 
 ```	
 dependencies {
-    implementation('com.mopub:mopub-sdk:5.9.1@aar') {
+    implementation('com.mopub:mopub-sdk:5.10.0@aar') {
         transitive = true
     }
 }
@@ -146,7 +155,7 @@ Update to the following to exclude one or both viewability vendors:
 
 ```
 dependencies {
-    implementation('com.mopub:mopub-sdk:5.9.1@aar') {
+    implementation('com.mopub:mopub-sdk:5.10.0@aar') {
         transitive = true
         exclude module: 'libAvid-mopub' // To exclude AVID
         exclude module: 'moat-mobile-app-kit' // To exclude Moat

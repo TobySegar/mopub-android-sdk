@@ -254,7 +254,7 @@ public class MoPubListFragment extends ListFragment implements TrashCanClickList
             }
         }
         mAdapter.add(createdAdUnit);
-        mAdapter.sort(MoPubSampleAdUnit.COMPARATOR);
+        syncDbAdapter();
         return createdAdUnit;
     }
 
