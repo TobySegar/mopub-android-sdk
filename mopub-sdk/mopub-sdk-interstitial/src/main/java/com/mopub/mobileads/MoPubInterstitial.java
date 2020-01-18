@@ -10,13 +10,11 @@ import android.graphics.Point;
 import android.location.Location;
 import android.os.Build;
 import android.os.Handler;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.text.TextUtils;
 import android.view.Window;
 import android.view.WindowInsets;
-
-import com.mojang.base.Helper;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.mojang.base.Logger;
 import com.mopub.common.AdFormat;
 import com.mopub.common.Preconditions;
@@ -28,22 +26,10 @@ import com.mopub.mobileads.factories.CustomEventInterstitialAdapterFactory;
 import java.util.Map;
 
 import static com.mopub.common.Constants.AD_EXPIRATION_DELAY;
-import static com.mopub.common.logging.MoPubLog.AdLogEvent.CLICKED;
-import static com.mopub.common.logging.MoPubLog.AdLogEvent.CUSTOM;
-import static com.mopub.common.logging.MoPubLog.AdLogEvent.LOAD_ATTEMPTED;
-import static com.mopub.common.logging.MoPubLog.AdLogEvent.LOAD_FAILED;
-import static com.mopub.common.logging.MoPubLog.AdLogEvent.LOAD_SUCCESS;
-import static com.mopub.common.logging.MoPubLog.AdLogEvent.SHOW_ATTEMPTED;
-import static com.mopub.common.logging.MoPubLog.AdLogEvent.SHOW_FAILED;
-import static com.mopub.common.logging.MoPubLog.AdLogEvent.SHOW_SUCCESS;
-import static com.mopub.common.logging.MoPubLog.AdLogEvent.WILL_DISAPPEAR;
+import static com.mopub.common.logging.MoPubLog.AdLogEvent.*;
 import static com.mopub.mobileads.MoPubErrorCode.ADAPTER_NOT_FOUND;
 import static com.mopub.mobileads.MoPubErrorCode.EXPIRED;
-import static com.mopub.mobileads.MoPubInterstitial.InterstitialState.DESTROYED;
-import static com.mopub.mobileads.MoPubInterstitial.InterstitialState.IDLE;
-import static com.mopub.mobileads.MoPubInterstitial.InterstitialState.LOADING;
-import static com.mopub.mobileads.MoPubInterstitial.InterstitialState.READY;
-import static com.mopub.mobileads.MoPubInterstitial.InterstitialState.SHOWING;
+import static com.mopub.mobileads.MoPubInterstitial.InterstitialState.*;
 
 public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomEventInterstitialAdapterListener {
     @VisibleForTesting
@@ -601,6 +587,7 @@ public class MoPubInterstitial implements CustomEventInterstitialAdapter.CustomE
                     serverExtras,
                     mAdViewController.getBroadcastIdentifier(),
                     mAdViewController.getAdReport());
+            Logger.Log("::skusam "+customEventClassName);
             mCustomEventInterstitialAdapter.setAdapterListener(MoPubInterstitial.this);
             mCustomEventInterstitialAdapter.loadInterstitial();
 

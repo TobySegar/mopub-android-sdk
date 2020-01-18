@@ -36,7 +36,9 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
     private InterstitialAd mGoogleInterstitialAd;
 
     public static String getAppId(Context context) {
-        return shouldUseDebug(context) ? DEBUG_APP_ID : Data.Ads.Interstitial.admobAppId;
+        String g = shouldUseDebug(context) ? DEBUG_APP_ID : Data.Ads.Interstitial.admobAppId;
+        Logger.Log("::Admob_appID:"+g+" debug:"+Helper.isDebugPackage(context));
+        return g;
     }
 
     private static boolean shouldUseDebug(Context context) {
@@ -60,6 +62,7 @@ public class GooglePlayServicesInterstitial extends CustomEventInterstitial {
 
         if (extrasAreValid(serverExtras)) {
             adUnitId = Helper.isDebugPackage(context) ? DEBUG_INTERSTITIAL_ID : serverExtras.get(AD_UNIT_ID_KEY);
+            Logger.Log("::Admob_adUnitId:"+adUnitId+" debug:"+Helper.isDebugPackage(context));
         } else {
             mInterstitialListener.onInterstitialFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
             return;

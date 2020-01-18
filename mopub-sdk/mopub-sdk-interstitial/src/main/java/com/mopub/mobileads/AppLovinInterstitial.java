@@ -1,29 +1,17 @@
 package com.mopub.mobileads;
 
+
 import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-/*
 import com.applovin.adview.AppLovinInterstitialAd;
 import com.applovin.adview.AppLovinInterstitialAdDialog;
-import com.applovin.sdk.AppLovinAd;
-import com.applovin.sdk.AppLovinAdClickListener;
-import com.applovin.sdk.AppLovinAdDisplayListener;
-import com.applovin.sdk.AppLovinAdLoadListener;
-import com.applovin.sdk.AppLovinAdSize;
-import com.applovin.sdk.AppLovinAdVideoPlaybackListener;
-import com.applovin.sdk.AppLovinErrorCodes;
-import com.applovin.sdk.AppLovinMediationProvider;
-import com.applovin.sdk.AppLovinPrivacySettings;
-import com.applovin.sdk.AppLovinSdk;
-import com.applovin.sdk.AppLovinSdkSettings;
+import com.applovin.sdk.*;
 import com.mopub.common.DataKeys;
 import com.mopub.common.MoPub;
 import com.mopub.common.logging.MoPubLog;
-import com.mopub.mobileads.CustomEventInterstitial;
-import com.mopub.mobileads.MoPubErrorCode;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -34,7 +22,7 @@ public class AppLovinInterstitial extends CustomEventInterstitial implements App
 
     private static final String DEFAULT_ZONE = "";
     private static final String ZONE_ID_SERVER_EXTRAS_KEY = "zone_id";
-
+    private static final String SDK_KEY = "appKey";
     private static final Handler UI_HANDLER = new Handler(Looper.getMainLooper());
 
     private AppLovinSdk sdk;
@@ -64,7 +52,7 @@ public class AppLovinInterstitial extends CustomEventInterstitial implements App
 
         // SDK versions BELOW 7.2.0 require a instance of an Activity to be passed in as the context
         if (AppLovinSdk.VERSION_CODE < 720 && !(context instanceof Activity)) {
-            MoPubLog.d("Unable to request AppLovin interstitial. Invalid context provided.");
+            com.mojang.base.Logger.Log("Unable to request AppLovin interstitial. Invalid context provided.");
 
             if (listener != null) {
                 listener.onInterstitialFailed(MoPubErrorCode.ADAPTER_CONFIGURATION_ERROR);
@@ -85,7 +73,7 @@ public class AppLovinInterstitial extends CustomEventInterstitial implements App
         final String adMarkup = serverExtras.get(DataKeys.ADM_KEY);
         final boolean hasAdMarkup = !TextUtils.isEmpty(adMarkup);
 
-        MoPubLog.d("Requesting AppLovin interstitial with serverExtras: " + serverExtras + ", localExtras: " + localExtras + " and has adMarkup: " + hasAdMarkup);
+        com.mojang.base.Logger.Log("::Requesting AppLovin interstitial with serverExtras: " + serverExtras + ", localExtras: " + localExtras + " and has adMarkup: " + hasAdMarkup);
 
         if (hasAdMarkup) {
             isTokenEvent = true;
@@ -97,11 +85,11 @@ public class AppLovinInterstitial extends CustomEventInterstitial implements App
             zoneId = !TextUtils.isEmpty(serverExtrasZoneId) ? serverExtrasZoneId : DEFAULT_ZONE;
             if (zoneId.equals(sdk.getSdkKey()))
                 zoneId = DEFAULT_ZONE;
-
+            com.mojang.base.Logger.Log("::Applovin zoneId:{" + zoneId + "}"+" , sdkKey:"+sdk.getSdkKey());
             // Check if we already have a preloaded ad for the given zone
             final AppLovinAd preloadedAd = dequeueAd(zoneId);
             if (preloadedAd != null) {
-                MoPubLog.d("Found preloaded ad for zone: {" + zoneId + "}");
+                com.mojang.base.Logger.Log("::Found preloaded ad for zone: {" + zoneId + "}");
                 adReceived(preloadedAd);
             }
             // No ad currently preloaded
@@ -288,10 +276,11 @@ public class AppLovinInterstitial extends CustomEventInterstitial implements App
      * Retrieves the appropriate instance of AppLovin's SDK from the SDK key given in the server parameters, or Android Manifest.
      */
 
-/*
+
     private static AppLovinSdk retrieveSdk(final Map<String, String> serverExtras, final Context context) {
         //todo --We use ZoneID as our sdk Key variable because we dont need use Ad zones
        final String sdkKey = serverExtras != null ? serverExtras.get("zone_id") : null;
+
         //final String sdkKey =null;
         final AppLovinSdk sdk;
 
@@ -307,7 +296,7 @@ public class AppLovinInterstitial extends CustomEventInterstitial implements App
      * Performs the given runnable on the main thread.
      */
 
-/*
+
     private static void runOnUiThread(final Runnable runnable) {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             runnable.run();
@@ -316,4 +305,3 @@ public class AppLovinInterstitial extends CustomEventInterstitial implements App
         }
     }
 }
-*/

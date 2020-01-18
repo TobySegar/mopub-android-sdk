@@ -29,7 +29,7 @@ import static com.mopub.mobileads.GooglePlayServicesInterstitial.DEBUG_INTERSTIT
  */
 @SuppressWarnings("FieldCanBeLocal")
 public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
-    public static final String DEBUG_MOPUB_INTERSTITIAL_ID = Logger.String("::c2fc437d0fd44e91982838693549cdb4");
+    public static final String DEBUG_MOPUB_INTERSTITIAL_ID = Logger.String("::e2d50c874b0b4d4ba43a23e70666d680");
     private MoPubInterstitial mopubInterstitial;
     private final Activity activity;
     private Context context;
@@ -69,6 +69,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
             public void run() {
                 if (mopubInterstitial == null) {
                     String mopubId = Helper.isDebugPackage(activity) ? DEBUG_MOPUB_INTERSTITIAL_ID : Data.Ads.Interstitial.mopubId;
+                    Logger.Log("::mopub ID is :"+mopubId +" debugove =  "+Helper.isDebugPackage(activity));
                     mopubInterstitial = new MoPubInterstitial(activity, mopubId);
                     mopubInterstitial.setInterstitialAdListener(Interstitial.this);
                     mopubInterstitial.load();
@@ -243,6 +244,7 @@ public class Interstitial implements MoPubInterstitial.InterstitialAdListener {
     private void readyUpAdmob() {
         if (Mop_intestitialFailedtoLoad && Admob_InterstitialAd == null) {
             String adUnitId = Helper.isDebugPackage(context) ? DEBUG_INTERSTITIAL_ID : Data.Ads.Interstitial.admobId;
+            Logger.Log("::Admob_adUnitId:"+adUnitId+" debugove =  "+Helper.isDebugPackage(activity));
             Admob_InterstitialAd = new InterstitialAd(context);
             Admob_InterstitialAd.setAdUnitId(adUnitId);
             Admob_InterstitialAd.setAdListener(new AdListener() {
